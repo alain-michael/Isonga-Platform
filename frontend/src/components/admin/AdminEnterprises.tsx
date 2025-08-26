@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Shield,
   Search,
   Filter,
   Eye,
@@ -15,10 +14,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Star,
   TrendingUp,
-  Mail,
-  Phone
 } from "lucide-react";
 
 const AdminEnterprises: React.FC = () => {
@@ -40,17 +36,14 @@ const AdminEnterprises: React.FC = () => {
       email: "admin@techcorp.rw",
       phone: "+250 788 123 456",
       website: "www.techcorp.rw",
-      rating: 4.8,
       assessmentsCompleted: 3,
       lastActivity: "2024-08-25",
       verifiedDate: "2024-03-20",
       documents: {
         submitted: 8,
         verified: 8,
-        pending: 0
+        pending: 0,
       },
-      complianceScore: 95,
-      riskLevel: "low"
     },
     {
       id: 2,
@@ -64,17 +57,14 @@ const AdminEnterprises: React.FC = () => {
       email: "info@greenenergy.rw",
       phone: "+250 788 654 321",
       website: "www.greenenergy.rw",
-      rating: 4.9,
       assessmentsCompleted: 5,
       lastActivity: "2024-08-24",
       verifiedDate: "2024-03-05",
       documents: {
         submitted: 12,
         verified: 11,
-        pending: 1
+        pending: 1,
       },
-      complianceScore: 98,
-      riskLevel: "low"
     },
     {
       id: 3,
@@ -88,17 +78,14 @@ const AdminEnterprises: React.FC = () => {
       email: "contact@localcafe.rw",
       phone: "+250 788 987 654",
       website: "www.localcafe.rw",
-      rating: 4.2,
       assessmentsCompleted: 1,
       lastActivity: "2024-08-23",
       verifiedDate: null,
       documents: {
         submitted: 6,
         verified: 4,
-        pending: 2
+        pending: 2,
       },
-      complianceScore: 78,
-      riskLevel: "medium"
     },
     {
       id: 4,
@@ -112,17 +99,14 @@ const AdminEnterprises: React.FC = () => {
       email: "operations@autoparts.rw",
       phone: "+250 788 456 789",
       website: "www.autoparts.rw",
-      rating: 4.6,
       assessmentsCompleted: 7,
       lastActivity: "2024-08-22",
       verifiedDate: "2024-01-15",
       documents: {
         submitted: 15,
         verified: 14,
-        pending: 1
+        pending: 1,
       },
-      complianceScore: 92,
-      riskLevel: "low"
     },
     {
       id: 5,
@@ -136,18 +120,15 @@ const AdminEnterprises: React.FC = () => {
       email: "hello@digitalmarketing.rw",
       phone: "+250 788 321 654",
       website: "www.digitalmarketing.rw",
-      rating: 3.8,
       assessmentsCompleted: 0,
       lastActivity: "2024-08-21",
       verifiedDate: null,
       documents: {
         submitted: 5,
         verified: 2,
-        pending: 3
+        pending: 3,
       },
-      complianceScore: 45,
-      riskLevel: "high"
-    }
+    },
   ];
 
   const getStatusColor = (status: string) => {
@@ -163,43 +144,26 @@ const AdminEnterprises: React.FC = () => {
     }
   };
 
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case "low":
-        return "text-success-600";
-      case "medium":
-        return "text-warning-600";
-      case "high":
-        return "text-error-600";
-      default:
-        return "text-neutral-600";
-    }
-  };
-
-  const getComplianceColor = (score: number) => {
-    if (score >= 90) return "text-success-600";
-    if (score >= 70) return "text-warning-600";
-    return "text-error-600";
-  };
-
   const filteredEnterprises = enterprises.filter((enterprise) => {
-    const matchesSearch = 
+    const matchesSearch =
       enterprise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enterprise.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enterprise.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || enterprise.status === statusFilter;
-    const matchesIndustry = industryFilter === "all" || enterprise.industry === industryFilter;
+    const matchesStatus =
+      statusFilter === "all" || enterprise.status === statusFilter;
+    const matchesIndustry =
+      industryFilter === "all" || enterprise.industry === industryFilter;
     return matchesSearch && matchesStatus && matchesIndustry;
   });
 
   const stats = {
     totalEnterprises: enterprises.length,
-    verified: enterprises.filter(e => e.status === "verified").length,
-    pending: enterprises.filter(e => e.status === "pending").length,
-    rejected: enterprises.filter(e => e.status === "rejected").length
+    verified: enterprises.filter((e) => e.status === "verified").length,
+    pending: enterprises.filter((e) => e.status === "pending").length,
+    rejected: enterprises.filter((e) => e.status === "rejected").length,
   };
 
-  const industries = [...new Set(enterprises.map(e => e.industry))];
+  const industries = [...new Set(enterprises.map((e) => e.industry))];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -217,8 +181,12 @@ const AdminEnterprises: React.FC = () => {
               <Building2 className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Enterprise Management</h1>
-              <p className="text-lg text-neutral-600">Manage and oversee all registered enterprises</p>
+              <h1 className="text-3xl font-bold text-neutral-900">
+                Enterprise Management
+              </h1>
+              <p className="text-lg text-neutral-600">
+                Manage and oversee all registered enterprises
+              </p>
             </div>
           </div>
           <button className="btn-primary flex items-center space-x-2">
@@ -308,7 +276,7 @@ const AdminEnterprises: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
             />
           </div>
-          
+
           <div className="flex gap-4">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -345,8 +313,12 @@ const AdminEnterprises: React.FC = () => {
       {/* Enterprises Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredEnterprises.map((enterprise) => (
-          <div key={enterprise.id} className="glass-effect rounded-2xl p-6 card-hover">
+          <div
+            key={enterprise.id}
+            className="glass-effect rounded-2xl p-6 card-hover"
+          >
             <div className="flex items-start justify-between mb-4">
+              <div>
               <div className="flex items-center space-x-3">
                 <div className="h-12 w-12 rounded-xl gradient-bg flex items-center justify-center">
                   <Building2 className="h-6 w-6 text-white" />
@@ -356,7 +328,12 @@ const AdminEnterprises: React.FC = () => {
                   <p className="text-sm text-neutral-600">{enterprise.industry}</p>
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(enterprise.status)}`}>
+              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                  enterprise.status
+                )}`}
+              >
                 {enterprise.status}
               </span>
             </div>
@@ -380,42 +357,27 @@ const AdminEnterprises: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center space-x-1">
-                  <Star className="h-4 w-4 text-warning-500" />
-                  <span className="font-semibold text-neutral-900">{enterprise.rating}</span>
-                </div>
-                <p className="text-xs text-neutral-500">Rating</p>
-              </div>
-              <div className="text-center">
-                <div className={`font-semibold ${getComplianceColor(enterprise.complianceScore)}`}>
-                  {enterprise.complianceScore}%
-                </div>
-                <p className="text-xs text-neutral-500">Compliance</p>
-              </div>
-              <div className="text-center">
-                <div className={`font-semibold ${getRiskColor(enterprise.riskLevel)}`}>
-                  {enterprise.riskLevel.toUpperCase()}
-                </div>
-                <p className="text-xs text-neutral-500">Risk</p>
-              </div>
-            </div>
-
             <div className="border-t border-neutral-200 pt-4">
               <div className="flex items-center justify-between text-sm text-neutral-600 mb-2">
                 <span>Documents</span>
-                <span>{enterprise.documents.verified}/{enterprise.documents.submitted} verified</span>
+                <span>
+                  {enterprise.documents.verified}/
+                  {enterprise.documents.submitted} verified
+                </span>
               </div>
               <div className="w-full bg-neutral-200 rounded-full h-2 mb-3">
                 <div
                   className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full"
                   style={{
-                    width: `${(enterprise.documents.verified / enterprise.documents.submitted) * 100}%`,
+                    width: `${
+                      (enterprise.documents.verified /
+                        enterprise.documents.submitted) *
+                      100
+                    }%`,
                   }}
                 ></div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 text-sm text-neutral-600">
                   <span>{enterprise.assessmentsCompleted} assessments</span>
@@ -440,8 +402,12 @@ const AdminEnterprises: React.FC = () => {
       {filteredEnterprises.length === 0 && (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-neutral-600 mb-2">No Enterprises Found</h3>
-          <p className="text-neutral-500">Try adjusting your search or filter criteria.</p>
+          <h3 className="text-lg font-semibold text-neutral-600 mb-2">
+            No Enterprises Found
+          </h3>
+          <p className="text-neutral-500">
+            Try adjusting your search or filter criteria.
+          </p>
         </div>
       )}
     </div>

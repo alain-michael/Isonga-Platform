@@ -8,6 +8,7 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import BusinessRegistrationFlow from "./components/registration/BusinessRegistrationFlow";
 import Dashboard from "./components/dashboard/Dashboard";
 import EnterpriseProfile from "./components/enterprise/EnterpriseProfile";
 import Assessments from "./components/assessments/Assessments";
@@ -80,6 +81,14 @@ const AppContent: React.FC = () => {
               <PublicRoute>
                 <Register />
               </PublicRoute>
+            }
+          />
+          <Route
+            path="/business-registration"
+            element={
+              <ProtectedRoute>
+                <BusinessRegistrationFlow />
+              </ProtectedRoute>
             }
           />
           <Route

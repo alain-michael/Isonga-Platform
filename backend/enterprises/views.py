@@ -32,6 +32,21 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
+    @action(detail=False, methods=['get'], url_path='my-enterprise')
+    def my_enterprise(self, request):
+        """Get current user's enterprise"""
+        if request.user.user_type != 'enterprise':
+            return Response({'error': 'Only enterprise users can access this endpoint'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            enterprise = Enterprise.objects.get(user=request.user)
+            serializer = self.get_serializer(enterprise)
+            return Response(serializer.data)
+        except Enterprise.DoesNotExist:
+            return Response({'error': 'No enterprise profile found'}, 
+                          status=status.HTTP_404_NOT_FOUND)
+    
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def vet(self, request, pk=None):
         """Admin action to vet an enterprise"""

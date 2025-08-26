@@ -51,9 +51,8 @@ const Register: React.FC = () => {
       const { confirmPassword, ...registrationData } = formData;
       await register(registrationData);
 
-      // Show success message and redirect to login
-      alert("Registration successful! Please login with your credentials.");
-      navigate("/login");
+      // Redirect to business registration flow
+      navigate("/business-registration");
     } catch (err: any) {
       setError(
         err.response?.data?.error || "Registration failed. Please try again."

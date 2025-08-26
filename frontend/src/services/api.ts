@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Create axios instance
 const api = axios.create({
@@ -39,7 +39,7 @@ export const authAPI = {
     api.post('/accounts/api/token/', credentials),
   
   register: (userData: any) =>
-    api.post('/accounts/api/register/', userData),
+    api.post('/accounts/api/users/register/', userData),
   
   logout: () =>
     api.post('/accounts/api/logout/'),
@@ -63,6 +63,9 @@ export const enterpriseAPI = {
   
   getById: (id: string) =>
     api.get(`/enterprises/api/enterprises/${id}/`),
+  
+  getMyEnterprise: () =>
+    api.get('/enterprises/api/my-enterprise/'),
   
   create: (data: any) =>
     api.post('/enterprises/api/enterprises/', data),

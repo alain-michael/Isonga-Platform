@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Building2,
   FileText,
@@ -22,6 +22,7 @@ interface DashboardStats {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalAssessments: 0,
     completedAssessments: 0,
@@ -30,10 +31,35 @@ const Dashboard: React.FC = () => {
   });
   const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasBusinessProfile, setHasBusinessProfile] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
-    fetchDashboardData();
+    if (user?.user_type === "enterprise") {
+      checkBusinessProfile();
+    } else {
+      fetchDashboardData();
+    }
   }, []);
+
+  const checkBusinessProfile = async () => {
+    try {
+      await enterpriseAPI.getMyEnterprise();
+      setHasBusinessProfile(true);
+      fetchDashboardData();
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        // No business profile found - redirect to registration flow
+        setHasBusinessProfile(false);
+        navigate("/business-registration");
+      } else {
+        console.error("Error checking business profile:", error);
+        setHasBusinessProfile(false);
+        navigate("/business-registration");
+      }
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {

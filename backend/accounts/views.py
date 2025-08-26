@@ -26,9 +26,23 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'register']:
             return [permissions.AllowAny()]
         return super().get_permissions()
+    
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    def register(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'message': 'User created successfully',
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserProfileSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def login(self, request):
