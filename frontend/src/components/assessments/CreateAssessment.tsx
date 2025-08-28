@@ -6,12 +6,8 @@ import {
   Save,
   CheckCircle,
   FileText,
-  Globe,
-  Settings,
   Plus,
   Trash2,
-  HelpCircle,
-  Info
 } from "lucide-react";
 
 interface Question {
@@ -51,8 +47,6 @@ const CreateAssessment: React.FC = () => {
     questionnaires: [] as Questionnaire[]
   });
 
-  const [currentQuestionnaireIndex, setCurrentQuestionnaireIndex] = useState(0);
-
   useEffect(() => {
     if (editId) {
       // Load existing assessment data for editing
@@ -61,7 +55,7 @@ const CreateAssessment: React.FC = () => {
     }
   }, [editId]);
 
-  const loadExistingAssessment = (id: string) => {
+  const loadExistingAssessment = (_id: string) => {
     // Mock loading existing assessment
     const mockAssessment = {
       title: "SME Financial Health Assessment",

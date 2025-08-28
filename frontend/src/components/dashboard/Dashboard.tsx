@@ -31,9 +31,6 @@ const Dashboard: React.FC = () => {
   });
   const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasBusinessProfile, setHasBusinessProfile] = useState<boolean | null>(
-    null
-  );
 
   useEffect(() => {
     if (user?.user_type === "enterprise") {
@@ -46,16 +43,13 @@ const Dashboard: React.FC = () => {
   const checkBusinessProfile = async () => {
     try {
       await enterpriseAPI.getMyEnterprise();
-      setHasBusinessProfile(true);
       fetchDashboardData();
     } catch (error: any) {
       if (error.response?.status === 404) {
         // No business profile found - redirect to registration flow
-        setHasBusinessProfile(false);
         navigate("/business-registration");
       } else {
         console.error("Error checking business profile:", error);
-        setHasBusinessProfile(false);
         navigate("/business-registration");
       }
     }

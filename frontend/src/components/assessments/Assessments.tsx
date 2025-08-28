@@ -7,8 +7,6 @@ import {
   TrendingUp,
   Plus,
   Eye,
-  Calendar,
-  Award,
 } from "lucide-react";
 
 const Assessments: React.FC = () => {

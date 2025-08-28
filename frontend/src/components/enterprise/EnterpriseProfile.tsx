@@ -4,20 +4,11 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  Calendar, 
   Edit, 
   Save, 
-  X, 
-  User, 
   FileText, 
   Upload,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
   Globe,
-  Users,
-  DollarSign,
-  Briefcase
 } from "lucide-react";
 
 const EnterpriseProfile: React.FC = () => {

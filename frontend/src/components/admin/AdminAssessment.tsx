@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Shield,
   Search,
   Filter,
   Eye,
@@ -18,7 +17,6 @@ import {
   Edit,
 } from "lucide-react";
 import { assessmentAPI } from "../../services/api";
-import { useAuth } from "../../contexts/AuthContext";
 
 interface Assessment {
   id: number;
@@ -52,7 +50,6 @@ interface Assessment {
 }
 
 const AdminAssessments: React.FC = () => {
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -88,19 +85,6 @@ const AdminAssessments: React.FC = () => {
         return "bg-warning-100 text-warning-800 border-warning-200";
       case "draft":
         return "bg-neutral-100 text-neutral-800 border-neutral-200";
-      default:
-        return "bg-neutral-100 text-neutral-800 border-neutral-200";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-error-100 text-error-800 border-error-200";
-      case "medium":
-        return "bg-warning-100 text-warning-800 border-warning-200";
-      case "low":
-        return "bg-success-100 text-success-800 border-success-200";
       default:
         return "bg-neutral-100 text-neutral-800 border-neutral-200";
     }
