@@ -263,7 +263,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       {/* Tabs */}
       <div className="mb-8">
         <div className="border-b border-neutral-200">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex justify-between sm:space-x-8">
             {[
               { id: "profile", label: "Enterprise Profile", icon: Building2 },
               { id: "contact", label: "Contact Information", icon: Mail },
@@ -279,8 +279,8 @@ const AdminEnterpriseDetail: React.FC = () => {
                     : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300"
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
               >
-                <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
+                <tab.icon className="h-6 w-6 sm:h-4 sm:w-4" />
+                <span className="hidden sm:block">{tab.label}</span>
               </button>
             ))}
           </nav>
