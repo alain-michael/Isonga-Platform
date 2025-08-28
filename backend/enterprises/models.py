@@ -54,15 +54,42 @@ class Enterprise(models.Model):
     description = models.TextField(blank=True, null=True)
     
     # Verification Status
-    is_vetted = models.BooleanField(default=False)
+    VERIFICATION_STATUS_CHOICES = (
+        ('pending', 'Pending Review'),
+        ('under_review', 'Under Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('documents_requested', 'Documents Requested'),
+    )
+    
+    verification_status = models.CharField(
+        max_length=20, 
+        choices=VERIFICATION_STATUS_CHOICES, 
+        default='pending'
+    )
+    is_vetted = models.BooleanField(default=False)  # Keep for backward compatibility
     vetted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='vetted_enterprises')
     vetted_at = models.DateTimeField(null=True, blank=True)
+    verification_notes = models.TextField(blank=True, null=True, help_text="Admin notes about verification status")
+    documents_requested = models.TextField(blank=True, null=True, help_text="Specific documents requested from enterprise")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"{self.business_name} ({self.tin_number})"
+    
+    @property
+    def is_approved(self):
+        return self.verification_status == 'approved'
+    
+    @property
+    def is_rejected(self):
+        return self.verification_status == 'rejected'
+    
+    @property
+    def needs_documents(self):
+        return self.verification_status == 'documents_requested'
     
     class Meta:
         ordering = ['-created_at']
@@ -85,6 +112,12 @@ class EnterpriseDocument(models.Model):
     fiscal_year = models.PositiveIntegerField()
     description = models.TextField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    # Document verification
+    is_verified = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_documents')
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verification_notes = models.TextField(blank=True, null=True)
     
     # Financial data extracted from documents
     extracted_revenue = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)

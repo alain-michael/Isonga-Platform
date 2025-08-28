@@ -139,4 +139,19 @@ export const paymentAPI = {
     api.post(`/payments/api/payments/${id}/confirm_payment/`),
 };
 
+// Admin API
+export const adminAPI = {
+  getDashboardStats: () =>
+    api.get('/admin_dashboard/api/dashboard-stats/'),
+  
+  getRecentAssessments: (params?: any) =>
+    api.get('/admin_dashboard/api/recent-assessments/', { params }),
+  
+  getRecentEnterprises: (params?: any) =>
+    api.get('/admin_dashboard/api/recent-enterprises/', { params }),
+  
+  getSystemMetrics: () =>
+    api.get('/admin_dashboard/api/system-metrics/'),
+};
+
 export default api;

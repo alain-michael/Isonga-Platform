@@ -239,7 +239,7 @@ const ManageAssessments: React.FC = () => {
                 <p className="text-sm font-medium text-neutral-700 mb-1">Questionnaires:</p>
                 <div className="flex flex-wrap gap-2">
                   {assessment.questionnaires.map((q, index) => (
-                    <span key={index} className="px-2 py-1 bg-primary-100 text-primary-700 rounded-lg text-xs">
+                    <span key={index} className="px-2 py-1 bg-primary-100 dark:text-primary-700 rounded-lg text-xs">
                       {q}
                     </span>
                   ))}
@@ -250,7 +250,7 @@ const ManageAssessments: React.FC = () => {
                 <p className="text-sm font-medium text-neutral-700 mb-1">Languages:</p>
                 <div className="flex flex-wrap gap-2">
                   {assessment.languages.map((lang, index) => (
-                    <span key={index} className="px-2 py-1 bg-secondary-100 text-secondary-700 rounded-lg text-xs">
+                    <span key={index} className="px-2 py-1 bg-secondary-100 dark:text-secondary-700 rounded-lg text-xs">
                       {lang}
                     </span>
                   ))}

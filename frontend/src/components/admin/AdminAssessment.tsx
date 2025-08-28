@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,112 +15,66 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Edit
+  Edit,
 } from "lucide-react";
+import { assessmentAPI } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
+
+interface Assessment {
+  id: number;
+  title: string;
+  enterprise: {
+    id: number;
+    business_name: string;
+    sector: string;
+    tin_number: string;
+    district: string;
+    number_of_employees: string;
+    email: string;
+    phone_number: string;
+  };
+  status: string;
+  created_at: string;
+  updated_at: string;
+  score?: number;
+  reviewer?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
+  questionnaire: {
+    id: number;
+    title: string;
+    category: {
+      name: string;
+    };
+  };
+}
 
 const AdminAssessments: React.FC = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock assessment data with more detailed information
-  const assessments = [
-    {
-      id: 1,
-      enterpriseName: "TechCorp Solutions Ltd",
-      assessmentType: "Financial Assessment",
-      industry: "Technology",
-      submittedDate: "2024-08-25",
-      reviewDeadline: "2024-08-30",
-      score: 87,
-      status: "completed",
-      priority: "medium",
-      reviewer: "John Smith",
-      reviewedDate: "2024-08-26",
-      employeeCount: 45,
-      revenue: "$2.5M",
-      location: "Kigali, Rwanda",
-      notes: "Strong financial position with good growth potential",
-      documentsSubmitted: 8,
-      documentsVerified: 8
-    },
-    {
-      id: 2,
-      enterpriseName: "GreenEnergy Solutions",
-      assessmentType: "Operations Assessment",
-      industry: "Energy",
-      submittedDate: "2024-08-24",
-      reviewDeadline: "2024-08-29",
-      score: 92,
-      status: "reviewed",
-      priority: "high",
-      reviewer: "Sarah Wilson",
-      reviewedDate: "2024-08-25",
-      employeeCount: 78,
-      revenue: "$4.2M",
-      location: "Kigali, Rwanda",
-      notes: "Excellent operational efficiency and sustainability practices",
-      documentsSubmitted: 12,
-      documentsVerified: 11
-    },
-    {
-      id: 3,
-      enterpriseName: "LocalCafe Chain",
-      assessmentType: "Market Analysis",
-      industry: "Food & Beverage",
-      submittedDate: "2024-08-23",
-      reviewDeadline: "2024-08-28",
-      score: null,
-      status: "pending_review",
-      priority: "high",
-      reviewer: null,
-      reviewedDate: null,
-      employeeCount: 23,
-      revenue: "$850K",
-      location: "Butare, Rwanda",
-      notes: null,
-      documentsSubmitted: 6,
-      documentsVerified: 4
-    },
-    {
-      id: 4,
-      enterpriseName: "AutoParts Manufacturing",
-      assessmentType: "Financial Assessment",
-      industry: "Manufacturing",
-      submittedDate: "2024-08-22",
-      reviewDeadline: "2024-08-27",
-      score: 74,
-      status: "completed",
-      priority: "low",
-      reviewer: "Mike Johnson",
-      reviewedDate: "2024-08-23",
-      employeeCount: 156,
-      revenue: "$8.7M",
-      location: "Musanze, Rwanda",
-      notes: "Good financial health with room for improvement in cash flow management",
-      documentsSubmitted: 10,
-      documentsVerified: 9
-    },
-    {
-      id: 5,
-      enterpriseName: "Digital Marketing Hub",
-      assessmentType: "Operations Assessment",
-      industry: "Marketing",
-      submittedDate: "2024-08-21",
-      reviewDeadline: "2024-08-26",
-      score: null,
-      status: "in_review",
-      priority: "medium",
-      reviewer: "John Smith",
-      reviewedDate: null,
-      employeeCount: 12,
-      revenue: "$650K",
-      location: "Kigali, Rwanda",
-      notes: null,
-      documentsSubmitted: 7,
-      documentsVerified: 5
+  useEffect(() => {
+    fetchAssessments();
+  }, []);
+
+  const fetchAssessments = async () => {
+    try {
+      setLoading(true);
+      const response = await assessmentAPI.getAssessments();
+      setAssessments(response.data?.results);
+    } catch (err) {
+      console.error("Error fetching assessments:", err);
+      setError("Failed to load assessments");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -132,6 +86,8 @@ const AdminAssessments: React.FC = () => {
         return "bg-secondary-100 text-secondary-800 border-secondary-200";
       case "pending_review":
         return "bg-warning-100 text-warning-800 border-warning-200";
+      case "draft":
+        return "bg-neutral-100 text-neutral-800 border-neutral-200";
       default:
         return "bg-neutral-100 text-neutral-800 border-neutral-200";
     }
@@ -150,6 +106,35 @@ const AdminAssessments: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-primary-600"></div>
+          <span className="ml-4 text-lg text-neutral-600">
+            Loading assessments...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">
+            ⚠️ Error Loading Assessments
+          </div>
+          <p className="text-neutral-600 mb-4">{error}</p>
+          <button onClick={fetchAssessments} className="btn-primary">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const getScoreColor = (score: number | null) => {
     if (!score) return "text-neutral-400";
     if (score >= 85) return "text-success-600";
@@ -158,21 +143,33 @@ const AdminAssessments: React.FC = () => {
   };
 
   const filteredAssessments = assessments.filter((assessment) => {
-    const matchesSearch = 
-      assessment.enterpriseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assessment.assessmentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assessment.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assessment.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || assessment.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || assessment.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesSearch =
+      assessment.enterprise.business_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      assessment.enterprise.sector
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      assessment.enterprise.district
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      assessment.questionnaire.category.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || assessment.status === statusFilter;
+    // Note: priority filtering removed since it's not in the backend model
+    return matchesSearch && matchesStatus;
   });
 
   const stats = {
     totalAssessments: assessments.length,
-    pendingReview: assessments.filter(a => a.status === "pending_review").length,
-    inReview: assessments.filter(a => a.status === "in_review").length,
-    completed: assessments.filter(a => a.status === "completed" || a.status === "reviewed").length
+    draft: assessments.filter((a) => a.status === "draft").length,
+    inProgress: assessments.filter((a) => a.status === "in_progress").length,
+    completed: assessments.filter(
+      (a) => a.status === "completed" || a.status === "reviewed"
+    ).length,
   };
 
   return (
@@ -188,8 +185,12 @@ const AdminAssessments: React.FC = () => {
               <ArrowLeft className="h-5 w-5 text-neutral-600" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Assessment Management</h1>
-              <p className="text-lg text-neutral-600">Review and manage all enterprise assessments</p>
+              <h1 className="text-3xl font-bold text-neutral-900">
+                Assessment Management
+              </h1>
+              <p className="text-lg text-neutral-600">
+                Review and manage all enterprise assessments
+              </p>
             </div>
           </div>
           <button className="btn-primary flex items-center space-x-2">
@@ -224,10 +225,10 @@ const AdminAssessments: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
-                Pending Review
+                Draft
               </p>
               <p className="text-3xl font-bold text-neutral-900">
-                {stats.pendingReview}
+                {stats.draft}
               </p>
             </div>
           </div>
@@ -240,10 +241,10 @@ const AdminAssessments: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
-                In Review
+                In Progress
               </p>
               <p className="text-3xl font-bold text-neutral-900">
-                {stats.inReview}
+                {stats.inProgress}
               </p>
             </div>
           </div>
@@ -279,7 +280,7 @@ const AdminAssessments: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
             />
           </div>
-          
+
           <div className="flex gap-4">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -289,23 +290,10 @@ const AdminAssessments: React.FC = () => {
                 className="pl-10 pr-8 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white min-w-[160px]"
               >
                 <option value="all">All Status</option>
-                <option value="pending_review">Pending Review</option>
-                <option value="in_review">In Review</option>
-                <option value="reviewed">Reviewed</option>
+                <option value="draft">Draft</option>
+                <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
-              </select>
-            </div>
-
-            <div className="relative">
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white min-w-[120px]"
-              >
-                <option value="all">All Priority</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
+                <option value="reviewed">Reviewed</option>
               </select>
             </div>
           </div>
@@ -315,73 +303,97 @@ const AdminAssessments: React.FC = () => {
       {/* Assessments Table */}
       <div className="glass-effect rounded-2xl shadow-xl">
         <div className="p-6 border-b border-neutral-200">
-          <h2 className="text-2xl font-bold text-neutral-900">Assessment Details</h2>
+          <h2 className="text-2xl font-bold text-neutral-900">
+            Assessment Details
+          </h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50">
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Enterprise</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Assessment</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Status</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Priority</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Score</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Reviewer</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Deadline</th>
-                <th className="text-left py-4 px-6 font-semibold text-neutral-700">Actions</th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Enterprise
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Assessment
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Status
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Score
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Reviewer
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Dates
+                </th>
+                <th className="text-left py-4 px-6 font-semibold text-neutral-700">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredAssessments.map((assessment) => (
-                <tr key={assessment.id} className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors">
+                <tr
+                  key={assessment.id}
+                  className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
+                >
                   <td className="py-4 px-6">
                     <div>
                       <div className="font-semibold text-neutral-900 mb-1">
-                        {assessment.enterpriseName}
+                        {assessment.enterprise.business_name}
                       </div>
                       <div className="text-sm text-neutral-500">
                         <Building2 className="h-3 w-3 inline mr-1" />
-                        {assessment.industry} • {assessment.employeeCount} employees
+                        {assessment.enterprise.sector} •{" "}
+                        {assessment.enterprise.number_of_employees} employees
                       </div>
                       <div className="text-sm text-neutral-500">
-                        💰 {assessment.revenue} • 📍 {assessment.location}
+                        TIN: {assessment.enterprise.tin_number} • 📍{" "}
+                        {assessment.enterprise.district}
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6">
                     <div>
                       <div className="font-medium text-neutral-800 mb-1">
-                        {assessment.assessmentType}
+                        {assessment.questionnaire.title}
                       </div>
                       <div className="text-sm text-neutral-500">
                         <Calendar className="h-3 w-3 inline mr-1" />
-                        Submitted: {assessment.submittedDate}
+                        Created:{" "}
+                        {new Date(assessment.created_at).toLocaleDateString()}
                       </div>
                       <div className="text-sm text-neutral-500">
-                        📄 {assessment.documentsVerified}/{assessment.documentsSubmitted} docs verified
+                        Category: {assessment.questionnaire.category.name}
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(assessment.status)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                        assessment.status
+                      )}`}
+                    >
                       {assessment.status.replace("_", " ")}
                     </span>
                   </td>
-                  {/* <td className="py-4 px-6">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(assessment.priority)}`}>
-                      {assessment.priority}
-                    </span>
-                  </td> */}
                   <td className="py-4 px-6">
                     {assessment.score ? (
                       <div>
-                        <span className={`text-2xl font-bold ${getScoreColor(assessment.score)}`}>
+                        <span
+                          className={`text-2xl font-bold ${getScoreColor(
+                            assessment.score
+                          )}`}
+                        >
                           {assessment.score}%
                         </span>
                         <div className="text-xs text-neutral-500">
                           <Award className="h-3 w-3 inline mr-1" />
-                          {assessment.reviewedDate}
+                          {new Date(assessment.updated_at).toLocaleDateString()}
                         </div>
                       </div>
                     ) : (
@@ -393,27 +405,31 @@ const AdminAssessments: React.FC = () => {
                       <div>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-neutral-500" />
-                          <span className="text-neutral-700 font-medium">{assessment.reviewer}</span>
+                          <span className="text-neutral-700 font-medium">
+                            {assessment.reviewer.first_name}{" "}
+                            {assessment.reviewer.last_name}
+                          </span>
                         </div>
-                        {assessment.reviewedDate && (
-                          <div className="text-xs text-neutral-500 mt-1">
-                            Reviewed: {assessment.reviewedDate}
-                          </div>
-                        )}
+                        <div className="text-xs text-neutral-500 mt-1">
+                          Updated:{" "}
+                          {new Date(assessment.updated_at).toLocaleDateString()}
+                        </div>
                       </div>
                     ) : (
-                      <span className="text-neutral-400 text-sm">Unassigned</span>
+                      <span className="text-neutral-400 text-sm">
+                        Unassigned
+                      </span>
                     )}
                   </td>
                   <td className="py-4 px-6">
                     <div className="text-sm text-neutral-700">
-                      {assessment.reviewDeadline}
+                      Created:{" "}
+                      {new Date(assessment.created_at).toLocaleDateString()}
                     </div>
-                    {new Date(assessment.reviewDeadline) < new Date() && !assessment.score && (
-                      <div className="text-xs text-error-600 font-medium">
-                        ⚠️ Overdue
-                      </div>
-                    )}
+                    <div className="text-xs text-neutral-500">
+                      Updated:{" "}
+                      {new Date(assessment.updated_at).toLocaleDateString()}
+                    </div>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2">
@@ -437,8 +453,12 @@ const AdminAssessments: React.FC = () => {
         {filteredAssessments.length === 0 && (
           <div className="text-center py-12">
             {/* <Shield className="h-12 w-12 text-neutral-400 mx-auto mb-4" /> */}
-            <h3 className="text-lg font-semibold text-neutral-600 mb-2">No Assessments Found</h3>
-            <p className="text-neutral-500">Try adjusting your search or filter criteria.</p>
+            <h3 className="text-lg font-semibold text-neutral-600 mb-2">
+              No Assessments Found
+            </h3>
+            <p className="text-neutral-500">
+              Try adjusting your search or filter criteria.
+            </p>
           </div>
         )}
       </div>

@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { adminAPI } from "../../services/api";
+import type { AdminDashboardStats, RecentAssessment } from "../../types/admin";
 import {
   Shield,
-  Users,
-  FileText,
-  TrendingUp,
   Building2,
   CheckCircle,
   Clock,
@@ -13,28 +12,62 @@ import {
   Search,
   Filter,
   Eye,
-  Download,
+  FileText,
   MoreVertical,
+  RefreshCw,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dashboardStats, setDashboardStats] =
+    useState<AdminDashboardStats | null>(null);
+  const [dashboardAssessments, setDashboardAssessments] = useState<
+    RecentAssessment[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [statsResponse, assessmentsResponse] = await Promise.all([
+        adminAPI.getDashboardStats(),
+        adminAPI.getRecentAssessments({ limit: 10 }),
+      ]);
+
+      setDashboardStats(statsResponse.data);
+      setDashboardAssessments(
+        assessmentsResponse.data.results || assessmentsResponse.data
+      );
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load dashboard data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (user?.user_type !== "admin" && user?.user_type !== "superadmin") {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="glass-effect rounded-2xl p-8 border-2 border-error-200">
+        <div className="glass-effect rounded-2xl p-8 border-2 border-error-200 dark:border-error-800 bg-white dark:bg-neutral-800">
           <div className="flex items-center space-x-4">
-            {/* <div className="p-3 bg-error-100 rounded-xl">
-              <Shield className="h-8 w-8 text-error-600" />
-            </div> */}
+            <div className="p-3 bg-error-100 dark:bg-error-900 rounded-xl">
+              <Shield className="h-8 w-8 text-error-600 dark:text-error-400" />
+            </div>
             <div>
-              <h3 className="text-xl font-bold text-error-800">
+              <h3 className="text-xl font-bold text-error-800 dark:text-error-200">
                 Access Denied
               </h3>
-              <p className="text-error-700 mt-1">
+              <p className="text-error-700 dark:text-error-300 mt-1">
                 Admin privileges required to view this page.
               </p>
             </div>
@@ -44,86 +77,56 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  // Mock admin data with more realistic assessment information
-  const stats = {
-    totalEnterprises: 156,
-    activeAssessments: 43,
-    completedAssessments: 289,
-    pendingReviews: 12,
-  };
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600" />
+          <span className="ml-2 text-lg font-medium text-neutral-600 dark:text-neutral-400">
+            Loading dashboard...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
-  const recentAssessments = [
-    {
-      id: 1,
-      enterpriseName: "TechCorp Ltd",
-      assessmentType: "Financial Assessment",
-      submittedDate: "2024-08-25",
-      score: 87,
-      status: "completed",
-      reviewer: "John Smith",
-      industry: "Technology",
-      employeeCount: 45,
-      revenue: "$2.5M",
-    },
-    {
-      id: 2,
-      enterpriseName: "GreenEnergy Solutions",
-      assessmentType: "Operations Assessment",
-      submittedDate: "2024-08-24",
-      score: 92,
-      status: "reviewed",
-      reviewer: "Sarah Wilson",
-      industry: "Energy",
-      employeeCount: 78,
-      revenue: "$4.2M",
-    },
-    {
-      id: 3,
-      enterpriseName: "LocalCafe Chain",
-      assessmentType: "Market Analysis",
-      submittedDate: "2024-08-23",
-      score: null,
-      status: "pending_review",
-      reviewer: null,
-      industry: "Food & Beverage",
-      employeeCount: 23,
-      revenue: "$850K",
-    },
-    {
-      id: 4,
-      enterpriseName: "AutoParts Manufacturing",
-      assessmentType: "Financial Assessment",
-      submittedDate: "2024-08-22",
-      score: 74,
-      status: "completed",
-      reviewer: "Mike Johnson",
-      industry: "Manufacturing",
-      employeeCount: 156,
-      revenue: "$8.7M",
-    },
-    {
-      id: 5,
-      enterpriseName: "Digital Marketing Hub",
-      assessmentType: "Operations Assessment",
-      submittedDate: "2024-08-21",
-      score: null,
-      status: "in_review",
-      reviewer: "John Smith",
-      industry: "Marketing",
-      employeeCount: 12,
-      revenue: "$650K",
-    },
-  ];
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="glass-effect rounded-2xl p-8 border-2 border-error-200 dark:border-error-800 bg-white dark:bg-neutral-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-error-100 dark:bg-error-900 rounded-xl">
+                <AlertTriangle className="h-8 w-8 text-error-600 dark:text-error-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-error-800 dark:text-error-200">
+                  Error
+                </h3>
+                <p className="text-error-700 dark:text-error-300 mt-1">
+                  {error}
+                </p>
+              </div>
+            </div>
+            <button onClick={fetchDashboardData} className="btn-primary">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "submitted":
         return "bg-success-100 text-success-800 border-success-200";
       case "reviewed":
         return "bg-primary-100 text-primary-800 border-primary-200";
-      case "pending_review":
+      case "pending":
         return "bg-warning-100 text-warning-800 border-warning-200";
-      case "in_review":
+      case "in_progress":
         return "bg-secondary-100 text-secondary-800 border-secondary-200";
       default:
         return "bg-neutral-100 text-neutral-800 border-neutral-200";
@@ -137,106 +140,112 @@ const AdminDashboard: React.FC = () => {
     return "text-error-600";
   };
 
-  const filteredAssessments = recentAssessments.filter((assessment) => {
+  const formatStatus = (status: string) => {
+    return status
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const filteredAssessments = dashboardAssessments.filter((assessment) => {
     const matchesSearch =
-      assessment.enterpriseName
+      assessment.enterprise_name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      assessment.assessmentType
+      assessment.questionnaire_title
         .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      assessment.industry.toLowerCase().includes(searchTerm.toLowerCase());
+        .includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || assessment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="mb-8 fade-in">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* <div className="h-16 w-16 rounded-2xl gradient-bg flex items-center justify-center shadow-lg">
-              <Shield className="h-10 w-10 text-white" />
-            </div> */}
-            <div>
-              <h1 className="text-2xl font-bold text-neutral-900">
-                Admin Dashboard
-              </h1>
-              <p className="mt-2 text-lg text-neutral-600">
-                Manage assessments and monitor platform activity
-              </p>
-            </div>
-          </div>
-          <button className="btn-primary flex items-center space-x-2">
-            <Download className="h-5 w-5" />
-            <span>Export Report</span>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+            Admin Dashboard
+          </h1>
+          <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+            Welcome back, {user?.first_name || user?.username}. Here's what's
+            happening on the platform.
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button onClick={fetchDashboardData} className="btn-secondary">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
           </button>
+          <Link to="/admin/enterprises" className="btn-primary">
+            <Building2 className="h-4 w-4 mr-2" />
+            Manage Enterprises
+          </Link>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 slide-up">
-        <div className="glass-effect rounded-2xl p-6 card-hover">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
               <Building2 className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+              <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
                 Total Enterprises
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
-                {stats.totalEnterprises}
+              <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                {dashboardStats?.totalEnterprises || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl shadow-lg">
               <Clock className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+              <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
                 Active Assessments
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
-                {stats.activeAssessments}
+              <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                {dashboardStats?.activeAssessments || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg">
               <CheckCircle className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+              <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
                 Completed
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
-                {stats.completedAssessments}
+              <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                {dashboardStats?.completedAssessments || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg">
               <AlertTriangle className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+              <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
                 Pending Reviews
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
-                {stats.pendingReviews}
+              <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                {dashboardStats?.pendingReviews || 0}
               </p>
             </div>
           </div>
@@ -244,167 +253,206 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Assessments Section */}
-      <div className="glass-effect rounded-2xl shadow-xl">
-        <div className="p-6 border-b border-neutral-200">
+      <div className="glass-effect rounded-2xl shadow-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-neutral-900">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
               Recent Assessments
             </h2>
-            <div className="flex items-center space-x-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <input
-                  type="text"
-                  placeholder="Search assessments..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
-                />
-              </div>
+            <Link to="/admin/assessments" className="btn-secondary">
+              <FileText className="h-4 w-4 mr-2" />
+              View All
+            </Link>
+          </div>
 
-              {/* Filter */}
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="pl-10 pr-8 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white"
-                >
-                  <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="reviewed">Reviewed</option>
-                  <option value="pending_review">Pending Review</option>
-                  <option value="in_review">In Review</option>
-                </select>
-              </div>
+          {/* Search and Filter */}
+          <div className="mt-6 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Search assessments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="pl-10 pr-8 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none appearance-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 min-w-[140px]"
+              >
+                <option className="bg-neutral-100" value="all">
+                  All Status
+                </option>
+                <option className="bg-neutral-100" value="pending">
+                  Pending
+                </option>
+                <option className="bg-neutral-100" value="in_progress">
+                  In Progress
+                </option>
+                <option className="bg-neutral-100" value="submitted">
+                  Submitted
+                </option>
+                <option className="bg-neutral-100" value="reviewed">
+                  Reviewed
+                </option>
+              </select>
             </div>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-neutral-200">
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Enterprise
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Assessment Type
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Industry
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Submitted
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Score
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Reviewer
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-neutral-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAssessments.map((assessment) => (
-                  <tr
-                    key={assessment.id}
-                    className="border-b border-neutral-100 hover:bg-neutral-50"
-                  >
-                    <td className="py-4 px-4">
-                      <div>
-                        <div className="font-semibold text-neutral-900">
-                          {assessment.enterpriseName}
+          {filteredAssessments.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-full blur-xl opacity-30"></div>
+                <FileText className="relative h-16 w-16 text-neutral-400 dark:text-neutral-500 mx-auto mb-6" />
+              </div>
+              <h3 className="text-xl font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+                No assessments found
+              </h3>
+              <p className="text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
+                Try adjusting your search criteria or filters to find the
+                assessments you're looking for
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredAssessments.map((assessment) => (
+                <div
+                  key={assessment.id}
+                  className="group relative dark:bg-neutral-800/80 backdrop-blur-sm rounded-xl border border-neutral-200 dark:border-neutral-700/60 hover:border-primary-300 dark:hover:border-primary-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/10 dark:hover:shadow-primary-400/5 overflow-hidden"
+                >
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary-50/20 dark:to-primary-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  {/* Main content */}
+                  <div className="relative p-4">
+                    {/* Header with enterprise name and status */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="p-1.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg shadow-sm">
+                          <Building2 className="h-3.5 w-3.5 text-white" />
                         </div>
-                        <div className="text-sm text-neutral-500">
-                          {assessment.employeeCount} employees •{" "}
-                          {assessment.revenue}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                            {assessment.enterprise_name}
+                          </h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-xs px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700/60 text-neutral-600 dark:text-neutral-300 rounded font-medium">
+                              Assessment #{assessment.id}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="font-medium text-neutral-800">
-                        {assessment.assessmentType}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="text-neutral-600">
-                        {assessment.industry}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="text-neutral-600">
-                        {assessment.submittedDate}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
-                          assessment.status
-                        )}`}
-                      >
-                        {assessment.status.replace("_", " ")}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      {assessment.score ? (
+
+                      {/* Status and score */}
+                      <div className="flex items-center space-x-3">
+                        {assessment.score && (
+                          <div className="text-right">
+                            <div
+                              className={`text-lg font-bold ${getScoreColor(
+                                assessment.score
+                              )}`}
+                            >
+                              {assessment.score}%
+                            </div>
+                          </div>
+                        )}
                         <span
-                          className={`text-lg font-bold ${getScoreColor(
-                            assessment.score
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold border ${getStatusColor(
+                            assessment.status
                           )}`}
                         >
-                          {assessment.score}%
+                          {formatStatus(assessment.status)}
                         </span>
+                      </div>
+                    </div>
+
+                    {/* Assessment details */}
+                    <div className="flex items-center space-x-3 mb-3 p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-lg">
+                      <div className="p-1.5 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg">
+                        <FileText className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-neutral-900 dark:text-neutral-100 text-sm truncate">
+                          {assessment.questionnaire_title}
+                        </h4>
+                        <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                          Assessment Questionnaire
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Compact metadata */}
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div className="text-center p-2 bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800/40 dark:to-neutral-700/40 rounded-lg">
+                        <Clock className="h-3 w-3 text-neutral-500 dark:text-neutral-400 mx-auto mb-1" />
+                        <div className="text-xs font-medium text-neutral-900 dark:text-neutral-200">
+                          {new Date(
+                            assessment.submitted_at || assessment.created_at
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </div>
+                      </div>
+
+                      {assessment.reviewed_by ? (
+                        <div className="text-center p-2 bg-gradient-to-br from-success-50 to-success-100 dark:from-success-900/30 dark:to-success-800/30 rounded-lg">
+                          <CheckCircle className="h-3 w-3 text-success-600 dark:text-success-400 mx-auto mb-1" />
+                          <div className="text-xs font-medium text-success-800 dark:text-success-200">
+                            Reviewed
+                          </div>
+                        </div>
                       ) : (
-                        <span className="text-neutral-400">Pending</span>
+                        <div className="text-center p-2 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 rounded-lg">
+                          <Building2 className="h-3 w-3 dark:text-primary-400 mx-auto mb-1" />
+                          <div className="text-xs font-medium  dark:text-primary-200">
+                            Assessment
+                          </div>
+                        </div>
                       )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="text-neutral-600">
-                        {assessment.reviewer || "Unassigned"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
+
+                      <div className="text-center p-2 bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-800/30 rounded-lg">
+                        <AlertTriangle className="h-3 w-3 dark:text-secondary-400 mx-auto mb-1" />
+                        <div className="text-xs font-medium dark:text-secondary-200">
+                          {assessment.status === "pending" ? "High" : "Normal"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-between pt-3 border-t border-neutral-200 dark:border-neutral-700/60">
+                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                        ID: #{assessment.id}
+                      </div>
+
                       <div className="flex items-center space-x-2">
-                        <button className="p-2 rounded-lg border border-neutral-200 hover:border-primary-300 hover:bg-primary-50 transition-colors">
-                          <Eye className="h-4 w-4 text-neutral-600" />
+                        <button className="inline-flex items-center px-2 py-1 text-xs font-medium text-black dark:text-neutral-300 bg-white dark:bg-neutral-700/80 border border-neutral-300 dark:border-neutral-600/60 rounded-md hover:bg-neutral-50 dark:hover:bg-neutral-600/80 transition-all duration-200">
+                          <Building2 className="h-3 w-3 mr-1" />
+                          Enterprise
                         </button>
-                        <button className="p-2 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition-colors">
-                          <MoreVertical className="h-4 w-4 text-neutral-600" />
+                        <Link
+                          to={`/admin/assessments/${assessment.id}`}
+                          className="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Review
+                        </Link>
+                        <button className="p-1 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 rounded-md transition-all duration-200">
+                          <MoreVertical className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/admin/assessments"
-              className="btn-primary inline-flex items-center justify-center space-x-2 px-6 py-3"
-            >
-              <Eye className="h-5 w-5" />
-              <span>View All Assessments</span>
-            </Link>
-            <Link
-              to="/admin/enterprises"
-              className="btn-secondary inline-flex items-center justify-center space-x-2 px-6 py-3"
-            >
-              <Building2 className="h-5 w-5" />
-              <span>Manage Enterprises</span>
-            </Link>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
