@@ -102,7 +102,7 @@ const Register: React.FC = () => {
                     name="first_name"
                     type="text"
                     required
-                    className="input-field"
+                    className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                     placeholder="Enter your first name"
                     value={formData.first_name}
                     onChange={handleChange}
@@ -120,7 +120,7 @@ const Register: React.FC = () => {
                     name="last_name"
                     type="text"
                     required
-                    className="input-field"
+                    className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                     placeholder="Enter your last name"
                     value={formData.last_name}
                     onChange={handleChange}
@@ -141,7 +141,7 @@ const Register: React.FC = () => {
                   name="username"
                   type="text"
                   required
-                  className="input-field"
+                  className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                   placeholder="Choose a username"
                   value={formData.username}
                   onChange={handleChange}
@@ -161,7 +161,7 @@ const Register: React.FC = () => {
                   name="email"
                   type="email"
                   required
-                  className="input-field"
+                  className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                   placeholder="Enter your email address"
                   value={formData.email}
                   onChange={handleChange}
@@ -180,7 +180,7 @@ const Register: React.FC = () => {
                   id="phone_number"
                   name="phone_number"
                   type="tel"
-                  className="input-field"
+                  className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                   placeholder="Enter your phone number"
                   value={formData.phone_number}
                   onChange={handleChange}
@@ -201,7 +201,7 @@ const Register: React.FC = () => {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    className="input-field pr-12"
+                    className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none pr-12"
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={handleChange}
@@ -234,7 +234,7 @@ const Register: React.FC = () => {
                     name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     required
-                    className="input-field pr-12"
+                    className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none pr-12"
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={handleChange}

@@ -44,7 +44,7 @@ const CreateAssessment: React.FC = () => {
     industry: "",
     selectedQuestionnaires: [] as string[],
     languages: [] as string[],
-    questionnaires: [] as Questionnaire[]
+    questionnaires: [] as Questionnaire[],
   });
 
   useEffect(() => {
@@ -59,11 +59,12 @@ const CreateAssessment: React.FC = () => {
     // Mock loading existing assessment
     const mockAssessment = {
       title: "SME Financial Health Assessment",
-      description: "Comprehensive financial evaluation for small and medium enterprises",
+      description:
+        "Comprehensive financial evaluation for small and medium enterprises",
       industry: "General",
       selectedQuestionnaires: ["business-info", "financial-health"],
       languages: ["English", "Kinyarwanda"],
-      questionnaires: [] // Would be populated from the API
+      questionnaires: [], // Would be populated from the API
     };
     setAssessmentData(mockAssessment);
   };
@@ -80,7 +81,7 @@ const CreateAssessment: React.FC = () => {
     "Food & Beverage",
     "Construction",
     "Energy",
-    "Transportation"
+    "Transportation",
   ];
 
   const availableQuestionnaires = [
@@ -88,51 +89,50 @@ const CreateAssessment: React.FC = () => {
       id: "business-info",
       title: "Business Information",
       description: "Basic business structure and operations",
-      estimatedQuestions: 8
+      estimatedQuestions: 8,
     },
     {
       id: "financial-health",
       title: "Financial Health",
       description: "Financial position and record keeping",
-      estimatedQuestions: 12
+      estimatedQuestions: 12,
     },
     {
       id: "funding-request",
       title: "Funding Request",
       description: "Funding needs and preparations",
-      estimatedQuestions: 8
+      estimatedQuestions: 8,
     },
     {
       id: "operations",
       title: "Operations Assessment",
       description: "Operational efficiency and processes",
-      estimatedQuestions: 10
+      estimatedQuestions: 10,
     },
     {
       id: "market-analysis",
       title: "Market Analysis",
       description: "Market position and competitive analysis",
-      estimatedQuestions: 6
+      estimatedQuestions: 6,
     },
     {
       id: "technical-capabilities",
       title: "Technical Capabilities",
       description: "Technology and innovation assessment",
-      estimatedQuestions: 7
-    }
+      estimatedQuestions: 7,
+    },
   ];
 
-  const availableLanguages = [
-    "English",
-    "Kinyarwanda", 
-    "French",
-    "Swahili"
-  ];
+  const availableLanguages = ["English", "Kinyarwanda", "French", "Swahili"];
 
   const totalSteps = 2 + assessmentData.selectedQuestionnaires.length;
 
   const handleBasicInfoSubmit = () => {
-    if (!assessmentData.title || !assessmentData.description || !assessmentData.industry) {
+    if (
+      !assessmentData.title ||
+      !assessmentData.description ||
+      !assessmentData.industry
+    ) {
       alert("Please fill in all required fields");
       return;
     }
@@ -150,19 +150,21 @@ const CreateAssessment: React.FC = () => {
     }
 
     // Initialize questionnaires with templates
-    const initializedQuestionnaires = assessmentData.selectedQuestionnaires.map(qId => {
-      const template = getQuestionnaireTemplate(qId);
-      return {
-        id: qId,
-        title: template.title,
-        description: template.description,
-        questions: template.questions
-      };
-    });
+    const initializedQuestionnaires = assessmentData.selectedQuestionnaires.map(
+      (qId) => {
+        const template = getQuestionnaireTemplate(qId);
+        return {
+          id: qId,
+          title: template.title,
+          description: template.description,
+          questions: template.questions,
+        };
+      }
+    );
 
-    setAssessmentData(prev => ({
+    setAssessmentData((prev) => ({
       ...prev,
-      questionnaires: initializedQuestionnaires
+      questionnaires: initializedQuestionnaires,
     }));
 
     setCurrentStep(3);
@@ -180,43 +182,45 @@ const CreateAssessment: React.FC = () => {
             type: "radio",
             options: [
               "Sole Proprietorship",
-              "Partnership", 
+              "Partnership",
               "LLC",
               "Corporation",
-              "Non-profit"
+              "Non-profit",
             ],
             weight: 1,
             required: true,
-            tooltip: "Your business structure affects funding eligibility and financial requirements",
+            tooltip:
+              "Your business structure affects funding eligibility and financial requirements",
             scoringTips: {
-              lowScore: "Consider formalizing your business structure for better funding opportunities",
-              mediumScore: "Your business structure is adequate, consider growth implications",
-              highScore: "Excellent business structure for funding and growth"
-            }
+              lowScore:
+                "Consider formalizing your business structure for better funding opportunities",
+              mediumScore:
+                "Your business structure is adequate, consider growth implications",
+              highScore: "Excellent business structure for funding and growth",
+            },
           },
           {
             id: "business-age",
             question: "How long has your business been operating?",
             type: "radio",
-            options: [
-              "Less than 1 year",
-              "1-3 years",
-              "3-5 years", 
-              "5+ years"
-            ],
+            options: ["Less than 1 year", "1-3 years", "3-5 years", "5+ years"],
             weight: 1.5,
             required: true,
-            tooltip: "Business longevity is a key factor in most funding applications",
+            tooltip:
+              "Business longevity is a key factor in most funding applications",
             scoringTips: {
-              lowScore: "Focus on building track record and establishing business history",
-              mediumScore: "Good operational history, continue building your track record",
-              highScore: "Excellent business maturity demonstrates stability to lenders"
-            }
-          }
-        ]
+              lowScore:
+                "Focus on building track record and establishing business history",
+              mediumScore:
+                "Good operational history, continue building your track record",
+              highScore:
+                "Excellent business maturity demonstrates stability to lenders",
+            },
+          },
+        ],
       },
       "financial-health": {
-        title: "Financial Health", 
+        title: "Financial Health",
         description: "Assessment of your current financial position",
         questions: [
           {
@@ -227,16 +231,20 @@ const CreateAssessment: React.FC = () => {
               "Yes, professional accounting software",
               "Yes, basic spreadsheets",
               "Minimal record keeping",
-              "No organized system"
+              "No organized system",
             ],
             weight: 2,
             required: true,
-            tooltip: "Organized records are essential for funding applications and financial planning",
+            tooltip:
+              "Organized records are essential for funding applications and financial planning",
             scoringTips: {
-              lowScore: "Implement proper bookkeeping system immediately - use software like QuickBooks",
-              mediumScore: "Consider upgrading to professional accounting software for better accuracy",
-              highScore: "Excellent financial record keeping - this greatly improves funding chances"
-            }
+              lowScore:
+                "Implement proper bookkeeping system immediately - use software like QuickBooks",
+              mediumScore:
+                "Consider upgrading to professional accounting software for better accuracy",
+              highScore:
+                "Excellent financial record keeping - this greatly improves funding chances",
+            },
           },
           {
             id: "financial-statements",
@@ -244,21 +252,25 @@ const CreateAssessment: React.FC = () => {
             type: "radio",
             options: [
               "Yes, professionally prepared",
-              "Yes, self-prepared", 
+              "Yes, self-prepared",
               "Partially complete",
-              "No"
+              "No",
             ],
             weight: 2.5,
             required: true,
-            tooltip: "Recent statements including P&L, balance sheet, and cash flow",
+            tooltip:
+              "Recent statements including P&L, balance sheet, and cash flow",
             scoringTips: {
-              lowScore: "Prepare complete financial statements - consider hiring an accountant",
-              mediumScore: "Good progress, ensure statements are current and complete",
-              highScore: "Professional financial statements significantly strengthen your position"
-            }
-          }
-        ]
-      }
+              lowScore:
+                "Prepare complete financial statements - consider hiring an accountant",
+              mediumScore:
+                "Good progress, ensure statements are current and complete",
+              highScore:
+                "Professional financial statements significantly strengthen your position",
+            },
+          },
+        ],
+      },
       // Add more templates as needed
     };
 
@@ -277,22 +289,26 @@ const CreateAssessment: React.FC = () => {
       scoringTips: {
         lowScore: "",
         mediumScore: "",
-        highScore: ""
-      }
+        highScore: "",
+      },
     };
 
-    setAssessmentData(prev => ({
+    setAssessmentData((prev) => ({
       ...prev,
-      questionnaires: prev.questionnaires.map((q, index) => 
-        index === questionnaireIndex 
+      questionnaires: prev.questionnaires.map((q, index) =>
+        index === questionnaireIndex
           ? { ...q, questions: [...q.questions, newQuestion] }
           : q
-      )
+      ),
     }));
   };
 
-  const updateQuestion = (questionnaireIndex: number, questionIndex: number, updates: Partial<Question>) => {
-    setAssessmentData(prev => ({
+  const updateQuestion = (
+    questionnaireIndex: number,
+    questionIndex: number,
+    updates: Partial<Question>
+  ) => {
+    setAssessmentData((prev) => ({
       ...prev,
       questionnaires: prev.questionnaires.map((q, qIndex) =>
         qIndex === questionnaireIndex
@@ -300,30 +316,37 @@ const CreateAssessment: React.FC = () => {
               ...q,
               questions: q.questions.map((question, index) =>
                 index === questionIndex ? { ...question, ...updates } : question
-              )
+              ),
             }
           : q
-      )
+      ),
     }));
   };
 
-  const removeQuestion = (questionnaireIndex: number, questionIndex: number) => {
-    setAssessmentData(prev => ({
+  const removeQuestion = (
+    questionnaireIndex: number,
+    questionIndex: number
+  ) => {
+    setAssessmentData((prev) => ({
       ...prev,
       questionnaires: prev.questionnaires.map((q, qIndex) =>
         qIndex === questionnaireIndex
           ? {
               ...q,
-              questions: q.questions.filter((_, index) => index !== questionIndex)
+              questions: q.questions.filter(
+                (_, index) => index !== questionIndex
+              ),
             }
           : q
-      )
+      ),
     }));
   };
 
   const handleSaveAssessment = () => {
     // Validate all questionnaires have questions
-    const hasEmptyQuestionnaires = assessmentData.questionnaires.some(q => q.questions.length === 0);
+    const hasEmptyQuestionnaires = assessmentData.questionnaires.some(
+      (q) => q.questions.length === 0
+    );
     if (hasEmptyQuestionnaires) {
       alert("All questionnaires must have at least one question");
       return;
@@ -340,8 +363,10 @@ const CreateAssessment: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="glass-effect rounded-2xl p-6">
-              <h3 className="text-xl font-bold text-neutral-900 mb-6">Assessment Basic Information</h3>
-              
+              <h3 className="text-xl font-bold text-neutral-900 mb-6">
+                Assessment Basic Information
+              </h3>
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -350,7 +375,12 @@ const CreateAssessment: React.FC = () => {
                   <input
                     type="text"
                     value={assessmentData.title}
-                    onChange={(e) => setAssessmentData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setAssessmentData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                     placeholder="e.g., SME Financial Health Assessment"
                     className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
                     required
@@ -363,7 +393,12 @@ const CreateAssessment: React.FC = () => {
                   </label>
                   <textarea
                     value={assessmentData.description}
-                    onChange={(e) => setAssessmentData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setAssessmentData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     placeholder="Describe what this assessment evaluates and its purpose..."
                     rows={4}
                     className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
@@ -377,13 +412,20 @@ const CreateAssessment: React.FC = () => {
                   </label>
                   <select
                     value={assessmentData.industry}
-                    onChange={(e) => setAssessmentData(prev => ({ ...prev, industry: e.target.value }))}
+                    onChange={(e) =>
+                      setAssessmentData((prev) => ({
+                        ...prev,
+                        industry: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
                     required
                   >
                     <option value="">Select an industry</option>
-                    {industries.map(industry => (
-                      <option key={industry} value={industry}>{industry}</option>
+                    {industries.map((industry) => (
+                      <option key={industry} value={industry}>
+                        {industry}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -396,42 +438,62 @@ const CreateAssessment: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="glass-effect rounded-2xl p-6">
-              <h3 className="text-xl font-bold text-neutral-900 mb-6">Select Questionnaires & Languages</h3>
-              
+              <h3 className="text-xl font-bold text-neutral-900 mb-6">
+                Select Questionnaires & Languages
+              </h3>
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-4">
                     Choose Questionnaires to Include *
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {availableQuestionnaires.map(questionnaire => (
-                      <div key={questionnaire.id} className="border-2 border-neutral-200 rounded-xl p-4 hover:border-primary-300 transition-colors">
+                    {availableQuestionnaires.map((questionnaire) => (
+                      <div
+                        key={questionnaire.id}
+                        className="border-2 border-neutral-200 rounded-xl p-4 hover:border-primary-300 transition-colors"
+                      >
                         <div className="flex items-start space-x-3">
                           <input
                             type="checkbox"
                             id={questionnaire.id}
-                            checked={assessmentData.selectedQuestionnaires.includes(questionnaire.id)}
+                            checked={assessmentData.selectedQuestionnaires.includes(
+                              questionnaire.id
+                            )}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setAssessmentData(prev => ({
+                                setAssessmentData((prev) => ({
                                   ...prev,
-                                  selectedQuestionnaires: [...prev.selectedQuestionnaires, questionnaire.id]
+                                  selectedQuestionnaires: [
+                                    ...prev.selectedQuestionnaires,
+                                    questionnaire.id,
+                                  ],
                                 }));
                               } else {
-                                setAssessmentData(prev => ({
+                                setAssessmentData((prev) => ({
                                   ...prev,
-                                  selectedQuestionnaires: prev.selectedQuestionnaires.filter(id => id !== questionnaire.id)
+                                  selectedQuestionnaires:
+                                    prev.selectedQuestionnaires.filter(
+                                      (id) => id !== questionnaire.id
+                                    ),
                                 }));
                               }
                             }}
                             className="mt-1 h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
                           />
                           <div className="flex-1">
-                            <label htmlFor={questionnaire.id} className="font-semibold text-neutral-900 cursor-pointer">
+                            <label
+                              htmlFor={questionnaire.id}
+                              className="font-semibold text-neutral-900 cursor-pointer"
+                            >
                               {questionnaire.title}
                             </label>
-                            <p className="text-sm text-neutral-600 mt-1">{questionnaire.description}</p>
-                            <p className="text-xs text-neutral-500 mt-2">~{questionnaire.estimatedQuestions} questions</p>
+                            <p className="text-sm text-neutral-600 mt-1">
+                              {questionnaire.description}
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-2">
+                              ~{questionnaire.estimatedQuestions} questions
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -444,28 +506,36 @@ const CreateAssessment: React.FC = () => {
                     Available Languages *
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    {availableLanguages.map(language => (
-                      <div key={language} className="flex items-center space-x-2">
+                    {availableLanguages.map((language) => (
+                      <div
+                        key={language}
+                        className="flex items-center space-x-2"
+                      >
                         <input
                           type="checkbox"
                           id={language}
                           checked={assessmentData.languages.includes(language)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setAssessmentData(prev => ({
+                              setAssessmentData((prev) => ({
                                 ...prev,
-                                languages: [...prev.languages, language]
+                                languages: [...prev.languages, language],
                               }));
                             } else {
-                              setAssessmentData(prev => ({
+                              setAssessmentData((prev) => ({
                                 ...prev,
-                                languages: prev.languages.filter(lang => lang !== language)
+                                languages: prev.languages.filter(
+                                  (lang) => lang !== language
+                                ),
                               }));
                             }
                           }}
                           className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
                         />
-                        <label htmlFor={language} className="text-neutral-700 cursor-pointer">
+                        <label
+                          htmlFor={language}
+                          className="text-neutral-700 cursor-pointer"
+                        >
                           {language}
                         </label>
                       </div>
@@ -481,7 +551,7 @@ const CreateAssessment: React.FC = () => {
         // Questionnaire editing steps
         const questionnaireIndex = currentStep - 3;
         const questionnaire = assessmentData.questionnaires[questionnaireIndex];
-        
+
         if (!questionnaire) return null;
 
         return (
@@ -489,8 +559,12 @@ const CreateAssessment: React.FC = () => {
             <div className="glass-effect rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-neutral-900">{questionnaire.title}</h3>
-                  <p className="text-neutral-600">{questionnaire.description}</p>
+                  <h3 className="text-xl font-bold text-neutral-900">
+                    {questionnaire.title}
+                  </h3>
+                  <p className="text-neutral-600">
+                    {questionnaire.description}
+                  </p>
                 </div>
                 <button
                   onClick={() => addQuestion(questionnaireIndex)}
@@ -503,11 +577,18 @@ const CreateAssessment: React.FC = () => {
 
               <div className="space-y-6">
                 {questionnaire.questions.map((question, qIndex) => (
-                  <div key={question.id} className="border-2 border-neutral-200 rounded-xl p-6">
+                  <div
+                    key={question.id}
+                    className="border-2 border-neutral-200 rounded-xl p-6"
+                  >
                     <div className="flex items-start justify-between mb-4">
-                      <h4 className="font-semibold text-neutral-900">Question {qIndex + 1}</h4>
+                      <h4 className="font-semibold text-neutral-900">
+                        Question {qIndex + 1}
+                      </h4>
                       <button
-                        onClick={() => removeQuestion(questionnaireIndex, qIndex)}
+                        onClick={() =>
+                          removeQuestion(questionnaireIndex, qIndex)
+                        }
                         className="p-2 rounded-lg text-error-600 hover:bg-error-50 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -521,7 +602,11 @@ const CreateAssessment: React.FC = () => {
                         </label>
                         <textarea
                           value={question.question}
-                          onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { question: e.target.value })}
+                          onChange={(e) =>
+                            updateQuestion(questionnaireIndex, qIndex, {
+                              question: e.target.value,
+                            })
+                          }
                           placeholder="Enter your question..."
                           rows={2}
                           className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
@@ -534,7 +619,11 @@ const CreateAssessment: React.FC = () => {
                         </label>
                         <select
                           value={question.type}
-                          onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { type: e.target.value as any })}
+                          onChange={(e) =>
+                            updateQuestion(questionnaireIndex, qIndex, {
+                              type: e.target.value as any,
+                            })
+                          }
                           className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
                         >
                           <option value="radio">Single Choice</option>
@@ -555,33 +644,49 @@ const CreateAssessment: React.FC = () => {
                           max="5"
                           step="0.1"
                           value={question.weight}
-                          onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { weight: parseFloat(e.target.value) })}
+                          onChange={(e) =>
+                            updateQuestion(questionnaireIndex, qIndex, {
+                              weight: parseFloat(e.target.value),
+                            })
+                          }
                           className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
                         />
                       </div>
 
-                      {(question.type === "radio" || question.type === "checkbox") && (
+                      {(question.type === "radio" ||
+                        question.type === "checkbox") && (
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-neutral-700 mb-2">
                             Options
                           </label>
                           <div className="space-y-2">
                             {question.options?.map((option, optIndex) => (
-                              <div key={optIndex} className="flex items-center space-x-2">
+                              <div
+                                key={optIndex}
+                                className="flex items-center space-x-2"
+                              >
                                 <input
                                   type="text"
                                   value={option}
                                   onChange={(e) => {
-                                    const newOptions = [...(question.options || [])];
+                                    const newOptions = [
+                                      ...(question.options || []),
+                                    ];
                                     newOptions[optIndex] = e.target.value;
-                                    updateQuestion(questionnaireIndex, qIndex, { options: newOptions });
+                                    updateQuestion(questionnaireIndex, qIndex, {
+                                      options: newOptions,
+                                    });
                                   }}
                                   className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg focus:border-primary-500 focus:outline-none"
                                 />
                                 <button
                                   onClick={() => {
-                                    const newOptions = question.options?.filter((_, i) => i !== optIndex);
-                                    updateQuestion(questionnaireIndex, qIndex, { options: newOptions });
+                                    const newOptions = question.options?.filter(
+                                      (_, i) => i !== optIndex
+                                    );
+                                    updateQuestion(questionnaireIndex, qIndex, {
+                                      options: newOptions,
+                                    });
                                   }}
                                   className="p-2 text-error-600 hover:bg-error-50 rounded-lg transition-colors"
                                 >
@@ -591,8 +696,15 @@ const CreateAssessment: React.FC = () => {
                             ))}
                             <button
                               onClick={() => {
-                                const newOptions = [...(question.options || []), `Option ${(question.options?.length || 0) + 1}`];
-                                updateQuestion(questionnaireIndex, qIndex, { options: newOptions });
+                                const newOptions = [
+                                  ...(question.options || []),
+                                  `Option ${
+                                    (question.options?.length || 0) + 1
+                                  }`,
+                                ];
+                                updateQuestion(questionnaireIndex, qIndex, {
+                                  options: newOptions,
+                                });
                               }}
                               className="btn-secondary text-sm"
                             >
@@ -609,7 +721,11 @@ const CreateAssessment: React.FC = () => {
                         <input
                           type="text"
                           value={question.tooltip || ""}
-                          onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { tooltip: e.target.value })}
+                          onChange={(e) =>
+                            updateQuestion(questionnaireIndex, qIndex, {
+                              tooltip: e.target.value,
+                            })
+                          }
                           placeholder="Additional information to help users understand this question..."
                           className="w-full px-4 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none"
                         />
@@ -626,12 +742,14 @@ const CreateAssessment: React.FC = () => {
                             </label>
                             <textarea
                               value={question.scoringTips?.lowScore || ""}
-                              onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { 
-                                scoringTips: { 
-                                  ...question.scoringTips, 
-                                  lowScore: e.target.value 
-                                } 
-                              })}
+                              onChange={(e) =>
+                                updateQuestion(questionnaireIndex, qIndex, {
+                                  scoringTips: {
+                                    ...question.scoringTips,
+                                    lowScore: e.target.value,
+                                  },
+                                })
+                              }
                               placeholder="Advice for improvement..."
                               rows={3}
                               className="w-full px-3 py-2 border border-error-200 rounded-lg focus:border-error-500 focus:outline-none text-sm"
@@ -643,12 +761,14 @@ const CreateAssessment: React.FC = () => {
                             </label>
                             <textarea
                               value={question.scoringTips?.mediumScore || ""}
-                              onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { 
-                                scoringTips: { 
-                                  ...question.scoringTips, 
-                                  mediumScore: e.target.value 
-                                } 
-                              })}
+                              onChange={(e) =>
+                                updateQuestion(questionnaireIndex, qIndex, {
+                                  scoringTips: {
+                                    ...question.scoringTips,
+                                    mediumScore: e.target.value,
+                                  },
+                                })
+                              }
                               placeholder="Guidance for optimization..."
                               rows={3}
                               className="w-full px-3 py-2 border border-warning-200 rounded-lg focus:border-warning-500 focus:outline-none text-sm"
@@ -660,12 +780,14 @@ const CreateAssessment: React.FC = () => {
                             </label>
                             <textarea
                               value={question.scoringTips?.highScore || ""}
-                              onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { 
-                                scoringTips: { 
-                                  ...question.scoringTips, 
-                                  highScore: e.target.value 
-                                } 
-                              })}
+                              onChange={(e) =>
+                                updateQuestion(questionnaireIndex, qIndex, {
+                                  scoringTips: {
+                                    ...question.scoringTips,
+                                    highScore: e.target.value,
+                                  },
+                                })
+                              }
                               placeholder="Positive reinforcement..."
                               rows={3}
                               className="w-full px-3 py-2 border border-success-200 rounded-lg focus:border-success-500 focus:outline-none text-sm"
@@ -679,10 +801,17 @@ const CreateAssessment: React.FC = () => {
                           type="checkbox"
                           id={`required-${question.id}`}
                           checked={question.required}
-                          onChange={(e) => updateQuestion(questionnaireIndex, qIndex, { required: e.target.checked })}
+                          onChange={(e) =>
+                            updateQuestion(questionnaireIndex, qIndex, {
+                              required: e.target.checked,
+                            })
+                          }
                           className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
                         />
-                        <label htmlFor={`required-${question.id}`} className="text-sm text-neutral-700">
+                        <label
+                          htmlFor={`required-${question.id}`}
+                          className="text-sm text-neutral-700"
+                        >
                           Required question
                         </label>
                       </div>
@@ -693,8 +822,12 @@ const CreateAssessment: React.FC = () => {
                 {questionnaire.questions.length === 0 && (
                   <div className="text-center py-8 border-2 border-dashed border-neutral-300 rounded-xl">
                     <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-neutral-600 mb-2">No Questions Yet</h3>
-                    <p className="text-neutral-500 mb-4">Add your first question to this questionnaire.</p>
+                    <h3 className="text-lg font-semibold text-neutral-600 mb-2">
+                      No Questions Yet
+                    </h3>
+                    <p className="text-neutral-500 mb-4">
+                      Add your first question to this questionnaire.
+                    </p>
                     <button
                       onClick={() => addQuestion(questionnaireIndex)}
                       className="btn-primary inline-flex items-center space-x-2"
@@ -745,7 +878,7 @@ const CreateAssessment: React.FC = () => {
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="bg-neutral-200 rounded-full h-2">
-          <div 
+          <div
             className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
@@ -761,9 +894,7 @@ const CreateAssessment: React.FC = () => {
       </div>
 
       {/* Step Content */}
-      <div className="slide-up">
-        {renderStep()}
-      </div>
+      <div className="slide-up">{renderStep()}</div>
 
       {/* Navigation */}
       <div className="flex items-center justify-between mt-8 pt-6 border-t border-neutral-200">

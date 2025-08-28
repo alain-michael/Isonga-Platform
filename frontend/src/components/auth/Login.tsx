@@ -83,7 +83,7 @@ const Login: React.FC = () => {
                   name="username"
                   type="text"
                   required
-                  className="input-field"
+                  className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                   placeholder="Enter your username"
                   value={formData.username}
                   onChange={handleChange}
@@ -103,7 +103,7 @@ const Login: React.FC = () => {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    className="input-field pr-12"
+                    className="w-full px-4 py-4 border-2 border-neutral-500 rounded-xl focus:border-primary-500 focus:outline-none"
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}

@@ -56,7 +56,7 @@ const AdminEnterpriseDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(id)
+    console.log(id);
     if (id) {
       fetchEnterprise();
     }
@@ -328,7 +328,9 @@ const AdminEnterpriseDetail: React.FC = () => {
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Employee Count
               </label>
-              <p className="text-neutral-900">{enterprise.number_of_employees}</p>
+              <p className="text-neutral-900">
+                {enterprise.number_of_employees}
+              </p>
             </div>
 
             <div>
@@ -342,9 +344,7 @@ const AdminEnterpriseDetail: React.FC = () => {
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Business Description
               </label>
-              <p className="text-neutral-900">
-                {enterprise.description}
-              </p>
+              <p className="text-neutral-900">{enterprise.description}</p>
             </div>
           </div>
         </div>
@@ -375,9 +375,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Username
                   </label>
-                  <p className="text-neutral-900">
-                    {enterprise.user.username}
-                  </p>
+                  <p className="text-neutral-900">{enterprise.user.username}</p>
                 </div>
 
                 <div>
@@ -421,9 +419,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       {activeTab === "documents" && (
         <div className="glass-effect rounded-2xl p-8">
           <h2 className="text-xl font-bold text-neutral-900 mb-6">Documents</h2>
-          <p className="text-neutral-600">
-            No documents found
-          </p>
+          <p className="text-neutral-600">No documents found</p>
         </div>
       )}
 
@@ -432,9 +428,7 @@ const AdminEnterpriseDetail: React.FC = () => {
           <h2 className="text-xl font-bold text-neutral-900 mb-6">
             Activity Log
           </h2>
-          <p className="text-neutral-600">
-            No activity found
-          </p>
+          <p className="text-neutral-600">No activity found</p>
         </div>
       )}
 
