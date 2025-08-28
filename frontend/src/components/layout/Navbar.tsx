@@ -72,10 +72,10 @@ const Navbar: React.FC = () => {
               to="/dashboard"
               className="flex items-center space-x-2 sm:space-x-3"
             >
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl gradient-bg flex items-center justify-center shadow-lg">
+              {/* <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl gradient-bg flex items-center justify-center shadow-lg">
                 <Building2 className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <span className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-neutral-100">
+              </div> */}
+              <span className="text-lg font-[cinzel] sm:text-3xl font-bold text-clip bg-clip-text bg-gradient-to-r from-primary-500 to-secondary-500 text-transparent dark:text-neutral-100">
                 Isonga
               </span>
             </Link>
