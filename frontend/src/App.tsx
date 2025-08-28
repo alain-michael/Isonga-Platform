@@ -17,12 +17,12 @@ import AssessmentForm from "./components/assessments/AssessmentForm";
 import ManageAssessments from "./components/assessments/ManageAssessments";
 import CreateAssessment from "./components/assessments/CreateAssessment";
 import AdminDashboard from "./components/admin/AdminDashboard";
-import AdminAssessments from "./components/admin/AdminAssessment";
 import AdminEnterprises from "./components/admin/AdminEnterprises";
 import AdminEnterpriseDetail from "./components/admin/AdminEnterpriseDetail";
 import NotFound from "./components/common/NotFound";
 import Navbar from "./components/layout/Navbar";
 import "./styles.css";
+import AdminAssessments from "./components/admin/AdminAssessment";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -149,6 +149,14 @@ const AppContent: React.FC = () => {
             }
           />
           <Route
+            path="/admin/manage"
+            element={
+              <ProtectedRoute>
+                <ManageAssessments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/assessments"
             element={
               <ProtectedRoute>
@@ -165,7 +173,7 @@ const AppContent: React.FC = () => {
             }
           />
           <Route
-            path="/admin/enterprises/:enterpriseId"
+            path="/admin/enterprises/:id"
             element={
               <ProtectedRoute>
                 <AdminEnterpriseDetail />

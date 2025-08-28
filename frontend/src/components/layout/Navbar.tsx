@@ -38,7 +38,10 @@ const Navbar: React.FC = () => {
     },
     {
       name: "Assessments",
-      path: "/assessments",
+      path:
+        user?.user_type === "admin" || user?.user_type === "superadmin"
+          ? "/admin"
+          : "/assessments",
       icon: FileText,
       visible:
         user?.user_type === "admin" ||
@@ -47,7 +50,7 @@ const Navbar: React.FC = () => {
     },
     {
       name: "Manage Assessments",
-      path: "/admin/assessments",
+      path: "/admin/manage",
       icon: FileText,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },

@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <>
                   <Link
-                    to="/admin"
+                    to="/admin/enterprises"
                     className="flex items-center p-5 border-2 border-neutral-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 card-hover"
                   >
                     <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">

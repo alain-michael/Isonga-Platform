@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Custom CSS variables for consistent theming */
@@ -149,6 +150,7 @@
 
 html {
   font-size: 15px;
+  font-family: 'Lato', sans-serif;
 }
 
 body {

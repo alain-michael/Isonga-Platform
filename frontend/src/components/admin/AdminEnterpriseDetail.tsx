@@ -31,15 +31,15 @@ interface Enterprise {
   district: string;
   is_vetted: boolean;
   created_at: string;
-  employee_count: number;
+  number_of_employees: number;
   annual_revenue: string;
-  business_description: string;
+  description: string;
   registration_number?: string;
   tin_number?: string;
   website?: string;
   phone_number?: string;
   email?: string;
-  owner: {
+  user: {
     id: number;
     username: string;
     first_name: string;
@@ -61,6 +61,7 @@ const AdminEnterpriseDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log(id)
     if (id) {
       fetchEnterprise();
     }
@@ -70,6 +71,7 @@ const AdminEnterpriseDetail: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log(id);
       const response = await enterpriseAPI.getById(id!);
       setEnterprise(response.data);
     } catch (err) {
@@ -229,7 +231,7 @@ const AdminEnterpriseDetail: React.FC = () => {
             </span>
           </div>
           <p className="text-lg font-semibold text-neutral-900 mt-1">
-            {enterprise.employee_count}
+            {enterprise.number_of_employees}
           </p>
         </div>
 
@@ -331,7 +333,7 @@ const AdminEnterpriseDetail: React.FC = () => {
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Employee Count
               </label>
-              <p className="text-neutral-900">{enterprise.employee_count}</p>
+              <p className="text-neutral-900">{enterprise.number_of_employees}</p>
             </div>
 
             <div>
@@ -346,7 +348,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                 Business Description
               </label>
               <p className="text-neutral-900">
-                {enterprise.business_description}
+                {enterprise.description}
               </p>
             </div>
           </div>
@@ -370,7 +372,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                     Owner Name
                   </label>
                   <p className="text-neutral-900">
-                    {enterprise.owner.first_name} {enterprise.owner.last_name}
+                    {enterprise.user.first_name} {enterprise.user.last_name}
                   </p>
                 </div>
 
@@ -379,7 +381,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                     Username
                   </label>
                   <p className="text-neutral-900">
-                    {enterprise.owner.username}
+                    {enterprise.user.username}
                   </p>
                 </div>
 
@@ -387,7 +389,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Email Address
                   </label>
-                  <p className="text-neutral-900">{enterprise.owner.email}</p>
+                  <p className="text-neutral-900">{enterprise.user.email}</p>
                 </div>
 
                 <div>
@@ -425,8 +427,7 @@ const AdminEnterpriseDetail: React.FC = () => {
         <div className="glass-effect rounded-2xl p-8">
           <h2 className="text-xl font-bold text-neutral-900 mb-6">Documents</h2>
           <p className="text-neutral-600">
-            Document management functionality will be implemented in the next
-            phase.
+            No documents found
           </p>
         </div>
       )}
@@ -437,8 +438,7 @@ const AdminEnterpriseDetail: React.FC = () => {
             Activity Log
           </h2>
           <p className="text-neutral-600">
-            Activity logging functionality will be implemented in the next
-            phase.
+            No activity found
           </p>
         </div>
       )}
