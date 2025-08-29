@@ -16,43 +16,47 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
       business_name: "",
       tin_number: "",
       enterprise_type: "",
+      enterprise_size: "",
       sector: "",
       district: "",
+      address: "",
+      city: "",
+      year_established: new Date().getFullYear(),
       description: "",
       website: "",
       email: "",
       phone_number: "",
-      number_of_employees: "",
+      number_of_employees: 0,
     }
   );
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const enterpriseTypes = [
-    "Private Limited Company",
-    "Public Limited Company",
-    "Sole Proprietorship",
-    "Partnership",
-    "Cooperative",
-    "NGO",
-    "Government",
+    { value: "sole_proprietorship", label: "Sole Proprietorship" },
+    { value: "partnership", label: "Partnership" },
+    { value: "limited_company", label: "Limited Company" },
+    { value: "cooperative", label: "Cooperative" },
+    { value: "ngo", label: "NGO" },
+  ];
+
+  const enterpriseSizes = [
+    { value: "micro", label: "Micro (1-4 employees)" },
+    { value: "small", label: "Small (5-30 employees)" },
+    { value: "medium", label: "Medium (31-100 employees)" },
   ];
 
   const sectors = [
-    "Agriculture",
-    "Manufacturing",
-    "Services",
-    "Technology",
-    "Healthcare",
-    "Education",
-    "Finance",
-    "Construction",
-    "Tourism",
-    "Mining",
-    "Energy",
-    "Transport",
-    "Trade",
-    "Other",
+    { value: "agriculture", label: "Agriculture" },
+    { value: "manufacturing", label: "Manufacturing" },
+    { value: "services", label: "Services" },
+    { value: "technology", label: "Technology" },
+    { value: "retail", label: "Retail" },
+    { value: "construction", label: "Construction" },
+    { value: "healthcare", label: "Healthcare" },
+    { value: "education", label: "Education" },
+    { value: "finance", label: "Finance" },
+    { value: "other", label: "Other" },
   ];
 
   const districts = [
@@ -88,8 +92,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
     "Nyamasheke",
   ];
 
-  const employeeRanges = ["1-10", "11-50", "51-100", "101-500", "500+"];
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -98,7 +100,10 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]:
+        name === "number_of_employees" || name === "year_established"
+          ? parseInt(value) || 0
+          : value,
     }));
     // Clear error when user starts typing
     if (errors[name]) {
@@ -126,12 +131,32 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
       newErrors.enterprise_type = "Enterprise type is required";
     }
 
+    if (!formData.enterprise_size) {
+      newErrors.enterprise_size = "Enterprise size is required";
+    }
+
     if (!formData.sector) {
       newErrors.sector = "Sector is required";
     }
 
     if (!formData.district) {
       newErrors.district = "District is required";
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+
+    const yearNum =
+      typeof formData.year_established === "string"
+        ? parseInt(formData.year_established)
+        : formData.year_established;
+    if (!yearNum || yearNum < 1900 || yearNum > new Date().getFullYear()) {
+      newErrors.year_established = "Please enter a valid year";
     }
 
     if (!formData.description.trim()) {
@@ -150,8 +175,12 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
       newErrors.phone_number = "Invalid Rwanda phone number format";
     }
 
-    if (!formData.number_of_employees) {
-      newErrors.number_of_employees = "Number of employees is required";
+    if (
+      !formData.number_of_employees ||
+      Number(formData.number_of_employees) <= 0
+    ) {
+      newErrors.number_of_employees =
+        "Number of employees must be greater than 0";
     }
 
     setErrors(newErrors);
@@ -168,7 +197,14 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
     setLoading(true);
 
     try {
-      const response = await enterpriseAPI.create(formData);
+      // Map frontend field names to backend field names
+      const backendData = {
+        ...formData,
+        phone: formData.phone_number, // Map phone_number to phone
+      };
+      delete (backendData as any).phone_number; // Remove the frontend field
+
+      const response = await enterpriseAPI.create(backendData);
       const enterprise = response.data;
       onComplete(enterprise);
     } catch (error: any) {
@@ -203,7 +239,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             <p className="text-red-600 text-sm">{errors.general}</p>
           </div>
         )}
-
         {/* Business Name */}
         <div>
           <label
@@ -227,7 +262,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             <p className="text-red-600 text-sm mt-1">{errors.business_name}</p>
           )}
         </div>
-
         {/* TIN Number */}
         <div>
           <label
@@ -252,8 +286,7 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             <p className="text-red-600 text-sm mt-1">{errors.tin_number}</p>
           )}
         </div>
-
-        {/* Enterprise Type and Sector */}
+        {/* Enterprise Type and Enterprise Size */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
@@ -273,8 +306,8 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             >
               <option value="">Select enterprise type</option>
               {enterpriseTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+                <option key={type.value} value={type.value}>
+                  {type.label}
                 </option>
               ))}
             </select>
@@ -287,33 +320,62 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
 
           <div>
             <label
-              htmlFor="sector"
+              htmlFor="enterprise_size"
               className="block text-sm font-medium text-neutral-700 mb-2"
             >
-              Sector *
+              Enterprise Size *
             </label>
             <select
-              id="sector"
-              name="sector"
-              value={formData.sector}
+              id="enterprise_size"
+              name="enterprise_size"
+              value={formData.enterprise_size}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                errors.sector ? "border-red-300" : "border-neutral-300"
+                errors.enterprise_size ? "border-red-300" : "border-neutral-300"
               }`}
             >
-              <option value="">Select sector</option>
-              {sectors.map((sector) => (
-                <option key={sector} value={sector}>
-                  {sector}
+              <option value="">Select enterprise size</option>
+              {enterpriseSizes.map((size) => (
+                <option key={size.value} value={size.value}>
+                  {size.label}
                 </option>
               ))}
             </select>
-            {errors.sector && (
-              <p className="text-red-600 text-sm mt-1">{errors.sector}</p>
+            {errors.enterprise_size && (
+              <p className="text-red-600 text-sm mt-1">
+                {errors.enterprise_size}
+              </p>
             )}
           </div>
         </div>
-
+        {/* Sector */}
+        <div>
+          <label
+            htmlFor="sector"
+            className="block text-sm font-medium text-neutral-700 mb-2"
+          >
+            Sector *
+          </label>
+          <select
+            id="sector"
+            name="sector"
+            value={formData.sector}
+            onChange={handleInputChange}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+              errors.sector ? "border-red-300" : "border-neutral-300"
+            }`}
+          >
+            <option value="">Select sector</option>
+            {sectors.map((sector) => (
+              <option key={sector.value} value={sector.value}>
+                {sector.label}
+              </option>
+            ))}
+          </select>
+          {errors.sector && (
+            <p className="text-red-600 text-sm mt-1">{errors.sector}</p>
+          )}
+        </div>{" "}
         {/* District and Employees */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -351,24 +413,20 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             >
               Number of Employees *
             </label>
-            <select
+            <input
+              type="number"
               id="number_of_employees"
               name="number_of_employees"
               value={formData.number_of_employees}
               onChange={handleInputChange}
+              min="1"
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                 errors.number_of_employees
                   ? "border-red-300"
                   : "border-neutral-300"
               }`}
-            >
-              <option value="">Select range</option>
-              {employeeRanges.map((range) => (
-                <option key={range} value={range}>
-                  {range}
-                </option>
-              ))}
-            </select>
+              placeholder="Enter number of employees"
+            />
             {errors.number_of_employees && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.number_of_employees}
@@ -376,7 +434,81 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             )}
           </div>
         </div>
+        {/* Address and City */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label
+              htmlFor="address"
+              className="block text-sm font-medium text-neutral-700 mb-2"
+            >
+              Address *
+            </label>
+            <textarea
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              rows={3}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                errors.address ? "border-red-300" : "border-neutral-300"
+              }`}
+              placeholder="Enter business address"
+            />
+            {errors.address && (
+              <p className="text-red-600 text-sm mt-1">{errors.address}</p>
+            )}
+          </div>
 
+          <div>
+            <label
+              htmlFor="city"
+              className="block text-sm font-medium text-neutral-700 mb-2"
+            >
+              City *
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                errors.city ? "border-red-300" : "border-neutral-300"
+              }`}
+              placeholder="Enter city"
+            />
+            {errors.city && (
+              <p className="text-red-600 text-sm mt-1">{errors.city}</p>
+            )}
+          </div>
+        </div>
+        {/* Year Established */}
+        <div>
+          <label
+            htmlFor="year_established"
+            className="block text-sm font-medium text-neutral-700 mb-2"
+          >
+            Year Established *
+          </label>
+          <input
+            type="number"
+            id="year_established"
+            name="year_established"
+            value={formData.year_established}
+            onChange={handleInputChange}
+            min="1900"
+            max={new Date().getFullYear()}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+              errors.year_established ? "border-red-300" : "border-neutral-300"
+            }`}
+            placeholder="Enter year established"
+          />
+          {errors.year_established && (
+            <p className="text-red-600 text-sm mt-1">
+              {errors.year_established}
+            </p>
+          )}
+        </div>
         {/* Email and Phone */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -425,7 +557,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             )}
           </div>
         </div>
-
         {/* Website */}
         <div>
           <label
@@ -444,7 +575,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             placeholder="https://www.example.com"
           />
         </div>
-
         {/* Description */}
         <div>
           <label
@@ -468,7 +598,6 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
             <p className="text-red-600 text-sm mt-1">{errors.description}</p>
           )}
         </div>
-
         {/* Submit Button */}
         <div className="flex justify-end pt-6">
           <button

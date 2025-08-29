@@ -65,7 +65,7 @@ export const enterpriseAPI = {
     api.get(`/enterprises/api/enterprises/${id}/`),
   
   getMyEnterprise: () =>
-    api.get('/enterprises/api/my-enterprise/'),
+    api.get('/enterprises/api/enterprises/my-enterprise/'),
   
   create: (data: any) =>
     api.post('/enterprises/api/enterprises/', data),

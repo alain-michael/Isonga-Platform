@@ -116,8 +116,8 @@ class Command(BaseCommand):
                 'user': {
                     'username': 'localcafe',
                     'email': 'owner@localcafe.rw',
-                    'first_name': 'Pierre',
-                    'last_name': 'Nkurunziza',
+                    'first_name': 'Peter',
+                    'last_name': 'Opara',
                     'password': 'password123'
                 },
                 'enterprise': {

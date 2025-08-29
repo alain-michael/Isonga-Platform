@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
         user?.user_type === "enterprise",
     },
     {
-      name: "Manage Assessments",
+      name: "Manage Questionnaires",
       path: "/admin/manage",
       icon: FileText,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",

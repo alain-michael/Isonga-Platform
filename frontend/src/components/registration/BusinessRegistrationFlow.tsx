@@ -10,13 +10,17 @@ export interface BusinessProfile {
   business_name: string;
   tin_number: string;
   enterprise_type: string;
+  enterprise_size: string;
   sector: string;
   district: string;
+  address: string;
+  city: string;
+  year_established: number | string;
   description: string;
   website?: string;
   email: string;
   phone_number: string;
-  number_of_employees: string;
+  number_of_employees: number | string;
 }
 
 export interface RegistrationData {
