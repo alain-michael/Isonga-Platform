@@ -3,28 +3,28 @@ interface ChevronPatternSVGProps {
   height?: number;
 }
 
-const ChevronPatternSVG = ({ 
-  fillColor = "#ffffff", 
-  height = 40 
+const ChevronPatternSVG = ({
+  fillColor = "#ffffff",
+  height = 40,
 }: ChevronPatternSVGProps) => {
   const patternId = "chevron-negative-space-3";
 
   return (
-    <svg 
-      className="w-full h-full block" 
+    <svg
+      className="w-full h-full block"
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="none"
     >
       <defs>
-        {/* Increased logical width to 120 to fit 3 distinct sections 
-        */}
+        {/* Increased logical width to 120 to fit 3 distinct sections
+         */}
         <pattern
           id={patternId}
-          width="100%" 
+          width="100%"
           height={height}
           patternUnits="userSpaceOnUse"
           viewBox={`0 0 120 ${height}`} // Establish a coordinate system 0-120
-          preserveAspectRatio="none" 
+          preserveAspectRatio="none"
         >
           {/* STRATEGY: 
              We are drawing the WHITE (overlay) parts.
@@ -71,7 +71,13 @@ const ChevronPatternSVG = ({
         </pattern>
       </defs>
 
-      <rect x="0" y="0" width="100%" height="100%" fill={`url(#${patternId})`} />
+      <rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill={`url(#${patternId})`}
+      />
     </svg>
   );
 };

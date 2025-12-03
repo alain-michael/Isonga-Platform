@@ -91,12 +91,14 @@ const CampaignDetail: React.FC = () => {
 
   // Filter matches for this campaign if possible, or just show all enterprise matches
   // Assuming matches are linked to enterprise, we show all interested investors
-  const interestedInvestors = Array.isArray(matches) ? matches.filter(
-    (m: any) =>
-      m.status === "approved" ||
-      m.status === "engaged" ||
-      m.status === "completed"
-  ) : [];
+  const interestedInvestors = Array.isArray(matches)
+    ? matches.filter(
+        (m: any) =>
+          m.status === "approved" ||
+          m.status === "engaged" ||
+          m.status === "completed"
+      )
+    : [];
 
   const acceptMatchMutation = useMutation({
     mutationFn: (matchId: string) => enterpriseAPI.acceptMatch(matchId),
