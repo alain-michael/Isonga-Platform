@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { assessmentAPI } from "../../services/api";
 import type { BusinessProfile } from "./BusinessRegistrationFlow";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Assessment {
   id: number;
@@ -127,21 +129,62 @@ const AssessmentStep: React.FC<AssessmentStepProps> = ({
 
   const generatePDF = async (completedIds: number[]) => {
     try {
-      // For now, we'll just simulate PDF generation
-      // In a real implementation, you would call an API endpoint to generate the report
       console.log("Generating PDF for assessments:", completedIds);
 
-      // Simulate file download
-      const content = `Assessment Report for ${businessProfile.business_name}\n\nCompleted Assessments: ${completedIds.length}`;
-      const blob = new Blob([content], { type: "text/plain" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${businessProfile.business_name}_assessment_report.txt`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const doc = new jsPDF();
+
+      // Add Header
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Isonga Platform - Readiness Report", 14, 22);
+
+      // Add Business Info
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Business Name: ${businessProfile.business_name}`, 14, 32);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 38);
+      doc.text(`Sector: ${businessProfile.sector}`, 14, 44);
+
+      // Add Assessment Summary
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Assessment Summary", 14, 55);
+
+      const completedAssessmentsList = assessments.filter((a) =>
+        completedIds.includes(a.id)
+      );
+
+      const tableData = completedAssessmentsList.map((a) => [
+        a.title,
+        a.category,
+        "Completed",
+        new Date().toLocaleDateString(),
+      ]);
+
+      autoTable(doc, {
+        startY: 60,
+        head: [["Assessment", "Category", "Status", "Date"]],
+        body: tableData,
+        theme: "grid",
+        headStyles: { fillColor: [66, 133, 244] },
+      });
+
+      // Add Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: "center" }
+        );
+      }
+
+      // Save PDF
+      doc.save(`${businessProfile.business_name}_readiness_report.pdf`);
 
       onComplete(completedIds);
     } catch (error) {

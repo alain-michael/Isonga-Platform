@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -7,56 +7,91 @@ import {
   TrendingUp,
   Plus,
   Eye,
+  AlertCircle,
 } from "lucide-react";
+import { assessmentAPI } from "../../services/api";
+
+interface Assessment {
+  id: number;
+  title: string;
+  status: string;
+  score: number | null;
+  created_at: string;
+  updated_at: string;
+  questionnaire: {
+    title: string;
+    category: {
+      name: string;
+    };
+  };
+}
 
 const Assessments: React.FC = () => {
-  // Mock data for demonstration
-  const assessments = [
-    {
-      id: 1,
-      title: "Financial Assessment 2024",
-      status: "completed",
-      score: 85,
-      date: "2024-08-20",
-      type: "Financial",
-    },
-    {
-      id: 2,
-      title: "Operations Assessment 2024",
-      status: "in_progress",
-      score: null,
-      date: "2024-08-25",
-      type: "Operations",
-    },
-    {
-      id: 3,
-      title: "Market Analysis 2024",
-      status: "pending",
-      score: null,
-      date: "2024-08-26",
-      type: "Market",
-    },
-  ];
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAssessments();
+  }, []);
+
+  const fetchAssessments = async () => {
+    try {
+      setLoading(true);
+      const response = await assessmentAPI.getAssessments();
+      setAssessments(response.data?.results || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching assessments:", err);
+      setError("Failed to load assessments. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-success-100 text-success-800 border-success-200";
+        return "bg-success-100 text-success-800 border-success-200 dark:bg-success-900/30 dark:text-success-300 dark:border-success-700";
       case "in_progress":
-        return "bg-warning-100 text-warning-800 border-warning-200";
+        return "bg-warning-100 text-warning-800 border-warning-200 dark:bg-warning-900/30 dark:text-warning-300 dark:border-warning-700";
       case "pending":
-        return "bg-neutral-100 text-neutral-800 border-neutral-200";
+        return "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:border-neutral-600";
       default:
-        return "bg-neutral-100 text-neutral-800 border-neutral-200";
+        return "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:border-neutral-600";
     }
   };
 
   const getScoreColor = (score: number | null) => {
-    if (!score) return "text-neutral-400";
-    if (score >= 80) return "text-success-600";
-    if (score >= 60) return "text-warning-600";
-    return "text-error-600";
+    if (!score) return "text-neutral-400 dark:text-neutral-500";
+    if (score >= 80) return "text-success-600 dark:text-success-400";
+    if (score >= 60) return "text-warning-600 dark:text-warning-400";
+    return "text-error-600 dark:text-error-400";
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-error-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+            {error}
+          </h3>
+          <button onClick={fetchAssessments} className="mt-4 btn-primary">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -147,7 +182,17 @@ const Assessments: React.FC = () => {
               <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
                 Avg Score
               </p>
-              <p className="text-2xl font-bold text-success-600">85%</p>
+              <p className="text-2xl font-bold text-success-600">
+                {assessments.length > 0
+                  ? Math.round(
+                      assessments.reduce(
+                        (acc, curr) => acc + (curr.score || 0),
+                        0
+                      ) / assessments.filter((a) => a.score).length || 0
+                    )
+                  : 0}
+                %
+              </p>
             </div>
           </div>
         </div>
@@ -159,56 +204,76 @@ const Assessments: React.FC = () => {
           Your Assessments
         </h2>
 
-        <div className="space-y-4">
-          {assessments.map((assessment) => (
-            <div
-              key={assessment.id}
-              className="flex items-center justify-between p-6 border-2 border-neutral-200 rounded-xl card-hover"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl">
-                  <FileText className="h-6 w-6 text-primary-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-900">
-                    {assessment.title}
-                  </h3>
-                  <div className="flex items-center space-x-3 mt-1">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
-                        assessment.status
-                      )}`}
-                    >
-                      {assessment.status.replace("_", " ")}
-                    </span>
-                    <span className="text-sm text-neutral-500">
-                      {assessment.type} • {assessment.date}
-                    </span>
+        {assessments.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-neutral-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-neutral-900">
+              No assessments found
+            </h3>
+            <p className="text-neutral-500 mt-2 mb-6">
+              Get started by creating your first assessment.
+            </p>
+            <Link to="/assessments/create" className="btn-primary inline-flex">
+              <Plus className="h-5 w-5 mr-2" />
+              Create Assessment
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {assessments.map((assessment) => (
+              <div
+                key={assessment.id}
+                className="flex items-center justify-between p-6 border-2 border-neutral-200 rounded-xl card-hover"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl">
+                    <FileText className="h-6 w-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-neutral-900">
+                      {assessment.title || assessment.questionnaire.title}
+                    </h3>
+                    <div className="flex items-center space-x-3 mt-1">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                          assessment.status
+                        )}`}
+                      >
+                        {assessment.status.replace("_", " ").toUpperCase()}
+                      </span>
+                      <span className="text-sm text-neutral-500">
+                        {assessment.questionnaire.category.name} •{" "}
+                        {new Date(assessment.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center space-x-4">
-                {assessment.score && (
-                  <div className="text-right">
-                    <p className="text-sm text-neutral-500">Score</p>
-                    <p
-                      className={`text-xl font-bold ${getScoreColor(
-                        assessment.score
-                      )}`}
-                    >
-                      {assessment.score}%
-                    </p>
-                  </div>
-                )}
-                <button className="btn-primary flex items-center space-x-2">
-                  <Eye className="h-4 w-4" />
-                  <span>View</span>
-                </button>
+                <div className="flex items-center space-x-4">
+                  {assessment.score !== null && (
+                    <div className="text-right">
+                      <p className="text-sm text-neutral-500">Score</p>
+                      <p
+                        className={`text-xl font-bold ${getScoreColor(
+                          assessment.score
+                        )}`}
+                      >
+                        {assessment.score}%
+                      </p>
+                    </div>
+                  )}
+                  <Link
+                    to={`/assessments/${assessment.id}`}
+                    className="btn-primary flex items-center space-x-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View</span>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

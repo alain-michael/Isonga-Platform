@@ -26,6 +26,9 @@ urlpatterns = [
     path('assessments/', include('assessments.urls')),
     path('payments/', include('payments.urls')),
     path('admin_dashboard/', include('admin_dashboard.urls')),
+    path('investors/', include('investors.urls')),
+    path('campaigns/', include('campaigns.urls')),
+    path('core/', include('core.urls')),
 ]
 
 if settings.DEBUG:

@@ -51,6 +51,9 @@ INSTALLED_APPS = [
     'assessments',
     'payments',
     'admin_dashboard',
+    'investors',
+    'campaigns',
+    'core',
 ]
 
 MIDDLEWARE = [

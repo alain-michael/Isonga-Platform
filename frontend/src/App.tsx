@@ -4,9 +4,13 @@ import {
   Routes,
   Route,
   Navigate,
+  Outlet,
 } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { queryClient } from "./lib/react-query";
+import Welcome from "./components/Welcome";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import BusinessRegistrationFlow from "./components/registration/BusinessRegistrationFlow";
@@ -19,10 +23,22 @@ import CreateAssessment from "./components/assessments/CreateAssessment";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminEnterprises from "./components/admin/AdminEnterprises";
 import AdminEnterpriseDetail from "./components/admin/AdminEnterpriseDetail";
+import AdminQuestionnaires from "./components/admin/AdminQuestionnaires";
+import AdminInvestors from "./components/admin/AdminInvestors";
+import AdminUsers from "./components/admin/AdminUsers";
 import NotFound from "./components/common/NotFound";
-import Navbar from "./components/layout/Navbar";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import {
+  CampaignList,
+  CreateCampaign,
+  CampaignDetail,
+} from "./components/campaigns";
+import InvestorDashboard from "./components/investor/InvestorDashboard";
+import InvestorMatches from "./components/investor/InvestorMatches";
+import InvestorMatchDetail from "./components/investor/InvestorMatchDetail";
+import InvestorProfile from "./components/investor/InvestorProfile";
 import "./styles.css";
-import AdminAssessments from "./components/admin/AdminAssessment";
+import AdminAssessments from "./components/admin/AdminAssessments";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -31,10 +47,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-200 border-t-primary-600"></div>
-          <p className="text-neutral-600 font-medium">Loading...</p>
+          <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+            Loading...
+          </p>
         </div>
       </div>
     );
@@ -48,10 +66,12 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-200 border-t-secondary-600"></div>
-          <p className="text-neutral-600 font-medium">Loading...</p>
+          <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+            Loading...
+          </p>
         </div>
       </div>
     );
@@ -60,143 +80,95 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" />;
 };
 
-const AppContent: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-
+const ProtectedLayout = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
-      {isAuthenticated && <Navbar />}
-      <div className={isAuthenticated ? "pt-16" : ""}>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/business-registration"
-            element={
-              <ProtectedRoute>
-                <BusinessRegistrationFlow />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <EnterpriseProfile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments"
-            element={
-              <ProtectedRoute>
-                <Assessments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/manage"
-            element={
-              <ProtectedRoute>
-                <ManageAssessments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/create"
-            element={
-              <ProtectedRoute>
-                <CreateAssessment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/:id"
-            element={
-              <ProtectedRoute>
-                <AssessmentForm />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/manage"
-            element={
-              <ProtectedRoute>
-                <ManageAssessments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assessments"
-            element={
-              <ProtectedRoute>
-                <AdminAssessments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/enterprises"
-            element={
-              <ProtectedRoute>
-                <AdminEnterprises />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/enterprises/:id"
-            element={
-              <ProtectedRoute>
-                <AdminEnterpriseDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-    </div>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Outlet />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+};
+
+const AppContent: React.FC = () => {
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected Routes with Sidebar Layout */}
+      <Route element={<ProtectedLayout />}>
+        <Route
+          path="/business-registration"
+          element={<BusinessRegistrationFlow />}
+        />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<EnterpriseProfile />} />
+        <Route path="/assessments" element={<Assessments />} />
+        <Route path="/assessments/manage" element={<ManageAssessments />} />
+        <Route path="/assessments/create" element={<CreateAssessment />} />
+        <Route path="/assessments/:id" element={<AssessmentForm />} />
+
+        {/* Campaign Routes */}
+        <Route path="/campaigns" element={<CampaignList />} />
+        <Route path="/campaigns/create" element={<CreateCampaign />} />
+        <Route path="/campaigns/:id" element={<CampaignDetail />} />
+
+        {/* Investor Routes */}
+        <Route path="/investor/dashboard" element={<InvestorDashboard />} />
+        <Route path="/investor/matches" element={<InvestorMatches />} />
+        <Route path="/investor/matches/:id" element={<InvestorMatchDetail />} />
+        <Route path="/investor/profile" element={<InvestorProfile />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/manage" element={<ManageAssessments />} />
+        <Route path="/admin/assessments" element={<AdminAssessments />} />
+        <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
+        <Route path="/admin/investors" element={<AdminInvestors />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/enterprises" element={<AdminEnterprises />} />
+        <Route
+          path="/admin/enterprises/:id"
+          element={<AdminEnterpriseDetail />}
+        />
+      </Route>
+
+      {/* Welcome page - landing */}
+      <Route path="/" element={<Welcome />} />
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

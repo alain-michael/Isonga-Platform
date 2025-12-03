@@ -9,6 +9,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { assessmentAPI } from "../../services/api";
 
 interface Question {
   id: string;
@@ -46,27 +47,47 @@ const CreateAssessment: React.FC = () => {
     languages: [] as string[],
     questionnaires: [] as Questionnaire[],
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (editId) {
-      // Load existing assessment data for editing
-      // This would typically fetch from an API
       loadExistingAssessment(editId);
     }
   }, [editId]);
 
-  const loadExistingAssessment = (_id: string) => {
-    // Mock loading existing assessment
-    const mockAssessment = {
-      title: "SME Financial Health Assessment",
-      description:
-        "Comprehensive financial evaluation for small and medium enterprises",
-      industry: "General",
-      selectedQuestionnaires: ["business-info", "financial-health"],
-      languages: ["English", "Kinyarwanda"],
-      questionnaires: [], // Would be populated from the API
-    };
-    setAssessmentData(mockAssessment);
+  const loadExistingAssessment = async (id: string) => {
+    try {
+      setLoading(true);
+      const response = await assessmentAPI.getQuestionnaire(id);
+      // Transform API data to match component state
+      // This is a placeholder transformation
+      setAssessmentData({
+        title: response.data.title,
+        description: response.data.description || "",
+        industry: response.data.category?.name || "General",
+        selectedQuestionnaires: [response.data.id.toString()],
+        languages: ["English"], // Adjust based on API
+        questionnaires: [
+          {
+            id: response.data.id.toString(),
+            title: response.data.title,
+            description: response.data.description || "",
+            questions: response.data.questions.map((q: any) => ({
+              id: q.id.toString(),
+              question: q.text,
+              type: q.type,
+              options: q.options?.map((o: any) => o.text) || [],
+              weight: q.weight || 1,
+              required: q.required || false,
+            })),
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error loading assessment:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const industries = [
@@ -152,6 +173,12 @@ const CreateAssessment: React.FC = () => {
     // Initialize questionnaires with templates
     const initializedQuestionnaires = assessmentData.selectedQuestionnaires.map(
       (qId) => {
+        // Check if we already have data for this questionnaire (e.g. from edit mode)
+        const existing = assessmentData.questionnaires.find(
+          (q) => q.id === qId
+        );
+        if (existing) return existing;
+
         const template = getQuestionnaireTemplate(qId);
         return {
           id: qId,

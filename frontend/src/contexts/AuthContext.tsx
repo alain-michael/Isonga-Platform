@@ -8,7 +8,7 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  user_type: "superadmin" | "admin" | "enterprise";
+  user_type: "superadmin" | "admin" | "enterprise" | "investor";
   phone_number?: string;
   is_verified: boolean;
 }

@@ -65,7 +65,7 @@ export const enterpriseAPI = {
     api.get(`/enterprises/api/enterprises/${id}/`),
   
   getMyEnterprise: () =>
-    api.get('/enterprises/api/enterprises/my-enterprise/'),
+    api.get('/enterprises/api/my-enterprise/'),
   
   create: (data: any) =>
     api.post('/enterprises/api/enterprises/', data),
@@ -83,6 +83,15 @@ export const enterpriseAPI = {
   
   getDocuments: (id: string) =>
     api.get(`/enterprises/api/enterprises/${id}/documents/`),
+
+  getMatches: () =>
+    api.get('/investors/matches/'),
+
+  acceptMatch: (id: string, notes?: string) =>
+    api.post(`/investors/matches/${id}/accept/`, { notes }),
+
+  rejectMatch: (id: string) =>
+    api.post(`/investors/matches/${id}/reject/`),
 };
 
 // Assessment API
@@ -92,6 +101,9 @@ export const assessmentAPI = {
   
   getQuestionnaires: () =>
     api.get('/assessments/api/questionnaires/'),
+
+  getQuestionnaire: (id: string) =>
+    api.get(`/assessments/api/questionnaires/${id}/`),
   
   getAssessments: (params?: any) =>
     api.get('/assessments/api/assessments/', { params }),
@@ -152,6 +164,175 @@ export const adminAPI = {
   
   getSystemMetrics: () =>
     api.get('/admin_dashboard/api/system-metrics/'),
+
+  getUsers: (params?: any) =>
+    api.get('/accounts/api/users/', { params }),
+};
+
+// Investor API
+export const investorAPI = {
+  getAll: (params?: any) =>
+    api.get('/investors/api/investors/', { params }),
+  
+  getById: (id: string) =>
+    api.get(`/investors/api/investors/${id}/`),
+  
+  create: (data: any) =>
+    api.post('/investors/api/investors/', data),
+  
+  update: (id: string, data: any) =>
+    api.put(`/investors/api/investors/${id}/`, data),
+  
+  getCriteria: (investorId: string) =>
+    api.get(`/investors/api/investors/${investorId}/criteria/`),
+  
+  // Matches
+  getMatches: (params?: any) =>
+    api.get('/investors/api/matches/', { params }),
+  
+  getMatch: (id: string) =>
+    api.get(`/investors/api/matches/${id}/`),
+  
+  findMatches: () =>
+    api.get('/investors/api/matches/find_matches/'),
+  
+  approveMatch: (id: string, notes?: string) =>
+    api.post(`/investors/api/matches/${id}/approve/`, { notes }),
+  
+  requestDocuments: (id: string, documents: string[]) =>
+    api.post(`/investors/api/matches/${id}/request_documents/`, { documents }),
+  
+  acceptMatch: (id: string, notes?: string) =>
+    api.post(`/investors/api/matches/${id}/accept/`, { notes }),
+  
+  // Match Interactions
+  getInteractions: (matchId: string) =>
+    api.get('/investors/api/interactions/', { params: { match_id: matchId } }),
+  
+  createInteraction: (data: any) =>
+    api.post('/investors/api/interactions/', data),
+  
+  // Criteria
+  createCriteria: (data: any) =>
+    api.post('/investors/api/criteria/', data),
+  
+  updateCriteria: (id: string, data: any) =>
+    api.put(`/investors/api/criteria/${id}/`, data),
+};
+
+// Campaign API
+export const campaignAPI = {
+  getAll: (params?: any) =>
+    api.get('/campaigns/api/campaigns/', { params }),
+  
+  getById: (id: string) =>
+    api.get(`/campaigns/api/campaigns/${id}/`),
+  
+  getMyCampaigns: () =>
+    api.get('/campaigns/api/campaigns/my_campaigns/'),
+  
+  getActive: (params?: any) =>
+    api.get('/campaigns/api/campaigns/active/', { params }),
+  
+  create: (data: any) =>
+    api.post('/campaigns/api/campaigns/', data),
+  
+  update: (id: string, data: any) =>
+    api.put(`/campaigns/api/campaigns/${id}/`, data),
+  
+  submitForReview: (id: string) =>
+    api.post(`/campaigns/api/campaigns/${id}/submit_for_review/`),
+  
+  approve: (id: string) =>
+    api.post(`/campaigns/api/campaigns/${id}/approve/`),
+  
+  reject: (id: string, notes?: string) =>
+    api.post(`/campaigns/api/campaigns/${id}/reject/`, { notes }),
+  
+  activate: (id: string) =>
+    api.post(`/campaigns/api/campaigns/${id}/activate/`),
+  
+  close: (id: string) =>
+    api.post(`/campaigns/api/campaigns/${id}/close/`),
+  
+  // Documents
+  getDocuments: (campaignId: string) =>
+    api.get('/campaigns/api/documents/', { params: { campaign_id: campaignId } }),
+  
+  uploadDocument: (data: FormData) =>
+    api.post('/campaigns/api/documents/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  
+  // Interests
+  getInterests: (campaignId: string) =>
+    api.get('/campaigns/api/interests/', { params: { campaign_id: campaignId } }),
+  
+  expressInterest: (data: any) =>
+    api.post('/campaigns/api/interests/', data),
+  
+  approveInterest: (id: string) =>
+    api.post(`/campaigns/api/interests/${id}/approve/`),
+  
+  rejectInterest: (id: string) =>
+    api.post(`/campaigns/api/interests/${id}/reject/`),
+};
+
+// Notification API
+export const notificationAPI = {
+  getAll: () =>
+    api.get('/core/api/notifications/'),
+  
+  getUnread: () =>
+    api.get('/core/api/notifications/unread/'),
+  
+  getUnreadCount: () =>
+    api.get('/core/api/notifications/unread_count/'),
+  
+  markRead: (id: string) =>
+    api.post(`/core/api/notifications/${id}/mark_read/`),
+  
+  markAllRead: () =>
+    api.post('/core/api/notifications/mark_all_read/'),
+  
+  clearRead: () =>
+    api.delete('/core/api/notifications/clear_read/'),
+};
+
+// User Preferences API
+export const preferencesAPI = {
+  get: () =>
+    api.get('/core/api/preferences/'),
+  
+  update: (data: any) =>
+    api.post('/core/api/preferences/', data),
+};
+
+// Audit Log API (Admin only)
+export const auditLogAPI = {
+  getAll: (params?: any) =>
+    api.get('/core/api/audit-logs/', { params }),
+  
+  getSummary: () =>
+    api.get('/core/api/audit-logs/summary/'),
+};
+
+// Deletion Request API
+export const deletionRequestAPI = {
+  getAll: () =>
+    api.get('/core/api/deletion-requests/'),
+  
+  create: (reason: string) =>
+    api.post('/core/api/deletion-requests/', { reason }),
+  
+  approve: (id: string, notes?: string) =>
+    api.post(`/core/api/deletion-requests/${id}/approve/`, { notes }),
+  
+  reject: (id: string, notes?: string) =>
+    api.post(`/core/api/deletion-requests/${id}/reject/`, { notes }),
+  
+  cancel: (id: string) =>
+    api.post(`/core/api/deletion-requests/${id}/cancel/`),
 };
 
 export default api;

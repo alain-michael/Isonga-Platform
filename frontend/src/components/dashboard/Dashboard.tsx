@@ -1,384 +1,268 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Building2,
   FileText,
   CheckCircle,
   Clock,
-  AlertCircle,
   TrendingUp,
-  Users,
-  Award,
+  ArrowRight,
+  Plus,
 } from "lucide-react";
-import { assessmentAPI, enterpriseAPI } from "../../services/api";
-
-interface DashboardStats {
-  totalAssessments: number;
-  completedAssessments: number;
-  pendingAssessments: number;
-  averageScore: number;
-}
+import { useAssessments } from "../../hooks/useAssessments";
+import { useMyEnterprise } from "../../hooks/useEnterprises";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalAssessments: 0,
-    completedAssessments: 0,
-    pendingAssessments: 0,
-    averageScore: 0,
-  });
-  const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch enterprise profile if user is an enterprise
+  const { error: enterpriseError, isLoading: enterpriseLoading } =
+    useMyEnterprise();
+
+  // Fetch assessments
+  const { data: assessments = [], isLoading: assessmentsLoading } =
+    useAssessments();
+
+  // Handle enterprise profile check
   useEffect(() => {
-    if (user?.user_type === "enterprise") {
-      checkBusinessProfile();
-    } else {
-      fetchDashboardData();
-    }
-  }, []);
-
-  const checkBusinessProfile = async () => {
-    try {
-      await enterpriseAPI.getMyEnterprise();
-      fetchDashboardData();
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        // No business profile found - redirect to registration flow
-        navigate("/business-registration");
-      } else {
-        console.error("Error checking business profile:", error);
+    if (user?.user_type === "enterprise" && enterpriseError) {
+      // @ts-ignore
+      if (enterpriseError.response?.status === 404) {
         navigate("/business-registration");
       }
     }
-  };
+  }, [user, enterpriseError, navigate]);
 
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
+  // Calculate stats
+  const stats = useMemo(() => {
+    if (!assessments)
+      return {
+        totalAssessments: 0,
+        completedAssessments: 0,
+        pendingAssessments: 0,
+        averageScore: 0,
+      };
 
-      if (user?.user_type === "enterprise") {
-        // Fetch assessments for the enterprise
-        const assessmentsResponse = await assessmentAPI.getAssessments();
-        const assessments = assessmentsResponse.data;
+    const completed = assessments.filter(
+      (a: any) => a.status === "completed" || a.status === "reviewed"
+    ).length;
 
-        setStats({
-          totalAssessments: assessments.length,
-          completedAssessments: assessments.filter(
-            (a: any) => a.status === "completed" || a.status === "reviewed"
-          ).length,
-          pendingAssessments: assessments.filter(
-            (a: any) => a.status === "draft" || a.status === "in_progress"
-          ).length,
-          averageScore:
-            assessments.length > 0
-              ? assessments.reduce(
-                  (sum: number, a: any) => sum + (a.percentage_score || 0),
-                  0
-                ) / assessments.length
-              : 0,
-        });
+    const pending = assessments.filter(
+      (a: any) => a.status === "draft" || a.status === "in_progress"
+    ).length;
 
-        setRecentAssessments(assessments.slice(0, 5));
-      } else {
-        // Admin dashboard - fetch assessment statistics
-        const assessmentsResponse = await assessmentAPI.getAssessments();
+    const avgScore =
+      assessments.length > 0
+        ? assessments.reduce(
+            (sum: number, a: any) => sum + (Number(a.score) || 0),
+            0
+          ) / assessments.length
+        : 0;
 
-        const assessments = assessmentsResponse.data;
+    return {
+      totalAssessments: assessments.length,
+      completedAssessments: completed,
+      pendingAssessments: pending,
+      averageScore: avgScore,
+    };
+  }, [assessments]);
 
-        setStats({
-          totalAssessments: assessments.length,
-          completedAssessments: assessments.filter(
-            (a: any) => a.status === "completed" || a.status === "reviewed"
-          ).length,
-          pendingAssessments: assessments.filter(
-            (a: any) => a.status === "draft" || a.status === "in_progress"
-          ).length,
-          averageScore:
-            assessments.length > 0
-              ? assessments.reduce(
-                  (sum: number, a: any) => sum + (a.percentage_score || 0),
-                  0
-                ) / assessments.length
-              : 0,
-        });
+  const recentAssessments = useMemo(() => {
+    return assessments ? assessments.slice(0, 5) : [];
+  }, [assessments]);
 
-        setRecentAssessments(assessments.slice(0, 5));
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-      case "reviewed":
-        return "text-green-600 bg-green-100";
-      case "in_progress":
-        return "text-blue-600 bg-blue-100";
-      case "draft":
-        return "text-gray-600 bg-gray-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  if (isLoading) {
+  if (
+    assessmentsLoading ||
+    (user?.user_type === "enterprise" && enterpriseLoading)
+  ) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-200 border-t-primary-600"></div>
-          <p className="text-neutral-600 font-medium">Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8 fade-in">
-        <h1 className="text-4xl font-bold text-neutral-900">
-          Welcome back, {user?.first_name}!
-        </h1>
-        <p className="mt-3 text-lg text-neutral-600">
-          {user?.user_type === "enterprise"
-            ? "Track your assessment progress and business growth"
-            : "Manage enterprises and assessments across the platform"}
-        </p>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Welcome Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
+            Welcome back, {user?.first_name || user?.username}!
+          </h1>
+          <p className="mt-1 text-neutral-500 dark:text-neutral-400">
+            Here's what's happening with your assessments today.
+          </p>
+        </div>
+        {user?.user_type === "enterprise" && (
+          <Link
+            to="/assessments/create"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            New Assessment
+          </Link>
+        )}
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 slide-up">
-        <div className="glass-effect rounded-2xl p-6 card-hover">
-          <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
-              <FileText className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 Total Assessments
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
                 {stats.totalAssessments}
               </p>
             </div>
+            <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+              <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
-          <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg">
-              <CheckCircle className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 Completed
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
                 {stats.completedAssessments}
               </p>
             </div>
+            <div className="h-12 w-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
-          <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg">
-              <Clock className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
-                Pending
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                In Progress
               </p>
-              <p className="text-3xl font-bold text-neutral-900">
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
                 {stats.pendingAssessments}
               </p>
             </div>
+            <div className="h-12 w-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            </div>
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover">
-          <div className="flex items-center">
-            <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl shadow-lg">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 Average Score
               </p>
-              <p
-                className={`text-3xl font-bold ${getScoreColor(
-                  stats.averageScore
-                )}`}
-              >
-                {stats.averageScore.toFixed(1)}%
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
+                {Math.round(stats.averageScore)}%
               </p>
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Quick Actions */}
-        <div className="glass-effect rounded-2xl shadow-xl">
-          <div className="p-6 border-b border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-900">
-              Quick Actions
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 gap-4">
-              {user?.user_type === "enterprise" ? (
-                <>
-                  <Link
-                    to="/assessments"
-                    className="flex items-center p-5 border-2 border-neutral-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 card-hover"
-                  >
-                    <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">
-                      <FileText className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-base font-semibold text-neutral-900">
-                        Start New Assessment
-                      </h3>
-                      <p className="text-sm text-neutral-600 mt-1">
-                        Begin a new business assessment
-                      </p>
-                    </div>
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="flex items-center p-5 border-2 border-neutral-200 rounded-xl hover:border-secondary-300 hover:bg-secondary-50 transition-all duration-200 card-hover"
-                  >
-                    <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl">
-                      <Building2 className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-base font-semibold text-neutral-900">
-                        Update Profile
-                      </h3>
-                      <p className="text-sm text-neutral-600 mt-1">
-                        Manage your business information
-                      </p>
-                    </div>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/admin/enterprises"
-                    className="flex items-center p-5 border-2 border-neutral-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 card-hover"
-                  >
-                    <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl">
-                      <Users className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-base font-semibold text-neutral-900">
-                        Manage Enterprises
-                      </h3>
-                      <p className="text-sm text-neutral-600 mt-1">
-                        View and vet business registrations
-                      </p>
-                    </div>
-                  </Link>
-                  <Link
-                    to="/admin"
-                    className="flex items-center p-5 border-2 border-neutral-200 rounded-xl hover:border-secondary-300 hover:bg-secondary-50 transition-all duration-200 card-hover"
-                  >
-                    <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl">
-                      <Award className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-base font-semibold text-neutral-900">
-                        Review Assessments
-                      </h3>
-                      <p className="text-sm text-neutral-600 mt-1">
-                        Review completed assessments
-                      </p>
-                    </div>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
+      {/* Recent Activity */}
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 overflow-hidden">
+        <div className="p-6 border-b border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+            Recent Assessments
+          </h2>
+          <Link
+            to="/assessments"
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center"
+          >
+            View all <ArrowRight className="h-4 w-4 ml-1" />
+          </Link>
         </div>
-
-        {/* Recent Assessments */}
-        <div className="glass-effect rounded-2xl shadow-xl">
-          <div className="p-6 border-b border-neutral-200">
-            <h2 className="text-xl font-bold text-neutral-900">
-              Recent Assessments
-            </h2>
-          </div>
-          <div className="p-6">
-            {recentAssessments.length > 0 ? (
-              <div className="space-y-4">
-                {recentAssessments.map((assessment) => (
-                  <div
-                    key={assessment.id}
-                    className="flex items-center justify-between p-5 border-2 border-neutral-200 rounded-xl card-hover"
-                  >
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-neutral-900">
-                        {user?.user_type === "enterprise"
-                          ? `${assessment.questionnaire_title} - ${assessment.fiscal_year}`
-                          : `${assessment.enterprise_name} - ${assessment.fiscal_year}`}
-                      </h3>
-                      <div className="flex items-center mt-2 space-x-3">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                            assessment.status
-                          )}`}
-                        >
-                          {assessment.status.replace("_", " ")}
-                        </span>
-                        {assessment.percentage_score > 0 && (
-                          <span
-                            className={`text-sm font-bold ${getScoreColor(
-                              assessment.percentage_score
-                            )}`}
-                          >
-                            {assessment.percentage_score.toFixed(1)}%
-                          </span>
-                        )}
-                      </div>
+        <div className="divide-y divide-neutral-100 dark:divide-neutral-700">
+          {recentAssessments.length > 0 ? (
+            recentAssessments.map((assessment: any) => (
+              <div
+                key={assessment.id}
+                className="p-6 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div
+                      className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                        assessment.status === "completed"
+                          ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                          : assessment.status === "in_progress"
+                          ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                          : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
+                      }`}
+                    >
+                      <FileText className="h-5 w-5" />
                     </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                        {user?.user_type === "enterprise"
+                          ? assessment.title
+                          : `${
+                              assessment.enterprise?.business_name ||
+                              "Enterprise"
+                            } - ${assessment.title}`}
+                      </h3>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {new Date(assessment.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        assessment.status === "completed"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : assessment.status === "in_progress"
+                          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                          : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
+                      }`}
+                    >
+                      {assessment.status.replace("_", " ")}
+                    </span>
                     <Link
                       to={`/assessments/${assessment.id}`}
-                      className="btn-primary text-sm px-4 py-2"
+                      className="text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                     >
-                      View
+                      <ArrowRight className="h-5 w-5" />
                     </Link>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="p-4 bg-neutral-100 rounded-full w-fit mx-auto mb-4">
-                  <AlertCircle className="h-8 w-8 text-neutral-400" />
                 </div>
-                <p className="text-neutral-500 font-medium">
-                  No assessments found
-                </p>
-                <p className="text-neutral-400 text-sm mt-1">
-                  Get started by creating your first assessment
-                </p>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="p-12 text-center">
+              <div className="mx-auto h-12 w-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
+                <FileText className="h-6 w-6 text-neutral-400" />
+              </div>
+              <h3 className="text-sm font-medium text-neutral-900 dark:text-white">
+                No assessments yet
+              </h3>
+              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                Get started by creating your first assessment.
+              </p>
+              {user?.user_type === "enterprise" && (
+                <Link
+                  to="/assessments/create"
+                  className="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
+                >
+                  Start Assessment
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

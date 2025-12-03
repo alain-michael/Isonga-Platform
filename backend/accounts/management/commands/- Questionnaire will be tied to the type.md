@@ -1,0 +1,2 @@
+- Questionnaire will be tied to the type of campaign
+- Investor requirements
