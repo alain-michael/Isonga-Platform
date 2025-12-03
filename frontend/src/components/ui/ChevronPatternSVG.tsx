@@ -1,9 +1,12 @@
-import React from "react";
+interface ChevronPatternSVGProps {
+  fillColor?: string;
+  height?: number;
+}
 
 const ChevronPatternSVG = ({ 
   fillColor = "#ffffff", 
   height = 40 
-}) => {
+}: ChevronPatternSVGProps) => {
   const patternId = "chevron-negative-space-3";
 
   return (

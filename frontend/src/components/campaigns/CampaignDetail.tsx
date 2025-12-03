@@ -80,20 +80,23 @@ const CampaignDetail: React.FC = () => {
   const submitForReviewMutation = useSubmitCampaignForReview();
 
   // Fetch matches for this enterprise
-  const { data: matches = [], isLoading: matchesLoading } = useQuery({
+  const { data: matchesResponse, isLoading: matchesLoading } = useQuery({
     queryKey: ["enterpriseMatches"],
     queryFn: enterpriseAPI.getMatches,
     enabled: activeTab === "investors",
   });
 
+  // Get matches array from response
+  const matches = matchesResponse?.data?.results || matchesResponse?.data || [];
+
   // Filter matches for this campaign if possible, or just show all enterprise matches
   // Assuming matches are linked to enterprise, we show all interested investors
-  const interestedInvestors = matches.filter(
+  const interestedInvestors = Array.isArray(matches) ? matches.filter(
     (m: any) =>
       m.status === "approved" ||
       m.status === "engaged" ||
       m.status === "completed"
-  );
+  ) : [];
 
   const acceptMatchMutation = useMutation({
     mutationFn: (matchId: string) => enterpriseAPI.acceptMatch(matchId),
