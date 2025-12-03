@@ -47,7 +47,7 @@ const CreateAssessment: React.FC = () => {
     languages: [] as string[],
     questionnaires: [] as Questionnaire[],
   });
-  const [loading, setLoading] = useState(false);
+  const [_, setLoading] = useState(false);
 
   useEffect(() => {
     if (editId) {
