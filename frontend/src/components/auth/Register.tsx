@@ -18,6 +18,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+import ChevronPatternSVG from "../ui/ChevronPatternSVG";
 
 // Validation schema
 const registerSchema = yup.object({
@@ -53,7 +54,7 @@ type RegisterFormData = {
   last_name: string;
   username: string;
   email: string;
-  phone_number: string;
+  phone_number?: string;
   password: string;
   confirmPassword: string;
 };
@@ -139,8 +140,17 @@ const Register: React.FC = () => {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>({
+  } = useForm({
     resolver: yupResolver(registerSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      username: "",
+      email: "",
+      phone_number: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const password = watch("password", "");
@@ -165,74 +175,118 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Left Panel - Illustration (hidden on mobile) */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-indigo-600 to-blue-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-        <div className="relative flex flex-col items-center justify-center p-12 text-white">
-          <div className="w-24 h-24 bg-white/20 rounded-3xl flex items-center justify-center mb-8 backdrop-blur-sm">
-            <Star className="w-14 h-14" />
+    <div className="min-h-screen flex relative">
+      {/* Left Panel - Dark/Illustration */}
+      <div className="hidden lg:flex lg:flex-[1.4] bg-primary-900 dark:bg-primary-950 relative overflow-hidden z-0">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0">
+          {/* Gradient orbs */}
+          <div className="absolute top-32 left-20 w-72 h-72 bg-secondary-600/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl" />
+
+          {/* Grid pattern */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)`,
+              backgroundSize: "60px 60px",
+            }}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="relative flex flex-col items-center justify-center p-12 text-white w-full">
+          {/* Floating shapes */}
+          <div className="absolute top-16 right-16 w-16 h-16 border-2 border-white/20 rounded-xl -rotate-12 animate-pulse" />
+          <div
+            className="absolute bottom-32 left-16 w-12 h-12 border-2 border-white/20 rounded-full animate-pulse"
+            style={{ animationDelay: "0.5s" }}
+          />
+          <div className="absolute top-1/4 left-24 w-8 h-8 bg-white/10 rounded-lg rotate-45" />
+
+          <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl relative">
+            <Star className="w-14 h-14 text-neutral-900" />
+            <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-secondary-500 rounded-full animate-ping" />
           </div>
-          <h2 className="text-3xl font-bold mb-4 text-center">
-            Join the Isonga Platform
+
+          <h2 className="text-4xl font-bold mb-4 text-center">
+            Join Isonga Platform
           </h2>
-          <p className="text-blue-100 text-center max-w-md mb-8">
-            Register your business and get access to comprehensive assessments,
-            investor matching, and growth opportunities.
+          <p className="text-neutral-400 text-center max-w-md mb-10 text-lg">
+            Register your business and unlock access to assessments, investors,
+            and growth opportunities.
           </p>
 
           {/* Benefits list */}
-          <div className="space-y-4 text-left max-w-sm">
+          <div className="space-y-4 text-left max-w-sm w-full">
             {[
-              "Free business assessment",
-              "Connect with verified investors",
-              "Access to funding opportunities",
-              "Expert business guidance",
+              { text: "Free business assessment", icon: "📊" },
+              { text: "Connect with verified investors", icon: "🤝" },
+              { text: "Access to funding opportunities", icon: "💰" },
+              { text: "Expert business guidance", icon: "🎯" },
             ].map((benefit, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                  <Check className="w-4 h-4" />
-                </div>
-                <span className="text-blue-100">{benefit}</span>
+              <div
+                key={i}
+                className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm"
+              >
+                <span className="text-xl">{benefit.icon}</span>
+                <span className="text-neutral-300">{benefit.text}</span>
               </div>
             ))}
           </div>
+
+          {/* Bottom stats */}
+          <div className="mt-10 pt-8 border-t border-neutral-800 w-full max-w-sm">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-500">Trusted by</span>
+              <span className="font-bold text-white">500+ businesses</span>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 bottom-0 right-0 w-24 z-20 pointer-events-none text-white dark:text-neutral-900">
+          {/* currentColor allows the SVG to take the text-color defined in the parent div above */}
+          <ChevronPatternSVG />
         </div>
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 py-12 overflow-auto">
+      {/* Zigzag Divider */}
+      {/* <div className="absolute inset-y-0 left-1/2 -translate-x-full w-24 z-10 hidden lg:block pointer-events-none">
+        <ChevronPatternSVG />
+      </div> */}
+
+      {/* Right Panel - Form (White/Light) */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-16 xl:px-20 py-8 bg-white dark:bg-neutral-900 relative z-20 overflow-auto">
         <div className="mx-auto w-full max-w-md">
           {/* Back to Home */}
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 mb-6 transition-colors group"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to Home
           </Link>
 
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4 lg:hidden">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Star className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-neutral-900 dark:bg-white rounded-xl flex items-center justify-center shadow-lg">
+                <Star className="w-7 h-7 text-white dark:text-neutral-900" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-xl font-bold text-neutral-900 dark:text-white">
                 Isonga
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
               Create your account
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-neutral-600 dark:text-neutral-400">
               Start your business growth journey today
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-start gap-3">
+            <div className="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
@@ -245,22 +299,22 @@ const Register: React.FC = () => {
               <div>
                 <label
                   htmlFor="first_name"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
                 >
                   First Name
                 </label>
-                <div className="relative">
+                <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="w-4 h-4 text-gray-400" />
+                    <User className="w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                   </div>
                   <input
                     {...register("first_name")}
                     type="text"
                     id="first_name"
-                    className={`w-full pl-10 pr-3 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                    className={`w-full pl-10 pr-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                       errors.first_name
                         ? "border-red-300 dark:border-red-600"
-                        : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                        : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                     }`}
                     placeholder="First name"
                   />
@@ -274,7 +328,7 @@ const Register: React.FC = () => {
               <div>
                 <label
                   htmlFor="last_name"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
                 >
                   Last Name
                 </label>
@@ -282,10 +336,10 @@ const Register: React.FC = () => {
                   {...register("last_name")}
                   type="text"
                   id="last_name"
-                  className={`w-full px-3 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full px-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.last_name
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="Last name"
                 />
@@ -301,22 +355,24 @@ const Register: React.FC = () => {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
               >
                 Username
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-400">@</span>
+                  <span className="text-neutral-400 group-focus-within:text-primary-500 transition-colors font-medium">
+                    @
+                  </span>
                 </div>
                 <input
                   {...register("username")}
                   type="text"
                   id="username"
-                  className={`w-full pl-10 pr-3 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full pl-10 pr-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.username
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="Choose a username"
                 />
@@ -332,22 +388,22 @@ const Register: React.FC = () => {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
               >
                 Email Address
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-gray-400" />
+                  <Mail className="w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
                   {...register("email")}
                   type="email"
                   id="email"
-                  className={`w-full pl-10 pr-3 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full pl-10 pr-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.email
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="you@example.com"
                 />
@@ -363,23 +419,23 @@ const Register: React.FC = () => {
             <div>
               <label
                 htmlFor="phone_number"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
               >
                 Phone Number{" "}
-                <span className="text-gray-400 font-normal">(optional)</span>
+                <span className="text-neutral-400 font-normal">(optional)</span>
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="w-4 h-4 text-gray-400" />
+                  <Phone className="w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
                   {...register("phone_number")}
                   type="tel"
                   id="phone_number"
-                  className={`w-full pl-10 pr-3 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full pl-10 pr-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.phone_number
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="+250 78X XXX XXX"
                 />
@@ -395,28 +451,28 @@ const Register: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
               >
                 Password
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-gray-400" />
+                  <Lock className="w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  className={`w-full pl-10 pr-10 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full pl-10 pr-10 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.password
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="Create a strong password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -438,28 +494,28 @@ const Register: React.FC = () => {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
               >
                 Confirm Password
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-gray-400" />
+                  <Lock className="w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
                   {...register("confirmPassword")}
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
-                  className={`w-full pl-10 pr-10 py-2.5 rounded-lg border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0 transition-colors ${
+                  className={`w-full pl-10 pr-10 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
                     errors.confirmPassword
                       ? "border-red-300 dark:border-red-600"
-                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                      : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
@@ -477,23 +533,29 @@ const Register: React.FC = () => {
             </div>
 
             {/* Terms checkbox */}
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
               <input
                 type="checkbox"
                 id="terms"
                 required
-                className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="mt-0.5 w-4 h-4 rounded border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white focus:ring-neutral-900 dark:focus:ring-white bg-white dark:bg-neutral-700"
               />
               <label
                 htmlFor="terms"
-                className="text-xs text-gray-600 dark:text-gray-400"
+                className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed"
               >
                 I agree to the{" "}
-                <a href="/terms" className="text-blue-600 hover:underline">
+                <a
+                  href="/terms"
+                  className="text-neutral-900 dark:text-white font-medium hover:underline"
+                >
                   Terms of Service
                 </a>{" "}
                 and{" "}
-                <a href="/privacy" className="text-blue-600 hover:underline">
+                <a
+                  href="/privacy"
+                  className="text-neutral-900 dark:text-white font-medium hover:underline"
+                >
                   Privacy Policy
                 </a>
               </label>
@@ -503,7 +565,7 @@ const Register: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-bold rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -516,11 +578,11 @@ const Register: React.FC = () => {
             </button>
 
             {/* Login Link */}
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm text-neutral-600 dark:text-neutral-400 pt-2">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                className="font-semibold text-neutral-900 dark:text-white hover:underline"
               >
                 Sign in here
               </Link>
