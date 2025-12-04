@@ -65,7 +65,7 @@ export const enterpriseAPI = {
     api.get(`/enterprises/api/enterprises/${id}/`),
   
   getMyEnterprise: () =>
-    api.get('/enterprises/api/my-enterprise/'),
+    api.get('/enterprises/api/enterprises/my-enterprise/'),
   
   create: (data: any) =>
     api.post('/enterprises/api/enterprises/', data),
@@ -84,6 +84,7 @@ export const enterpriseAPI = {
   getDocuments: (id: string) =>
     api.get(`/enterprises/api/enterprises/${id}/documents/`),
 
+  // Enterprise's view of matches (investors interested in them)
   getMatches: () =>
     api.get('/investors/matches/'),
 
@@ -172,52 +173,62 @@ export const adminAPI = {
 // Investor API
 export const investorAPI = {
   getAll: (params?: any) =>
-    api.get('/investors/api/investors/', { params }),
+    api.get('/investors/profiles/', { params }),
   
   getById: (id: string) =>
-    api.get(`/investors/api/investors/${id}/`),
+    api.get(`/investors/profiles/${id}/`),
   
   create: (data: any) =>
-    api.post('/investors/api/investors/', data),
+    api.post('/investors/profiles/', data),
   
   update: (id: string, data: any) =>
-    api.put(`/investors/api/investors/${id}/`, data),
+    api.put(`/investors/profiles/${id}/`, data),
   
   getCriteria: (investorId: string) =>
-    api.get(`/investors/api/investors/${investorId}/criteria/`),
+    api.get(`/investors/profiles/${investorId}/criteria/`),
   
   // Matches
   getMatches: (params?: any) =>
-    api.get('/investors/api/matches/', { params }),
+    api.get('/investors/matches/', { params }),
   
   getMatch: (id: string) =>
-    api.get(`/investors/api/matches/${id}/`),
+    api.get(`/investors/matches/${id}/`),
   
   findMatches: () =>
-    api.get('/investors/api/matches/find_matches/'),
+    api.get('/investors/matches/find_matches/'),
   
   approveMatch: (id: string, notes?: string) =>
-    api.post(`/investors/api/matches/${id}/approve/`, { notes }),
+    api.post(`/investors/matches/${id}/approve/`, { notes }),
   
   requestDocuments: (id: string, documents: string[]) =>
-    api.post(`/investors/api/matches/${id}/request_documents/`, { documents }),
+    api.post(`/investors/matches/${id}/request_documents/`, { documents }),
   
   acceptMatch: (id: string, notes?: string) =>
-    api.post(`/investors/api/matches/${id}/accept/`, { notes }),
+    api.post(`/investors/matches/${id}/accept/`, { notes }),
+
+  rejectMatch: (id: string) =>
+    api.post(`/investors/matches/${id}/reject/`),
+  
+  // Opportunities (for investors to view enterprises)
+  getOpportunities: () =>
+    api.get('/investors/opportunities/'),
+  
+  interactWithOpportunity: (id: string, data: any) =>
+    api.post(`/investors/opportunities/${id}/interact/`, data),
   
   // Match Interactions
   getInteractions: (matchId: string) =>
-    api.get('/investors/api/interactions/', { params: { match_id: matchId } }),
+    api.get('/investors/interactions/', { params: { match_id: matchId } }),
   
   createInteraction: (data: any) =>
-    api.post('/investors/api/interactions/', data),
+    api.post('/investors/interactions/', data),
   
   // Criteria
   createCriteria: (data: any) =>
-    api.post('/investors/api/criteria/', data),
+    api.post('/investors/criteria/', data),
   
   updateCriteria: (id: string, data: any) =>
-    api.put(`/investors/api/criteria/${id}/`, data),
+    api.put(`/investors/criteria/${id}/`, data),
 };
 
 // Campaign API

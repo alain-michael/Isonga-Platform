@@ -89,7 +89,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assessment
         fields = '__all__'
-        read_only_fields = ['total_score', 'max_possible_score', 'percentage_score']
+        read_only_fields = ['total_score', 'max_possible_score', 'percentage_score', 'enterprise', 'fiscal_year']
 
 class AssessmentListSerializer(serializers.ModelSerializer):
     """Serializer for listing assessments with full nested objects for frontend"""

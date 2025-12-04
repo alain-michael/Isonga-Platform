@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, serializers as drf_serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -53,11 +53,28 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         return Assessment.objects.none()
     
     def perform_create(self, serializer):
-        if self.request.user.user_type == 'enterprise':
-            enterprise = self.request.user.enterprise
-            serializer.save(enterprise=enterprise)
+        # Get current fiscal year (assuming fiscal year follows calendar year)
+        # In Rwanda, fiscal year is July 1 - June 30
+        current_date = timezone.now()
+        if current_date.month >= 7:
+            fiscal_year = current_date.year
         else:
-            serializer.save()
+            fiscal_year = current_date.year - 1
+        
+        if self.request.user.user_type == 'enterprise':
+            try:
+                enterprise = self.request.user.enterprise
+            except Enterprise.DoesNotExist:
+                raise drf_serializers.ValidationError({
+                    'enterprise': 'You must have an enterprise profile to create assessments.'
+                })
+            serializer.save(enterprise=enterprise, fiscal_year=fiscal_year)
+        else:
+            # For admin, allow specifying enterprise but still auto-set fiscal year if not provided
+            if 'fiscal_year' not in serializer.validated_data:
+                serializer.save(fiscal_year=fiscal_year)
+            else:
+                serializer.save()
     
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):

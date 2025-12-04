@@ -56,7 +56,7 @@ const AssessmentStep: React.FC<AssessmentStepProps> = ({
     setLoading(true);
     try {
       const response = await assessmentAPI.getQuestionnaires();
-      setAssessments(response.data);
+      setAssessments(response.data.results);
     } catch (error) {
       console.error("Error fetching assessments:", error);
     } finally {
@@ -67,7 +67,7 @@ const AssessmentStep: React.FC<AssessmentStepProps> = ({
   const startAssessment = async (assessment: Assessment) => {
     // Fetch detailed assessment with questions
     try {
-      const response = await assessmentAPI.getAssessment(
+      const response = await assessmentAPI.getQuestionnaire(
         assessment.id.toString()
       );
       const detailedAssessment = response.data;
