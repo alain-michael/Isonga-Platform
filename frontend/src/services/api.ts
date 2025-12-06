@@ -168,6 +168,12 @@ export const adminAPI = {
 
   getUsers: (params?: any) =>
     api.get('/accounts/api/users/', { params }),
+  
+  updateUser: (id: number, data: any) =>
+    api.patch(`/accounts/api/users/${id}/`, data),
+  
+  deleteUser: (id: number) =>
+    api.delete(`/accounts/api/users/${id}/`),
 };
 
 // Investor API
@@ -187,27 +193,7 @@ export const investorAPI = {
   getCriteria: (investorId: string) =>
     api.get(`/investors/profiles/${investorId}/criteria/`),
   
-  // Matches
-  getMatches: (params?: any) =>
-    api.get('/investors/matches/', { params }),
-  
-  getMatch: (id: string) =>
-    api.get(`/investors/matches/${id}/`),
-  
-  findMatches: () =>
-    api.get('/investors/matches/find_matches/'),
-  
-  approveMatch: (id: string, notes?: string) =>
-    api.post(`/investors/matches/${id}/approve/`, { notes }),
-  
-  requestDocuments: (id: string, documents: string[]) =>
-    api.post(`/investors/matches/${id}/request_documents/`, { documents }),
-  
-  acceptMatch: (id: string, notes?: string) =>
-    api.post(`/investors/matches/${id}/accept/`, { notes }),
 
-  rejectMatch: (id: string) =>
-    api.post(`/investors/matches/${id}/reject/`),
   
   // Opportunities (for investors to view enterprises)
   getOpportunities: () =>
@@ -229,6 +215,30 @@ export const investorAPI = {
   
   updateCriteria: (id: string, data: any) =>
     api.put(`/investors/criteria/${id}/`, data),
+};
+
+// Match API
+export const matchesAPI = {
+  getAll: (params?: any) =>
+    api.get('/investors/matches/', { params }),
+  
+  getById: (id: string) =>
+    api.get(`/investors/matches/${id}/`),
+  
+  findMatches: () =>
+    api.get('/investors/matches/find_matches/'),
+  
+  approve: (id: string, notes?: string) =>
+    api.post(`/investors/matches/${id}/approve/`, { notes }),
+  
+  requestDocuments: (id: string, documents: string[]) =>
+    api.post(`/investors/matches/${id}/request_documents/`, { documents }),
+  
+  accept: (id: string, notes?: string) =>
+    api.post(`/investors/matches/${id}/accept/`, { notes }),
+
+  reject: (id: string) =>
+    api.post(`/investors/matches/${id}/reject/`),
 };
 
 // Campaign API

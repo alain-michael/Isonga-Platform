@@ -23,10 +23,23 @@ class QuestionSerializer(serializers.ModelSerializer):
 class QuestionnaireSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    question_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Questionnaire
         fields = '__all__'
+        read_only_fields = ['estimated_time_minutes', 'created_by']
+    
+    def get_question_count(self, obj):
+        return obj.questions.count()
+    
+    def create(self, validated_data):
+        questionnaire = super().create(validated_data)
+        # Calculate estimated time after creation
+        if questionnaire.questions.exists():
+            questionnaire.calculate_estimated_time()
+        return questionnaire
 
 class AssessmentResponseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,17 +80,20 @@ class QuestionnaireCategoryNestedSerializer(serializers.ModelSerializer):
 
 class QuestionnaireNestedSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
+    estimated_time = serializers.IntegerField(source='estimated_time_minutes', read_only=True)
+    question_count = serializers.SerializerMethodField()
     
     def get_category(self, obj):
-        # Get category from the first question of this questionnaire
-        first_question = obj.questions.first()
-        if first_question and first_question.category:
-            return {'name': first_question.category.name}
-        return {'name': 'General'}
+        if obj.category:
+            return {'id': obj.category.id, 'name': obj.category.name}
+        return {'id': None, 'name': 'General'}
+    
+    def get_question_count(self, obj):
+        return obj.questions.count()
     
     class Meta:
         model = Questionnaire
-        fields = ['id', 'title', 'category']
+        fields = ['id', 'title', 'category', 'estimated_time', 'question_count']
 
 class AssessmentSerializer(serializers.ModelSerializer):
     enterprise_name = serializers.CharField(source='enterprise.business_name', read_only=True)

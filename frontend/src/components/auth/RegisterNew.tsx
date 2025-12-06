@@ -19,13 +19,15 @@ import {
   X,
   ChevronRight,
   ChevronLeft,
+  Building2,
+  FileText,
   CheckCircle2,
 } from "lucide-react";
 import ChevronPatternSVG from "../ui/ChevronPatternSVG";
 import LanguageSelector from "../ui/LanguageSelector";
 
-// Full validation schema
-const registerSchema = yup.object({
+// Step 1: Personal Information
+const step1Schema = yup.object({
   first_name: yup.string().required("First name is required"),
   last_name: yup.string().required("Last name is required"),
   username: yup
@@ -36,13 +38,14 @@ const registerSchema = yup.object({
     .string()
     .required("Email is required")
     .email("Please enter a valid email"),
-  phone_number: yup
-    .string()
-    .optional()
-    .matches(/^(\+?250|0)?[7][2389]\d{7}$/, {
-      message: "Please enter a valid Rwandan phone number",
-      excludeEmptyString: true,
-    }),
+  phone_number: yup.string().matches(/^(\+?250|0)?[7][2389]\d{7}$/, {
+    message: "Please enter a valid Rwandan phone number",
+    excludeEmptyString: true,
+  }),
+});
+
+// Step 2: Password & Security
+const step2Schema = yup.object({
   password: yup
     .string()
     .required("Password is required")
@@ -56,9 +59,11 @@ const registerSchema = yup.object({
     .oneOf([yup.ref("password")], "Passwords must match"),
   agreeToTerms: yup
     .boolean()
-    .required()
     .oneOf([true], "You must agree to the terms and privacy policy"),
 });
+
+// Full validation schema for final submission
+const fullSchema = step1Schema.concat(step2Schema);
 
 type RegisterFormData = {
   first_name: string;
@@ -152,7 +157,7 @@ const PasswordStrength: React.FC<{ password: string }> = ({ password }) => {
 const ProgressStepper: React.FC<{
   currentStep: number;
   totalSteps: number;
-}> = ({ currentStep }) => {
+}> = ({ currentStep, totalSteps }) => {
   const steps = [
     { number: 1, title: "Personal Info", icon: User },
     { number: 2, title: "Security", icon: Lock },
@@ -231,8 +236,8 @@ const Register: React.FC = () => {
     watch,
     trigger,
     formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: yupResolver(registerSchema) as any,
+  } = useForm<RegisterFormData>({
+    resolver: yupResolver(fullSchema),
     mode: "onChange",
     defaultValues: {
       first_name: "",
@@ -247,6 +252,7 @@ const Register: React.FC = () => {
   });
 
   const password = watch("password", "");
+  const allValues = watch();
 
   const handleNextStep = async () => {
     let fieldsToValidate: (keyof RegisterFormData)[] = [];
@@ -278,23 +284,15 @@ const Register: React.FC = () => {
     setError("");
     try {
       const { confirmPassword, agreeToTerms, ...registrationData } = data;
-
-      // Move to confirmation step first
-      setCurrentStep(3);
-
-      // Register the user
       await authRegister({
         ...registrationData,
         user_type: "enterprise",
       });
-
-      // Wait 2 seconds on confirmation page before navigating
+      setCurrentStep(3); // Move to confirmation step
       setTimeout(() => {
         navigate("/business-registration");
-      }, 2500);
+      }, 2000);
     } catch (err: any) {
-      // If registration fails, go back to step 2
-      setCurrentStep(2);
       setError(
         err.response?.data?.error ||
           err.response?.data?.detail ||

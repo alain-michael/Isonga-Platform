@@ -23,12 +23,35 @@ class QuestionnaireViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        questionnaire = serializer.save(created_by=self.request.user)
+        # Calculate estimated time after creation if questions exist
+        if questionnaire.questions.exists():
+            questionnaire.calculate_estimated_time()
     
     def get_queryset(self):
-        if self.request.user.user_type in ['admin', 'superadmin']:
-            return Questionnaire.objects.all()
-        return Questionnaire.objects.filter(is_active=True)
+        user = self.request.user
+        queryset = Questionnaire.objects.all() if user.user_type in ['admin', 'superadmin'] else Questionnaire.objects.filter(is_active=True)
+        
+        # Filter by enterprise criteria if enterprise user
+        if user.user_type == 'enterprise':
+            try:
+                enterprise = user.enterprise
+                # Filter questionnaires that match this enterprise
+                matching_questionnaires = [
+                    q.id for q in queryset if q.matches_enterprise(enterprise)
+                ]
+                queryset = queryset.filter(id__in=matching_questionnaires)
+            except Enterprise.DoesNotExist:
+                pass
+        
+        return queryset
+    
+    @action(detail=True, methods=['post'])
+    def calculate_time(self, request, pk=None):
+        """Recalculate estimated time for a questionnaire"""
+        questionnaire = self.get_object()
+        estimated_time = questionnaire.calculate_estimated_time()
+        return Response({'estimated_time_minutes': estimated_time})
 
 class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()

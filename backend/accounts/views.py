@@ -28,6 +28,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'register']:
             return [permissions.AllowAny()]
+        if self.action in ['update', 'partial_update', 'destroy', 'list', 'retrieve']:
+            # Only admins can manage other users
+            if not (self.request.user.is_staff or self.request.user.user_type in ['admin', 'superadmin']):
+                return [permissions.IsAdminUser()]
         return super().get_permissions()
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])

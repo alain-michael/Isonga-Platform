@@ -20,11 +20,13 @@ import Assessments from "./components/assessments/Assessments";
 import AssessmentForm from "./components/assessments/AssessmentForm";
 import ManageAssessments from "./components/assessments/ManageAssessments";
 import CreateAssessment from "./components/assessments/CreateAssessment";
+import QuestionnaireForm from "./components/admin/QuestionnaireForm";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminEnterprises from "./components/admin/AdminEnterprises";
 import AdminEnterpriseDetail from "./components/admin/AdminEnterpriseDetail";
 import AdminQuestionnaires from "./components/admin/AdminQuestionnaires";
 import AdminInvestors from "./components/admin/AdminInvestors";
+import InvestorDetailView from "./components/admin/InvestorDetailView";
 import AdminUsers from "./components/admin/AdminUsers";
 import NotFound from "./components/common/NotFound";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -139,8 +141,13 @@ const AppContent: React.FC = () => {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/manage" element={<ManageAssessments />} />
         <Route path="/admin/assessments" element={<AdminAssessments />} />
+        <Route
+          path="/admin/questionnaires/create"
+          element={<QuestionnaireForm />}
+        />
         <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
         <Route path="/admin/investors" element={<AdminInvestors />} />
+        <Route path="/admin/investors/:id" element={<InvestorDetailView />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/enterprises" element={<AdminEnterprises />} />
         <Route

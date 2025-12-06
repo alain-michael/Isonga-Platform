@@ -16,13 +16,41 @@ class InvestorSerializer(serializers.ModelSerializer):
     user_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), 
         source='user', 
-        write_only=True
+        write_only=True,
+        required=False
     )
+    user_data = serializers.DictField(write_only=True, required=False)
+    criteria = serializers.SerializerMethodField()
     
     class Meta:
         model = Investor
         fields = '__all__'
         read_only_fields = ['created_by', 'created_at', 'updated_at']
+    
+    def get_criteria(self, obj):
+        criteria = obj.criteria.filter(is_active=True)
+        return InvestorCriteriaSerializer(criteria, many=True).data
+    
+    def create(self, validated_data):
+        user_data = validated_data.pop('user_data', None)
+        
+        if user_data:
+            # Create user account
+            user = User.objects.create_user(
+                username=user_data['username'],
+                email=user_data['email'],
+                password=user_data['password'],
+                first_name=user_data.get('first_name', ''),
+                last_name=user_data.get('last_name', ''),
+                user_type='investor'
+            )
+            validated_data['user'] = user
+        
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data['created_by'] = request.user
+        
+        return super().create(validated_data)
 
 
 class InvestorCriteriaSerializer(serializers.ModelSerializer):

@@ -25,17 +25,72 @@ class Questionnaire(models.Model):
         ('sw', 'Swahili'),
     )
     
+    ENTERPRISE_SIZES = (
+        ('micro', 'Micro (1-9 employees)'),
+        ('small', 'Small (10-49 employees)'),
+        ('medium', 'Medium (50-249 employees)'),
+        ('large', 'Large (250+ employees)'),
+    )
+    
     title = models.CharField(max_length=255)
     description = models.TextField()
+    category = models.ForeignKey(AssessmentCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='questionnaires')
     version = models.CharField(max_length=10, default='1.0')
     language = models.CharField(max_length=5, choices=LANGUAGES, default='en')
     is_active = models.BooleanField(default=True)
+    
+    # Enterprise matching criteria
+    target_sectors = models.JSONField(default=list, blank=True, help_text="List of sectors this questionnaire is for. Empty means all sectors.")
+    target_enterprise_sizes = models.JSONField(default=list, blank=True, help_text="List of enterprise sizes. Empty means all sizes.")
+    target_districts = models.JSONField(default=list, blank=True, help_text="List of districts. Empty means all districts.")
+    min_employees = models.PositiveIntegerField(null=True, blank=True, help_text="Minimum number of employees")
+    max_employees = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum number of employees")
+    
+    # Time estimation (in minutes)
+    estimated_time_minutes = models.PositiveIntegerField(default=0, help_text="Estimated completion time in minutes")
+    
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"{self.title} v{self.version} ({self.get_language_display()})"
+    
+    def calculate_estimated_time(self):
+        """Calculate estimated time based on number of questions (3 minutes per question)"""
+        question_count = self.questions.count()
+        self.estimated_time_minutes = question_count * 3
+        self.save(update_fields=['estimated_time_minutes'])
+        return self.estimated_time_minutes
+    
+    def matches_enterprise(self, enterprise):
+        """Check if this questionnaire matches the given enterprise criteria"""
+        # If no criteria set, matches all enterprises
+        if not self.target_sectors and not self.target_enterprise_sizes and not self.target_districts:
+            return True
+        
+        matches = True
+        
+        # Check sector
+        if self.target_sectors and enterprise.sector not in self.target_sectors:
+            matches = False
+        
+        # Check enterprise size
+        if self.target_enterprise_sizes and enterprise.enterprise_size not in self.target_enterprise_sizes:
+            matches = False
+        
+        # Check district
+        if self.target_districts and enterprise.district not in self.target_districts:
+            matches = False
+        
+        # Check employee count
+        if self.min_employees and enterprise.number_of_employees < self.min_employees:
+            matches = False
+        
+        if self.max_employees and enterprise.number_of_employees > self.max_employees:
+            matches = False
+        
+        return matches
 
 class Question(models.Model):
     QUESTION_TYPES = (
