@@ -13,14 +13,12 @@ import {
   Users,
   RefreshCw,
   AlertCircle,
-  LayoutGrid,
-  List,
   Phone,
   Globe,
-  ExternalLink,
 } from "lucide-react";
 import { investorAPI } from "../../services/api";
 import StatsCard from "../common/StatsCard";
+import ViewToggle from "../common/ViewToggle";
 import InvestorOnboardingModal from "./InvestorOnboardingModal";
 
 interface Investor {
@@ -38,7 +36,7 @@ interface Investor {
   contact_phone: string;
   website: string;
   min_investment: number;
-  max_investment: number;
+  max_investment: string;
   is_active: boolean;
   created_at: string;
 }
@@ -51,7 +49,7 @@ const AdminInvestors: React.FC = () => {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   useEffect(() => {
@@ -94,7 +92,7 @@ const AdminInvestors: React.FC = () => {
     active: investors.filter((i) => i.is_active).length,
     inactive: investors.filter((i) => !i.is_active).length,
     totalInvestment: investors.reduce(
-      (sum, i) => sum + (i.max_investment || 0),
+      (sum, i) => sum + (parseFloat(i.max_investment) || 0),
       0
     ),
   };
@@ -264,30 +262,7 @@ const AdminInvestors: React.FC = () => {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
-            <div className="flex border border-neutral-200 dark:border-neutral-600 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 ${
-                  viewMode === "grid"
-                    ? "bg-purple-500 text-white"
-                    : "bg-white dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
-                } transition-colors`}
-                title="Grid View"
-              >
-                <LayoutGrid className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                className={`p-2 ${
-                  viewMode === "table"
-                    ? "bg-purple-500 text-white"
-                    : "bg-white dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400"
-                } transition-colors`}
-                title="Table View"
-              >
-                <List className="h-5 w-5" />
-              </button>
-            </div>
+            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
           </div>
         </div>
         {(searchTerm || typeFilter !== "all" || statusFilter !== "all") && (

@@ -528,7 +528,7 @@ const AdminAssessments: React.FC = () => {
                   <td className="py-5 px-6">
                     <div className="flex items-center space-x-1 opacity-70 group-hover:opacity-100 transition-opacity">
                       <Link
-                        to={`/admin/assessments/${assessment.id}`}
+                        to={`/assessments/${assessment.id}`}
                         className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                       >
                         <Eye className="h-4 w-4" />

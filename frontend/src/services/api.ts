@@ -112,6 +112,9 @@ export const assessmentAPI = {
   getAssessment: (id: string) =>
     api.get(`/assessments/api/assessments/${id}/`),
   
+  getAssessmentById: (id: string) =>
+    api.get(`/assessments/api/assessments/${id}/`),
+  
   createAssessment: (data: any) =>
     api.post('/assessments/api/assessments/', data),
   
@@ -123,6 +126,12 @@ export const assessmentAPI = {
   
   reviewAssessment: (id: string) =>
     api.post(`/assessments/api/assessments/${id}/review/`),
+  
+  regradeAssessment: (id: string) =>
+    api.post(`/assessments/api/assessments/${id}/submit/`),
+  
+  assignReviewer: (id: string, reviewerId: number) =>
+    api.patch(`/assessments/api/assessments/${id}/`, { reviewed_by: reviewerId }),
   
   saveResponse: (data: any) =>
     api.post('/assessments/api/responses/', data),

@@ -1,13 +1,15 @@
 interface ChevronPatternSVGProps {
   fillColor?: string;
   height?: number;
+  flipped?: boolean;
 }
 
 const ChevronPatternSVG = ({
   fillColor = "#ffffff",
   height = 40,
+  flipped = false,
 }: ChevronPatternSVGProps) => {
-  const patternId = "chevron-negative-space-3";
+  const patternId = `chevron-negative-space-3${flipped ? "-flipped" : ""}`;
 
   return (
     <svg
@@ -33,39 +35,71 @@ const ChevronPatternSVG = ({
 
           {/* 1. The Main Solid Block (Rightmost Connection) */}
           <polygon
-            points={`
+            points={
+              flipped
+                ? `
+              0,0 
+              0,${height} 
+              35,${height} 
+              15,${height / 2} 
+              35,0
+            `
+                : `
               120,0 
               120,${height} 
               85,${height} 
               105,${height / 2} 
               85,0
-            `}
+            `
+            }
             fill={fillColor}
           />
 
           {/* 2. The Middle Stripe */}
           <polygon
-            points={`
+            points={
+              flipped
+                ? `
+              50,0 
+              30,${height / 2} 
+              50,${height} 
+              70,${height} 
+              50,${height / 2} 
+              70,0
+            `
+                : `
               70,0 
               90,${height / 2} 
               70,${height} 
               50,${height} 
               70,${height / 2} 
               50,0
-            `}
+            `
+            }
             fill={fillColor}
           />
 
           {/* 3. The New Third Stripe (Leftmost) */}
           <polygon
-            points={`
+            points={
+              flipped
+                ? `
+              85,0 
+              65,${height / 2} 
+              85,${height} 
+              105,${height} 
+              85,${height / 2} 
+              105,0
+            `
+                : `
               35,0 
               55,${height / 2} 
               35,${height} 
               15,${height} 
               35,${height / 2} 
               15,0
-            `}
+            `
+            }
             fill={fillColor}
           />
         </pattern>

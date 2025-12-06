@@ -305,9 +305,9 @@ const Login: React.FC = () => {
 
       {/* Right Panel - Dark/Illustration */}
       <div className="hidden lg:flex lg:flex-[1.5] bg-primary-900 dark:bg-primary-950 relative overflow-hidden z-0">
-        <div className="absolute top-0 bottom-0 left-0 w-24 z-20 pointer-events-none text-white dark:text-neutral-900 rotate-180">
+        <div className="absolute top-0 bottom-0 left-0 w-24 z-20 pointer-events-none text-white dark:text-neutral-900">
           {/* currentColor allows the SVG to take the text-color defined in the parent div above */}
-          <ChevronPatternSVG />
+          <ChevronPatternSVG flipped />
         </div>
         {/* Decorative Elements */}
         <div className="absolute inset-0">

@@ -65,9 +65,9 @@ export const investorAPI = {
     return response.data;
   },
 
-  getMatches: async () => {
-    const response = await api.get<MatchedCampaign[]>('/investors/opportunities/');
-    return response.data;
+  getMatches: async (): Promise<MatchedCampaign[]> => {
+    const response = await api.get('/investors/opportunities/');
+    return response.data.results;
   },
 
   getDashboardStats: async () => {

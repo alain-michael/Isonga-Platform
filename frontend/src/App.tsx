@@ -18,6 +18,7 @@ import Dashboard from "./components/dashboard/Dashboard";
 import EnterpriseProfile from "./components/enterprise/EnterpriseProfile";
 import Assessments from "./components/assessments/Assessments";
 import AssessmentForm from "./components/assessments/AssessmentForm";
+import AssessmentDetailView from "./components/assessments/AssessmentDetailView";
 import ManageAssessments from "./components/assessments/ManageAssessments";
 import CreateAssessment from "./components/assessments/CreateAssessment";
 import QuestionnaireForm from "./components/admin/QuestionnaireForm";
@@ -124,7 +125,8 @@ const AppContent: React.FC = () => {
         <Route path="/assessments" element={<Assessments />} />
         <Route path="/assessments/manage" element={<ManageAssessments />} />
         <Route path="/assessments/create" element={<CreateAssessment />} />
-        <Route path="/assessments/:id" element={<AssessmentForm />} />
+        <Route path="/assessments/:id" element={<AssessmentDetailView />} />
+        <Route path="/assessments/:id/take" element={<AssessmentForm />} />
 
         {/* Campaign Routes */}
         <Route path="/campaigns" element={<CampaignList />} />
