@@ -51,14 +51,14 @@ export const useDeleteAssessment = (
 
 // Start assessment
 export const useStartAssessment = (
-  options?: UseMutationOptions<any, Error, number>
+  options?: UseMutationOptions<any, Error, string | number>
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => assessmentAPI.startAssessment(id),
+    mutationFn: (id: string | number) => assessmentAPI.startAssessment(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: assessmentKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: assessmentKeys.detail(typeof id === 'string' ? parseInt(id) : id) });
       queryClient.invalidateQueries({ queryKey: assessmentKeys.lists() });
     },
     ...options,
@@ -67,14 +67,14 @@ export const useStartAssessment = (
 
 // Submit assessment
 export const useSubmitAssessment = (
-  options?: UseMutationOptions<any, Error, number>
+  options?: UseMutationOptions<any, Error, string | number>
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => assessmentAPI.submitAssessment(id),
+    mutationFn: (id: string | number) => assessmentAPI.submitAssessment(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: assessmentKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: assessmentKeys.detail(typeof id === 'string' ? parseInt(id) : id) });
       queryClient.invalidateQueries({ queryKey: assessmentKeys.lists() });
     },
     ...options,

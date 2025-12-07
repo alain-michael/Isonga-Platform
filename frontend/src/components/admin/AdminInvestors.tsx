@@ -7,7 +7,6 @@ import {
   Mail,
   Filter,
   Eye,
-  Building2,
   DollarSign,
   TrendingUp,
   Users,
@@ -36,7 +35,7 @@ interface Investor {
   contact_phone: string;
   website: string;
   min_investment: number;
-  max_investment: string;
+  max_investment: number;
   is_active: boolean;
   created_at: string;
 }
@@ -92,7 +91,11 @@ const AdminInvestors: React.FC = () => {
     active: investors.filter((i) => i.is_active).length,
     inactive: investors.filter((i) => !i.is_active).length,
     totalInvestment: investors.reduce(
-      (sum, i) => sum + (parseFloat(i.max_investment) || 0),
+      (sum, i) =>
+        sum +
+        (typeof i.max_investment === "number"
+          ? i.max_investment
+          : parseFloat(String(i.max_investment)) || 0),
       0
     ),
   };

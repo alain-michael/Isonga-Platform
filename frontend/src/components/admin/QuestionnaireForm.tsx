@@ -615,7 +615,7 @@ const QuestionnaireForm: React.FC = () => {
 
                           <div className="space-y-2">
                             {(watch(`questions.${index}.options`) || []).map(
-                              (option: any, optionIndex: number) => (
+                              (_: any, optionIndex: number) => (
                                 <div
                                   key={optionIndex}
                                   className="flex items-center gap-2"

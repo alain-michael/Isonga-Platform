@@ -109,6 +109,12 @@ export const assessmentAPI = {
   createQuestionnaire: (data: any) =>
     api.post('/assessments/api/questionnaires/', data),
   
+  updateQuestionnaire: (id: string | number, data: any) =>
+    api.patch(`/assessments/api/questionnaires/${id}/`, data),
+  
+  deleteQuestionnaire: (id: string | number) =>
+    api.delete(`/assessments/api/questionnaires/${id}/`),
+  
   getAssessments: (params?: any) =>
     api.get('/assessments/api/assessments/', { params }),
   
@@ -121,14 +127,23 @@ export const assessmentAPI = {
   createAssessment: (data: any) =>
     api.post('/assessments/api/assessments/', data),
   
-  startAssessment: (id: string) =>
+  updateAssessment: (id: string | number, data: any) =>
+    api.patch(`/assessments/api/assessments/${id}/`, data),
+  
+  deleteAssessment: (id: string | number) =>
+    api.delete(`/assessments/api/assessments/${id}/`),
+  
+  startAssessment: (id: string | number) =>
     api.post(`/assessments/api/assessments/${id}/start/`),
   
   saveResponses: (id: string, responses: any[]) =>
     api.post(`/assessments/api/assessments/${id}/save_responses/`, { responses }),
   
-  submitAssessment: (id: string, responses?: any[]) =>
+  submitAssessment: (id: string | number, responses?: any[]) =>
     api.post(`/assessments/api/assessments/${id}/submit/`, { responses: responses || [] }),
+  
+  submitResponses: (assessmentId: string | number, responses: any[]) =>
+    api.post(`/assessments/api/assessments/${assessmentId}/submit/`, { responses }),
   
   reviewAssessment: (id: string) =>
     api.post(`/assessments/api/assessments/${id}/review/`),

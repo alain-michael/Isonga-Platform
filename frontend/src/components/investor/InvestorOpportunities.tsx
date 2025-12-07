@@ -7,7 +7,6 @@ import {
   MapPin,
   TrendingUp,
   Calendar,
-  DollarSign,
   ArrowRight,
   Search,
   Filter,

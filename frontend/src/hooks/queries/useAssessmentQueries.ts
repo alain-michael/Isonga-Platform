@@ -34,7 +34,7 @@ export const useAssessment = (
   return useQuery({
     queryKey: assessmentKeys.detail(id as string | number),
     queryFn: async () => {
-      const response = await assessmentAPI.getAssessment(id as number);
+      const response = await assessmentAPI.getAssessment(id as string);
       return response.data;
     },
     enabled: !!id,
@@ -62,7 +62,7 @@ export const useQuestionnaire = (
   return useQuery({
     queryKey: assessmentKeys.questionnaire(id as string | number),
     queryFn: async () => {
-      const response = await assessmentAPI.getQuestionnaire(id as number);
+      const response = await assessmentAPI.getQuestionnaire(id as string);
       return response.data;
     },
     enabled: !!id,

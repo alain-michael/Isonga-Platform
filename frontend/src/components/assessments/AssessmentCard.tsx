@@ -32,7 +32,7 @@ interface AssessmentCardProps {
 const AssessmentCard: React.FC<AssessmentCardProps> = ({
   assessment,
   showEnterprise = false,
-  onAction,
+  // onAction,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {

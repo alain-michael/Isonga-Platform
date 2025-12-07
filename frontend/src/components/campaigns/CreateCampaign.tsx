@@ -152,7 +152,7 @@ const CreateCampaign: React.FC = () => {
         use_of_funds: { description: data.use_of_funds },
       };
 
-      const result = await createCampaignMutation.mutateAsync(
+      await createCampaignMutation.mutateAsync(
         campaignData as any
       );
       // console.log("Campaign created:", result);
