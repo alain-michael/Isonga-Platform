@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { enterpriseAPI } from "../../services/api";
 import BusinessProfileStep from "./BusinessProfileStep";
 import AssessmentStep from "./AssessmentStep";
-import PaymentStep from "./PaymentStep";
 import SuccessStep from "./SuccessStep";
 
 export interface BusinessProfile {
@@ -76,24 +75,18 @@ const BusinessRegistrationFlow: React.FC = () => {
           ...prev,
           completedAssessments: data as number[],
           pdfGenerated: true,
+          paymentCompleted: true, // Skip payment for now
         }));
-        setCurrentStep(3);
+        setCurrentStep(3); // Go to success step
         break;
       case 3:
-        setRegistrationData((prev) => ({
-          ...prev,
-          paymentCompleted: true,
-        }));
-        setCurrentStep(4);
-        break;
-      case 4:
         navigate("/dashboard");
         break;
     }
   };
 
   const getStepProgress = () => {
-    return ((currentStep - 1) / 3) * 100;
+    return ((currentStep - 1) / 2) * 100; // Only 3 steps now (Profile, Assessment, Success)
   };
 
   const renderCurrentStep = () => {
@@ -114,15 +107,8 @@ const BusinessRegistrationFlow: React.FC = () => {
         );
       case 3:
         return (
-          <PaymentStep
-            onComplete={() => handleStepComplete(3)}
-            registrationData={registrationData}
-          />
-        );
-      case 4:
-        return (
           <SuccessStep
-            onComplete={() => handleStepComplete(4)}
+            onComplete={() => handleStepComplete(3)}
             registrationData={registrationData}
           />
         );
@@ -138,7 +124,7 @@ const BusinessRegistrationFlow: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-neutral-700">
-              Step {currentStep} of 4
+              Step {currentStep} of 3
             </span>
             <span className="text-sm font-medium text-neutral-700">
               {Math.round(getStepProgress())}% Complete
@@ -189,18 +175,6 @@ const BusinessRegistrationFlow: React.FC = () => {
               }`}
             >
               3
-            </div>
-            <span className="text-xs text-neutral-600 mt-2">Payment</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= 4
-                  ? "bg-primary-500 text-white"
-                  : "bg-neutral-200 text-neutral-500"
-              }`}
-            >
-              4
             </div>
             <span className="text-xs text-neutral-600 mt-2">Complete</span>
           </div>

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Filter, Building2, MapPin, Star } from "lucide-react";
 import { investorAPI } from "../../services/investor";
+import { useNavigate } from "react-router-dom";
 
 const InvestorMatches: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sectorFilter, setSectorFilter] = useState("all");
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["investorMatches"],
@@ -111,7 +113,8 @@ const InvestorMatches: React.FC = () => {
         {filteredMatches.map((match) => (
           <div
             key={match.id}
-            className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
+            onClick={() => navigate(`/campaigns/${match.id}`)}
+            className="glass-effect rounded-2xl p-6 card-hover bg-white cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
           >
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-4">
