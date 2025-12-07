@@ -120,11 +120,13 @@ class MatchedCampaignSerializer(serializers.ModelSerializer):
     enterprise_sector = serializers.CharField(source='enterprise.sector')
     enterprise_location = serializers.CharField(source='enterprise.city')
     match_score = serializers.IntegerField(read_only=True)
+    interested_at = serializers.DateTimeField(read_only=True, required=False)
     
     class Meta:
         model = Campaign
         fields = [
             'id', 'title', 'description', 'target_amount', 'amount_raised',
-            'min_investment', 'campaign_type', 'enterprise_name',
-            'enterprise_sector', 'enterprise_location', 'match_score'
+            'min_investment', 'max_investment', 'campaign_type', 'status',
+            'start_date', 'end_date', 'enterprise_name',
+            'enterprise_sector', 'enterprise_location', 'match_score', 'interested_at'
         ]

@@ -83,5 +83,10 @@ export const investorAPI = {
   interactWithMatch: async (campaignId: string, action: 'approve' | 'reject') => {
     const response = await api.post(`/investors/opportunities/${campaignId}/interact/`, { action });
     return response.data;
+  },
+
+  getInterestedCampaigns: async () => {
+    const response = await api.get('/investors/interested-campaigns/');
+    return response.data.results || response.data;
   }
 };

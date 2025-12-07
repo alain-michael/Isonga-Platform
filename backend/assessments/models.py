@@ -104,11 +104,18 @@ class Question(models.Model):
     
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='questions')
     category = models.ForeignKey(AssessmentCategory, on_delete=models.CASCADE, related_name='questions')
-    text = models.TextField()
+    text = models.TextField(help_text="Question text in the questionnaire's primary language")
+    translations = models.JSONField(default=dict, blank=True, help_text="Translations: {'en': 'text', 'fr': 'texte', ...}")
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     is_required = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
     max_score = models.PositiveIntegerField(default=10)
+    
+    def get_text(self, language=None):
+        """Get question text in specified language, fallback to default"""
+        if language and language in self.translations:
+            return self.translations[language]
+        return self.text
     
     def __str__(self):
         return f"Q{self.order}: {self.text[:50]}..."
@@ -118,9 +125,16 @@ class Question(models.Model):
 
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')
-    text = models.CharField(max_length=255)
+    text = models.CharField(max_length=255, help_text="Option text in the questionnaire's primary language")
+    translations = models.JSONField(default=dict, blank=True, help_text="Translations: {'en': 'text', 'fr': 'texte', ...}")
     score = models.PositiveIntegerField(default=0)
     order = models.PositiveIntegerField(default=0)
+    
+    def get_text(self, language=None):
+        """Get option text in specified language, fallback to default"""
+        if language and language in self.translations:
+            return self.translations[language]
+        return self.text
     
     def __str__(self):
         return f"{self.question.text[:30]}... - {self.text}"
@@ -145,6 +159,11 @@ class Assessment(models.Model):
     total_score = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     max_possible_score = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     percentage_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # AI-generated insights
+    ai_strengths = models.JSONField(default=list, blank=True, help_text="AI-generated strengths")
+    ai_weaknesses = models.JSONField(default=list, blank=True, help_text="AI-generated weaknesses")
+    ai_generated_at = models.DateTimeField(null=True, blank=True, help_text="When AI insights were generated")
     
     # Timestamps
     started_at = models.DateTimeField(null=True, blank=True)

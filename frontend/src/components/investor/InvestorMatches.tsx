@@ -1,17 +1,46 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Filter, Building2, MapPin, Star } from "lucide-react";
 import { investorAPI } from "../../services/investor";
 
 const InvestorMatches: React.FC = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sectorFilter, setSectorFilter] = useState("all");
+  const queryClient = useQueryClient();
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["investorMatches"],
     queryFn: investorAPI.getMatches,
+  });
+
+  const interactMutation = useMutation({
+    mutationFn: ({
+      campaignId,
+      action,
+    }: {
+      campaignId: string;
+      action: "approve" | "reject";
+    }) => {
+      return investorAPI.interactWithMatch(campaignId, action);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["interestedOpportunities"] });
+      queryClient.invalidateQueries({ queryKey: ["investorStats"] });
+
+      if (variables.action === "approve") {
+        alert(
+          "Interest expressed successfully! Check your Tracked opportunities."
+        );
+      } else {
+        alert(
+          "Campaign passed. It will no longer appear in your opportunities."
+        );
+      }
+    },
+    onError: (error: any) => {
+      alert(error?.response?.data?.error || "Failed to process action");
+    },
   });
 
   const filteredMatches = matches.filter((match) => {
@@ -141,12 +170,31 @@ const InvestorMatches: React.FC = () => {
 
             <div className="mt-auto pt-4 border-t border-neutral-200 dark:border-neutral-700 flex gap-3">
               <button
-                onClick={() => navigate(`/investor/matches/${match.id}`)}
+                onClick={() =>
+                  interactMutation.mutate({
+                    campaignId: match.id,
+                    action: "approve",
+                  })
+                }
+                disabled={interactMutation.isPending}
                 className="flex-1 btn-primary"
               >
-                View Details
+                {interactMutation.isPending
+                  ? "Processing..."
+                  : "Express Interest"}
               </button>
-              <button className="flex-1 btn-secondary">Express Interest</button>
+              <button
+                onClick={() =>
+                  interactMutation.mutate({
+                    campaignId: match.id,
+                    action: "reject",
+                  })
+                }
+                disabled={interactMutation.isPending}
+                className="flex-1 btn-secondary hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+              >
+                Pass
+              </button>
             </div>
           </div>
         ))}

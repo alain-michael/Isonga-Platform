@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   Search,
@@ -14,17 +14,31 @@ import {
   CheckCircle2,
   FileQuestion,
   Activity,
+  Languages,
 } from "lucide-react";
 import { useQuestionnaires, useDeleteQuestionnaire } from "../../hooks";
 import QuestionnaireCard from "../assessments/QuestionnaireCard";
+import { assessmentAPI } from "../../services/api";
 
 const AdminQuestionnaires: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showTranslateModal, setShowTranslateModal] = useState(false);
+  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<any>(null);
+  const [targetLanguage, setTargetLanguage] = useState("");
+  const [duplicating, setDuplicating] = useState(false);
 
   const { data: questionnaires = [], isLoading, error } = useQuestionnaires();
   const deleteMutation = useDeleteQuestionnaire();
+
+  const LANGUAGES = [
+    { code: "en", name: "English", flag: "🇬🇧" },
+    { code: "fr", name: "French", flag: "🇫🇷" },
+    { code: "rw", name: "Kinyarwanda", flag: "🇷🇼" },
+    { code: "sw", name: "Swahili", flag: "🇹🇿" },
+  ];
 
   const filteredQuestionnaires = questionnaires.filter((q: any) => {
     const matchesSearch =
@@ -75,6 +89,69 @@ const AdminQuestionnaires: React.FC = () => {
     }
   };
 
+  const handleDuplicateAsTranslation = (questionnaire: any) => {
+    setSelectedQuestionnaire(questionnaire);
+    setTargetLanguage("");
+    setShowTranslateModal(true);
+  };
+
+  const handleCreateTranslation = async () => {
+    if (!targetLanguage || !selectedQuestionnaire) return;
+
+    try {
+      setDuplicating(true);
+      // Fetch full questionnaire details with questions
+      const response = await assessmentAPI.getQuestionnaire(
+        selectedQuestionnaire.id.toString()
+      );
+      const fullQuestionnaire = response.data;
+
+      // Create a new questionnaire with the same structure but different language
+      const translatedData = {
+        title: `${fullQuestionnaire.title} (${
+          LANGUAGES.find((l) => l.code === targetLanguage)?.name
+        })`,
+        description: fullQuestionnaire.description,
+        category: fullQuestionnaire.category?.id,
+        language: targetLanguage,
+        target_sectors: fullQuestionnaire.target_sectors || [],
+        target_enterprise_sizes:
+          fullQuestionnaire.target_enterprise_sizes || [],
+        target_districts: fullQuestionnaire.target_districts || [],
+        min_employees: fullQuestionnaire.min_employees,
+        max_employees: fullQuestionnaire.max_employees,
+        questions:
+          fullQuestionnaire.questions?.map((q: any) => ({
+            text: q.text, // Admin will translate this manually
+            question_type: q.question_type,
+            is_required: q.is_required,
+            max_score: q.max_score,
+            category: q.category,
+            order: q.order,
+            options:
+              q.options?.map((opt: any) => ({
+                text: opt.text, // Admin will translate this manually
+                score: opt.score,
+                order: opt.order,
+              })) || [],
+          })) || [],
+      };
+
+      const createResponse = await assessmentAPI.createQuestionnaire(
+        translatedData
+      );
+
+      // Navigate to edit the new questionnaire for translation
+      navigate(`/admin/questionnaires/create?edit=${createResponse.data.id}`);
+      setShowTranslateModal(false);
+    } catch (err: any) {
+      console.error("Error creating translation:", err);
+      alert(err.response?.data?.error || "Failed to create translation");
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -95,6 +172,8 @@ const AdminQuestionnaires: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Multi-language Info Banner */}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -112,6 +191,22 @@ const AdminQuestionnaires: React.FC = () => {
           <Plus className="h-5 w-5 mr-2" />
           Create Questionnaire
         </Link>
+      </div>
+      <div className="glass-effect rounded-2xl p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <div className="flex items-start gap-3">
+          <Languages className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">
+              Multi-Language Support
+            </h4>
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              Create questionnaires in different languages for enterprises.
+              Click the <Languages className="inline h-4 w-4" /> icon to
+              duplicate a questionnaire for translation. Users will
+              automatically see questionnaires matching their selected language.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -287,23 +382,51 @@ const AdminQuestionnaires: React.FC = () => {
                 key={questionnaire.id}
                 questionnaire={questionnaire}
                 actionButton={
-                  <div className="flex gap-2 mt-4">
-                    <Link
-                      to={`/admin/questionnaires/create?edit=${questionnaire.id}`}
-                      className="flex-1 btn-secondary py-2 text-sm"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() =>
-                        handleDelete(questionnaire.id, questionnaire.title)
-                      }
-                      className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-sm transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </button>
+                  <div className="space-y-2 mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                        Language:
+                      </span>
+                      <span className="text-xl">
+                        {LANGUAGES.find(
+                          (l) => l.code === questionnaire.language
+                        )?.flag || "🌐"}
+                      </span>
+                      <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        {
+                          LANGUAGES.find(
+                            (l) => l.code === questionnaire.language
+                          )?.name
+                        }
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          handleDuplicateAsTranslation(questionnaire)
+                        }
+                        className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-sm transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Languages className="h-4 w-4" />
+                        Translate
+                      </button>
+                      <Link
+                        to={`/admin/questionnaires/create?edit=${questionnaire.id}`}
+                        className="flex-1 btn-secondary py-2 text-sm flex items-center justify-center gap-1"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() =>
+                          handleDelete(questionnaire.id, questionnaire.title)
+                        }
+                        className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-sm transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 }
               />
@@ -342,10 +465,24 @@ const AdminQuestionnaires: React.FC = () => {
                       <tr className="hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 transition-colors group">
                         <td className="px-6 py-5">
                           <div className="max-w-md">
-                            <div className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                              {questionnaire.title}
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                {questionnaire.title}
+                              </div>
+                              <span
+                                className="text-lg"
+                                title={
+                                  LANGUAGES.find(
+                                    (l) => l.code === questionnaire.language
+                                  )?.name
+                                }
+                              >
+                                {LANGUAGES.find(
+                                  (l) => l.code === questionnaire.language
+                                )?.flag || "🌐"}
+                              </span>
                             </div>
-                            <div className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 mt-1">
+                            <div className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
                               {questionnaire.description}
                             </div>
                           </div>
@@ -406,6 +543,15 @@ const AdminQuestionnaires: React.FC = () => {
                               ) : (
                                 <ChevronDown className="h-5 w-5" />
                               )}
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDuplicateAsTranslation(questionnaire)
+                              }
+                              className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              title="Duplicate as translation"
+                            >
+                              <Languages className="h-5 w-5" />
                             </button>
                             <Link
                               to={`/admin/questionnaires/create?edit=${questionnaire.id}`}
@@ -470,6 +616,111 @@ const AdminQuestionnaires: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Translation Modal */}
+      {showTranslateModal && selectedQuestionnaire && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                <Languages className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  Create Translation
+                </h3>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Duplicate questionnaire for translation
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Original Questionnaire
+                </label>
+                <div className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedQuestionnaire.title}
+                  </p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    Current Language:{" "}
+                    {
+                      LANGUAGES.find(
+                        (l) => l.code === selectedQuestionnaire.language
+                      )?.flag
+                    }{" "}
+                    {
+                      LANGUAGES.find(
+                        (l) => l.code === selectedQuestionnaire.language
+                      )?.name
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Target Language *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGES.filter(
+                    (lang) => lang.code !== selectedQuestionnaire.language
+                  ).map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setTargetLanguage(lang.code)}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        targetLanguage === lang.code
+                          ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                          : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600"
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">{lang.flag}</div>
+                      <div className="text-xs font-medium text-neutral-900 dark:text-neutral-100">
+                        {lang.name}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  <strong>Note:</strong> This will create a duplicate with the
+                  same structure. You'll be redirected to edit and translate all
+                  questions and options.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                <button
+                  onClick={() => setShowTranslateModal(false)}
+                  disabled={duplicating}
+                  className="flex-1 px-4 py-2 text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTranslation}
+                  disabled={!targetLanguage || duplicating}
+                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {duplicating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create & Translate"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

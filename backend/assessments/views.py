@@ -6,6 +6,7 @@ from django.utils import timezone
 from .models import *
 from .serializers import *
 from enterprises.models import Enterprise
+from .ai_utils import generate_assessment_insights
 
 class AssessmentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AssessmentCategory.objects.filter(is_active=True)
@@ -114,12 +115,81 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Assessment started successfully'})
     
     @action(detail=True, methods=['post'])
+    def save_responses(self, request, pk=None):
+        """Bulk save responses for an assessment"""
+        assessment = get_object_or_404(Assessment, pk=pk)
+        responses_data = request.data.get('responses', [])
+        
+        if not responses_data:
+            return Response({'error': 'No responses provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Start the assessment if it's still in draft
+        if assessment.status == 'draft':
+            assessment.status = 'in_progress'
+            assessment.started_at = timezone.now()
+            assessment.save()
+        
+        saved_responses = []
+        for response_data in responses_data:
+            question_id = response_data.get('question')
+            value = response_data.get('value')
+            
+            if not question_id:
+                continue
+            
+            # Get or create response
+            response, created = AssessmentResponse.objects.get_or_create(
+                assessment=assessment,
+                question_id=question_id,
+                defaults={'score': 0}
+            )
+            
+            # Handle different question types
+            question = response.question
+            
+            if question.question_type in ['single_choice', 'multiple_choice']:
+                # Clear existing selections
+                response.selected_options.clear()
+                # Add new selections
+                if isinstance(value, list):
+                    response.selected_options.set(value)
+                elif value:
+                    response.selected_options.add(value)
+                # Calculate score from selected options
+                response.score = sum(opt.score for opt in response.selected_options.all())
+            elif question.question_type == 'number':
+                response.number_response = value
+                response.score = float(value) if value else 0
+            elif question.question_type == 'scale':
+                response.number_response = value
+                # Scale score is proportional (value/10 * max_score)
+                response.score = (float(value) / 10) * question.max_score if value else 0
+            else:  # text, file_upload
+                response.text_response = value
+                response.score = 0  # Manual scoring needed
+            
+            response.save()
+            saved_responses.append(response)
+        
+        return Response({
+            'message': f'Saved {len(saved_responses)} responses successfully',
+            'count': len(saved_responses)
+        })
+    
+    @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         """Submit an assessment for review"""
         assessment = get_object_or_404(Assessment, pk=pk)
         
-        if assessment.status != 'in_progress':
-            return Response({'error': 'Assessment not in progress'}, status=status.HTTP_400_BAD_REQUEST)
+        # Allow submission from draft or in_progress
+        if assessment.status not in ['draft', 'in_progress']:
+            return Response({'error': 'Assessment already completed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Save any responses provided with submission
+        responses_data = request.data.get('responses', [])
+        if responses_data:
+            # Reuse the save_responses logic
+            self.save_responses(request, pk)
         
         # Calculate scores
         self._calculate_assessment_scores(assessment)
@@ -128,8 +198,14 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assessment.completed_at = timezone.now()
         assessment.save()
         
-        # Generate recommendations
-        self._generate_recommendations(assessment)
+        # Generate AI-powered insights and recommendations
+        try:
+            self._generate_ai_insights(assessment)
+        except Exception as e:
+            # Log error but don't fail submission
+            print(f"Warning: Failed to generate AI insights: {str(e)}")
+            # Fall back to basic recommendations
+            self._generate_recommendations(assessment)
         
         return Response({'message': 'Assessment submitted successfully'})
     
@@ -146,6 +222,49 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assessment.save()
         
         return Response({'message': 'Assessment reviewed successfully'})
+    
+    @action(detail=True, methods=['post'])
+    def generate_insights(self, request, pk=None):
+        """Generate or regenerate AI insights for an assessment"""
+        if request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        
+        assessment = get_object_or_404(Assessment, pk=pk)
+        
+        if assessment.status not in ['completed', 'reviewed']:
+            return Response(
+                {'error': 'Assessment must be completed before generating insights'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            self._generate_ai_insights(assessment)
+            return Response({'message': 'AI insights generated successfully'})
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate insights: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['patch'])
+    def update_insights(self, request, pk=None):
+        """Admin action to manually update AI-generated insights"""
+        if request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        
+        assessment = get_object_or_404(Assessment, pk=pk)
+        
+        # Update strengths if provided
+        if 'ai_strengths' in request.data:
+            assessment.ai_strengths = request.data['ai_strengths']
+        
+        # Update weaknesses if provided
+        if 'ai_weaknesses' in request.data:
+            assessment.ai_weaknesses = request.data['ai_weaknesses']
+        
+        assessment.save()
+        
+        return Response({'message': 'Insights updated successfully'})
     
     def _calculate_assessment_scores(self, assessment):
         """Calculate scores for an assessment"""
@@ -193,8 +312,50 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assessment.percentage_score = percentage_score
         assessment.save()
     
+    def _generate_ai_insights(self, assessment):
+        """Generate AI-powered insights using Gemini"""
+        try:
+            # Generate insights using Gemini AI
+            insights = generate_assessment_insights(assessment, assessment.enterprise)
+            
+            # Store strengths and weaknesses
+            assessment.ai_strengths = insights.get('strengths', [])
+            assessment.ai_weaknesses = insights.get('weaknesses', [])
+            assessment.ai_generated_at = timezone.now()
+            assessment.save()
+            
+            # Clear existing recommendations
+            assessment.recommendations.all().delete()
+            
+            # Create recommendations from AI insights
+            for rec_data in insights.get('recommendations', []):
+                # Find the category by name, or use a default
+                category = None
+                if 'category' in rec_data:
+                    category = AssessmentCategory.objects.filter(
+                        name__icontains=rec_data['category']
+                    ).first()
+                
+                # If no category found, try to match from category scores
+                if not category:
+                    category_scores = assessment.category_scores.all()
+                    if category_scores:
+                        category = category_scores[0].category
+                
+                Recommendation.objects.create(
+                    assessment=assessment,
+                    category=category,
+                    title=rec_data.get('title', 'Recommendation'),
+                    description=rec_data.get('description', ''),
+                    priority=rec_data.get('priority', 'medium'),
+                    suggested_actions=rec_data.get('suggested_actions', '')
+                )
+        except Exception as e:
+            print(f"Error generating AI insights: {str(e)}")
+            raise
+    
     def _generate_recommendations(self, assessment):
-        """Generate recommendations based on assessment scores"""
+        """Generate basic recommendations based on assessment scores (fallback)"""
         category_scores = assessment.category_scores.all()
         
         for category_score in category_scores:

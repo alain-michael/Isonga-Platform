@@ -48,7 +48,10 @@ export const useCreateCampaign = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Partial<Campaign>) => campaignsAPI.create(data),
+    mutationFn: async (data: Partial<Campaign>) => {
+      const response = await campaignsAPI.create(data);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
     },

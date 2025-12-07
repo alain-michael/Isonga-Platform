@@ -105,22 +105,6 @@ const Assessments: React.FC = () => {
             View your completed assessments and track your progress
           </p>
         </div>
-        <div className="flex space-x-4">
-          <Link
-            to="/assessments/create"
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Create Assessment</span>
-          </Link>
-          <Link
-            to="/assessments/manage"
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <FileText className="h-5 w-5" />
-            <span>Manage Created</span>
-          </Link>
-        </div>
       </div>
 
       {/* Stats Cards */}
@@ -213,9 +197,9 @@ const Assessments: React.FC = () => {
             <p className="text-neutral-500 mt-2 mb-6">
               Get started by creating your first assessment.
             </p>
-            <Link to="/assessments/create" className="btn-primary inline-flex">
+            <Link to="/assessments/start" className="btn-primary inline-flex">
               <Plus className="h-5 w-5 mr-2" />
-              Create Assessment
+              Start Assessment
             </Link>
           </div>
         ) : (
@@ -262,13 +246,27 @@ const Assessments: React.FC = () => {
                       </p>
                     </div>
                   )}
-                  <Link
-                    to={`/assessments/${assessment.id}`}
-                    className="btn-primary flex items-center space-x-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span>View</span>
-                  </Link>
+                  {assessment.status === "completed" ? (
+                    <Link
+                      to={`/assessments/${assessment.id}`}
+                      className="btn-primary flex items-center space-x-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span>View</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to={`/assessments/${assessment.id}/take`}
+                      className="btn-primary flex items-center space-x-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>
+                        {assessment.status === "in_progress"
+                          ? "Continue"
+                          : "Start"}
+                      </span>
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}

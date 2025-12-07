@@ -14,6 +14,7 @@ import {
   Globe,
   ChevronDown,
   TrendingUp,
+  Heart,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import ThemeToggle from "../ui/ThemeToggle";
@@ -68,6 +69,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: "Opportunities",
       path: "/investor/matches",
       icon: TrendingUp,
+      visible: user?.user_type === "investor",
+    },
+    {
+      name: "Tracked",
+      path: "/investor/opportunities",
+      icon: Heart,
       visible: user?.user_type === "investor",
     },
     {

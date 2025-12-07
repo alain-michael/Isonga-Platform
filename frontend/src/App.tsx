@@ -21,6 +21,7 @@ import AssessmentForm from "./components/assessments/AssessmentForm";
 import AssessmentDetailView from "./components/assessments/AssessmentDetailView";
 import ManageAssessments from "./components/assessments/ManageAssessments";
 import CreateAssessment from "./components/assessments/CreateAssessment";
+import StartAssessment from "./components/assessments/StartAssessment";
 import QuestionnaireForm from "./components/admin/QuestionnaireForm";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminEnterprises from "./components/admin/AdminEnterprises";
@@ -40,6 +41,7 @@ import InvestorDashboard from "./components/investor/InvestorDashboard";
 import InvestorMatches from "./components/investor/InvestorMatches";
 import InvestorMatchDetail from "./components/investor/InvestorMatchDetail";
 import InvestorProfile from "./components/investor/InvestorProfile";
+import InvestorOpportunities from "./components/investor/InvestorOpportunities";
 import "./styles.css";
 import AdminAssessments from "./components/admin/AdminAssessments";
 
@@ -123,6 +125,7 @@ const AppContent: React.FC = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<EnterpriseProfile />} />
         <Route path="/assessments" element={<Assessments />} />
+        <Route path="/assessments/start" element={<StartAssessment />} />
         <Route path="/assessments/manage" element={<ManageAssessments />} />
         <Route path="/assessments/create" element={<CreateAssessment />} />
         <Route path="/assessments/:id" element={<AssessmentDetailView />} />
@@ -137,6 +140,10 @@ const AppContent: React.FC = () => {
         <Route path="/investor/dashboard" element={<InvestorDashboard />} />
         <Route path="/investor/matches" element={<InvestorMatches />} />
         <Route path="/investor/matches/:id" element={<InvestorMatchDetail />} />
+        <Route
+          path="/investor/opportunities"
+          element={<InvestorOpportunities />}
+        />
         <Route path="/investor/profile" element={<InvestorProfile />} />
 
         {/* Admin Routes */}

@@ -106,6 +106,9 @@ export const assessmentAPI = {
   getQuestionnaire: (id: string) =>
     api.get(`/assessments/api/questionnaires/${id}/`),
   
+  createQuestionnaire: (data: any) =>
+    api.post('/assessments/api/questionnaires/', data),
+  
   getAssessments: (params?: any) =>
     api.get('/assessments/api/assessments/', { params }),
   
@@ -121,8 +124,11 @@ export const assessmentAPI = {
   startAssessment: (id: string) =>
     api.post(`/assessments/api/assessments/${id}/start/`),
   
-  submitAssessment: (id: string) =>
-    api.post(`/assessments/api/assessments/${id}/submit/`),
+  saveResponses: (id: string, responses: any[]) =>
+    api.post(`/assessments/api/assessments/${id}/save_responses/`, { responses }),
+  
+  submitAssessment: (id: string, responses?: any[]) =>
+    api.post(`/assessments/api/assessments/${id}/submit/`, { responses: responses || [] }),
   
   reviewAssessment: (id: string) =>
     api.post(`/assessments/api/assessments/${id}/review/`),
@@ -132,6 +138,12 @@ export const assessmentAPI = {
   
   assignReviewer: (id: string, reviewerId: number) =>
     api.patch(`/assessments/api/assessments/${id}/`, { reviewed_by: reviewerId }),
+  
+  generateInsights: (id: string) =>
+    api.post(`/assessments/api/assessments/${id}/generate_insights/`),
+  
+  updateInsights: (id: string, data: { ai_strengths?: string[], ai_weaknesses?: string[] }) =>
+    api.patch(`/assessments/api/assessments/${id}/update_insights/`, data),
   
   saveResponse: (data: any) =>
     api.post('/assessments/api/responses/', data),

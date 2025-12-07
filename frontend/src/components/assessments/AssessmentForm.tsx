@@ -3,12 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Send, FileText, AlertCircle } from "lucide-react";
 import { assessmentAPI } from "../../services/api";
 
+interface QuestionOption {
+  id: number;
+  text: string;
+  score: number;
+  order: number;
+}
+
 interface Question {
   id: number;
   text: string;
-  type: string;
-  required: boolean;
-  options?: any[];
+  question_type: string;
+  is_required: boolean;
+  options?: QuestionOption[];
 }
 
 interface Assessment {
@@ -39,23 +46,24 @@ const AssessmentForm: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await assessmentAPI.getAssessment(assessmentId);
-      // Transform API response to match component state structure if needed
-      // Assuming response.data contains the assessment details including questionnaire questions
       const data = response.data;
 
-      // If the API returns nested questionnaire object, flatten it for the form
+      // Use questionnaire_detail which now includes full questions and options
       const formattedAssessment = {
         id: data.id,
-        title: data.questionnaire?.title || data.title,
-        description: data.questionnaire?.description || "",
-        questions: data.questionnaire?.questions || [],
+        title:
+          data.questionnaire_detail?.title ||
+          data.questionnaire_title ||
+          data.title,
+        description: data.questionnaire_detail?.description || "",
+        questions: data.questionnaire_detail?.questions || [],
         status: data.status,
       };
 
       setAssessment(formattedAssessment);
 
       // Load existing responses if any
-      if (data.responses) {
+      if (data.responses && data.responses.length > 0) {
         const initialResponses: Record<number, { value: any; id?: number }> =
           {};
         data.responses.forEach((r: any) => {
@@ -78,31 +86,12 @@ const AssessmentForm: React.FC = () => {
     }));
   };
 
-  const saveResponses = async () => {
-    if (!id) return;
-    const promises = Object.entries(responses).map(async ([qId, data]) => {
-      try {
-        if (data.id) {
-          await assessmentAPI.updateResponse(data.id.toString(), {
-            value: data.value,
-          });
-        } else {
-          const res = await assessmentAPI.saveResponse({
-            assessment: id,
-            question: qId,
-            value: data.value,
-          });
-          // Update state with new ID
-          setResponses((prev) => ({
-            ...prev,
-            [parseInt(qId)]: { ...prev[parseInt(qId)], id: res.data.id },
-          }));
-        }
-      } catch (err) {
-        console.error(`Error saving response for question ${qId}:`, err);
-      }
-    });
-    await Promise.all(promises);
+  const prepareResponsesForSave = () => {
+    // Convert responses object to array format for API
+    return Object.entries(responses).map(([questionId, data]) => ({
+      question: parseInt(questionId),
+      value: data.value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,9 +100,10 @@ const AssessmentForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await saveResponses();
-      await assessmentAPI.submitAssessment(id);
-      navigate("/assessments");
+      const responsesData = prepareResponsesForSave();
+      await assessmentAPI.submitAssessment(id, responsesData);
+      // Navigate to results page after successful submission
+      navigate(`/assessments/${id}`);
     } catch (err) {
       console.error("Error submitting assessment:", err);
       setError("Failed to submit assessment");
@@ -126,7 +116,8 @@ const AssessmentForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await saveResponses();
+      const responsesData = prepareResponsesForSave();
+      await assessmentAPI.saveResponses(id, responsesData);
       navigate("/assessments");
     } catch (err) {
       console.error("Error saving draft:", err);
@@ -220,28 +211,131 @@ const AssessmentForm: React.FC = () => {
             <div key={question.id} className="space-y-3">
               <label className="block text-lg font-semibold text-neutral-900">
                 {index + 1}. {question.text}
-                {question.required && (
+                {question.is_required && (
                   <span className="text-error-500 ml-1">*</span>
                 )}
               </label>
 
-              {question.type === "textarea" ? (
+              {/* Multiple Choice or Single Choice with Options */}
+              {(question.question_type === "multiple_choice" ||
+                question.question_type === "single_choice") &&
+              question.options ? (
+                <div className="space-y-2">
+                  {question.options.map((option) => (
+                    <label
+                      key={option.id}
+                      className="flex items-center p-4 border-2 border-neutral-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-all"
+                    >
+                      <input
+                        type={
+                          question.question_type === "multiple_choice"
+                            ? "checkbox"
+                            : "radio"
+                        }
+                        name={`question-${question.id}`}
+                        value={option.id}
+                        checked={
+                          question.question_type === "multiple_choice"
+                            ? Array.isArray(responses[question.id]?.value) &&
+                              responses[question.id]?.value.includes(option.id)
+                            : responses[question.id]?.value === option.id
+                        }
+                        onChange={(e) => {
+                          if (question.question_type === "multiple_choice") {
+                            const currentValues = Array.isArray(
+                              responses[question.id]?.value
+                            )
+                              ? responses[question.id].value
+                              : [];
+                            const newValues = e.target.checked
+                              ? [...currentValues, option.id]
+                              : currentValues.filter(
+                                  (id: number) => id !== option.id
+                                );
+                            handleInputChange(question.id, newValues);
+                          } else {
+                            handleInputChange(question.id, option.id);
+                          }
+                        }}
+                        required={
+                          question.is_required && !responses[question.id]?.value
+                        }
+                        className="w-4 h-4 text-primary-600 border-neutral-300 focus:ring-primary-500"
+                      />
+                      <span className="ml-3 text-neutral-900">
+                        {option.text}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : question.question_type === "scale" ? (
+                /* Scale (1-10) */
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => handleInputChange(question.id, num)}
+                        className={`w-12 h-12 rounded-xl font-semibold transition-all ${
+                          responses[question.id]?.value === num
+                            ? "bg-primary-600 text-white shadow-lg scale-110"
+                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-xs text-neutral-500 px-2">
+                    <span>Low</span>
+                    <span>High</span>
+                  </div>
+                </div>
+              ) : question.question_type === "text" ? (
+                /* Text Input */
                 <textarea
                   rows={4}
                   className="input-field"
                   placeholder="Enter your response..."
-                  required={question.required}
+                  required={question.is_required}
                   value={responses[question.id]?.value || ""}
                   onChange={(e) =>
                     handleInputChange(question.id, e.target.value)
                   }
                 />
-              ) : (
+              ) : question.question_type === "number" ? (
+                /* Number Input */
                 <input
-                  type={question.type === "number" ? "number" : "text"}
+                  type="number"
+                  className="input-field"
+                  placeholder="Enter a number..."
+                  required={question.is_required}
+                  value={responses[question.id]?.value || ""}
+                  onChange={(e) =>
+                    handleInputChange(question.id, e.target.value)
+                  }
+                />
+              ) : question.question_type === "file_upload" ? (
+                /* File Upload */
+                <input
+                  type="file"
+                  className="input-field"
+                  required={question.is_required}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleInputChange(question.id, file);
+                    }
+                  }}
+                />
+              ) : (
+                /* Default Text Input */
+                <input
+                  type="text"
                   className="input-field"
                   placeholder="Enter your answer..."
-                  required={question.required}
+                  required={question.is_required}
                   value={responses[question.id]?.value || ""}
                   onChange={(e) =>
                     handleInputChange(question.id, e.target.value)

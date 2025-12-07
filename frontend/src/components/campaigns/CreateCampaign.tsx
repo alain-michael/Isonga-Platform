@@ -53,7 +53,17 @@ const campaignSchema = yup.object({
     .number()
     .required("Minimum investment is required")
     .min(10000, "Minimum investment is 10,000 RWF"),
-  max_investment: yup.number().nullable().optional(),
+  max_investment: yup
+    .number()
+    .nullable()
+    .optional()
+    .transform((value, originalValue) =>
+      originalValue === "" ||
+      originalValue === null ||
+      originalValue === undefined
+        ? null
+        : value
+    ),
   start_date: yup.string().required("Start date is required"),
   end_date: yup.string().required("End date is required"),
   use_of_funds: yup.string().required("Use of funds is required"),
@@ -142,11 +152,34 @@ const CreateCampaign: React.FC = () => {
         use_of_funds: { description: data.use_of_funds },
       };
 
-      await createCampaignMutation.mutateAsync(campaignData as any);
+      const result = await createCampaignMutation.mutateAsync(
+        campaignData as any
+      );
+      // console.log("Campaign created:", result);
+      // alert("Campaign created successfully!");
       navigate("/campaigns");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create campaign:", error);
+      console.error("Error response:", error?.response);
+      const errorMessage =
+        error?.response?.data?.error ||
+        error?.response?.data?.detail ||
+        error?.message ||
+        "Failed to create campaign. Please try again.";
+      alert(errorMessage);
     }
+  };
+
+  // Add error handler for form validation failures
+  const onError = (errors: any) => {
+    console.log("=== FORM VALIDATION FAILED ===");
+    console.log("Validation errors:", errors);
+    alert(
+      "Please check the form for validation errors:\n" +
+        Object.keys(errors)
+          .map((key) => `${key}: ${errors[key]?.message}`)
+          .join("\n")
+    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -477,6 +510,26 @@ const CreateCampaign: React.FC = () => {
       case 5:
         return (
           <div className="space-y-6">
+            {Object.keys(errors).length > 0 && (
+              <div className="bg-red-50 rounded-xl p-4 border border-red-200 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  <div className="text-sm text-red-800">
+                    <p className="font-medium mb-2">
+                      Please fix the following errors:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {Object.entries(errors).map(([field, error]: any) => (
+                        <li key={field}>
+                          {field}: {error?.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-green-50 rounded-xl p-4 border border-green-200 mb-6">
               <div className="flex items-start gap-3">
                 <Check className="h-5 w-5 text-green-600 mt-0.5" />
@@ -649,7 +702,7 @@ const CreateCampaign: React.FC = () => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onError)}>
         <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-neutral-900 mb-6">
             {STEPS[currentStep - 1]?.title}
@@ -687,6 +740,7 @@ const CreateCampaign: React.FC = () => {
               type="submit"
               disabled={createCampaignMutation.isPending}
               className="btn-primary flex items-center gap-2"
+              onClick={() => console.log("Create Campaign button clicked!")}
             >
               {createCampaignMutation.isPending ? (
                 <>

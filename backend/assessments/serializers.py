@@ -98,6 +98,7 @@ class QuestionnaireNestedSerializer(serializers.ModelSerializer):
 class AssessmentSerializer(serializers.ModelSerializer):
     enterprise_name = serializers.CharField(source='enterprise.business_name', read_only=True)
     questionnaire_title = serializers.CharField(source='questionnaire.title', read_only=True)
+    questionnaire_detail = QuestionnaireSerializer(source='questionnaire', read_only=True)
     responses = AssessmentResponseSerializer(many=True, read_only=True)
     category_scores = CategoryScoreSerializer(many=True, read_only=True)
     recommendations = RecommendationSerializer(many=True, read_only=True)
@@ -105,7 +106,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assessment
         fields = '__all__'
-        read_only_fields = ['total_score', 'max_possible_score', 'percentage_score', 'enterprise', 'fiscal_year']
+        read_only_fields = ['total_score', 'max_possible_score', 'percentage_score', 'enterprise', 'fiscal_year', 'ai_generated_at']
 
 class AssessmentListSerializer(serializers.ModelSerializer):
     """Serializer for listing assessments with full nested objects for frontend"""

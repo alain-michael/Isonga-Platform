@@ -16,6 +16,13 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect investors to their specific dashboard
+  useEffect(() => {
+    if (user?.user_type === "investor") {
+      navigate("/investor/dashboard");
+    }
+  }, [user, navigate]);
+
   // Fetch enterprise profile if user is an enterprise
   const { error: enterpriseError, isLoading: enterpriseLoading } =
     useMyEnterprise();
@@ -97,7 +104,7 @@ const Dashboard: React.FC = () => {
         </div>
         {user?.user_type === "enterprise" && (
           <Link
-            to="/assessments/create"
+            to="/assessments/start"
             className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -255,7 +262,7 @@ const Dashboard: React.FC = () => {
               </p>
               {user?.user_type === "enterprise" && (
                 <Link
-                  to="/assessments/create"
+                  to="/assessments/start"
                   className="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
                 >
                   Start Assessment

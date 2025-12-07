@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { enterpriseAPI } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   ArrowLeft,
   Edit,
@@ -72,6 +73,8 @@ const CampaignDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isInvestor = user?.user_type === "investor";
   const [activeTab, setActiveTab] = useState<
     "overview" | "investors" | "documents" | "updates"
   >("overview");
@@ -183,7 +186,9 @@ const CampaignDetail: React.FC = () => {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: Activity },
-    { id: "investors", label: "Investors", icon: Users },
+    ...(!isInvestor
+      ? [{ id: "investors", label: "Investors", icon: Users }]
+      : []),
     { id: "documents", label: "Documents", icon: FileText },
     { id: "updates", label: "Updates", icon: MessageSquare },
   ];
@@ -224,7 +229,7 @@ const CampaignDetail: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {campaign.status === "draft" && (
+            {!isInvestor && campaign.status === "draft" && (
               <button
                 onClick={handleSubmitForReview}
                 disabled={submitForReviewMutation.isPending}
@@ -235,19 +240,40 @@ const CampaignDetail: React.FC = () => {
                   : "Submit for Review"}
               </button>
             )}
-            <Link
-              to={`/campaigns/${id}/edit`}
-              className="btn-secondary flex items-center gap-2"
+            {!isInvestor && (
+              <Link
+                to={`/campaigns/${id}/edit`}
+                className="btn-secondary flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Link>
+            )}
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator
+                    .share({
+                      title: campaign.title,
+                      text: campaign.description,
+                      url: window.location.href,
+                    })
+                    .catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("Link copied to clipboard!");
+                }
+              }}
+              className="p-2 hover:bg-neutral-100 rounded-lg"
+              title="Share campaign"
             >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Link>
-            <button className="p-2 hover:bg-neutral-100 rounded-lg">
               <Share2 className="h-5 w-5 text-neutral-600" />
             </button>
-            <button className="p-2 hover:bg-neutral-100 rounded-lg">
-              <MoreVertical className="h-5 w-5 text-neutral-600" />
-            </button>
+            {!isInvestor && (
+              <button className="p-2 hover:bg-neutral-100 rounded-lg">
+                <MoreVertical className="h-5 w-5 text-neutral-600" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -565,9 +591,13 @@ const CampaignDetail: React.FC = () => {
                   No Documents Yet
                 </h3>
                 <p className="text-neutral-500 mb-6">
-                  Upload supporting documents for your campaign.
+                  {isInvestor
+                    ? "No documents have been uploaded for this campaign yet."
+                    : "Upload supporting documents for your campaign."}
                 </p>
-                <button className="btn-primary">Upload Document</button>
+                {!isInvestor && (
+                  <button className="btn-primary">Upload Document</button>
+                )}
               </div>
             </div>
           )}
@@ -580,10 +610,13 @@ const CampaignDetail: React.FC = () => {
                   No Updates Yet
                 </h3>
                 <p className="text-neutral-500 mb-6">
-                  Keep investors informed with regular updates about your
-                  campaign progress.
+                  {isInvestor
+                    ? "No updates have been posted for this campaign yet."
+                    : "Keep investors informed with regular updates about your campaign progress."}
                 </p>
-                <button className="btn-primary">Post Update</button>
+                {!isInvestor && (
+                  <button className="btn-primary">Post Update</button>
+                )}
               </div>
             </div>
           )}

@@ -309,8 +309,12 @@ class InvestorMatchesView(generics.ListAPIView):
         
         queryset = Campaign.objects.filter(status='active')
 
+        # Exclude campaigns where investor already has a match (approved or rejected)
+        existing_matches = Match.objects.filter(investor=investor).values_list('enterprise_id', flat=True)
+        queryset = queryset.exclude(enterprise_id__in=existing_matches)
+
         if not criteria:
-            return queryset
+            return queryset[:50]
 
         # Calculate matches in Python for scoring
         # Note: For large datasets, this should be done in DB or search engine
@@ -349,6 +353,46 @@ class InvestorMatchesView(generics.ListAPIView):
         serializer.save(initiated_by=self.request.user)
 
 
+class InterestedCampaignsView(generics.ListAPIView):
+    """Get campaigns where investor has expressed interest (approved matches)"""
+    serializer_class = MatchedCampaignSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not hasattr(user, 'investor_profile'):
+            return Campaign.objects.none()
+
+        investor = user.investor_profile
+        
+        # Get enterprises where investor has approved matches
+        approved_enterprise_ids = Match.objects.filter(
+            investor=investor,
+            status='approved'
+        ).values_list('enterprise_id', flat=True)
+        
+        # Get campaigns from those enterprises
+        campaigns = Campaign.objects.filter(
+            enterprise_id__in=approved_enterprise_ids
+        ).select_related('enterprise')
+        
+        # Add interested_at from match created_at
+        result = []
+        for campaign in campaigns:
+            match = Match.objects.filter(
+                investor=investor,
+                enterprise=campaign.enterprise,
+                status='approved'
+            ).first()
+            
+            if match:
+                campaign.interested_at = match.created_at
+                campaign.match_score = int(match.match_score or 0)
+                result.append(campaign)
+        
+        return result
+
+
 class InteractWithOpportunityView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -377,11 +421,20 @@ class InteractWithOpportunityView(APIView):
             match.status = 'approved'
             match.investor_approved = True
             match.save()
-            return Response({'message': 'Opportunity approved', 'match_id': match.id})
+            
+            # Create interaction record
+            MatchInteraction.objects.create(
+                match=match,
+                initiated_by=user,
+                interaction_type='status_change',
+                content='Investor expressed interest in campaign'
+            )
+            
+            return Response({'message': 'Interest expressed successfully', 'match_id': str(match.id)})
             
         elif action == 'reject':
             match.status = 'rejected'
             match.save()
-            return Response({'message': 'Opportunity rejected', 'match_id': match.id})
+            return Response({'message': 'Campaign passed', 'match_id': str(match.id)})
             
         return Response({'error': 'Unknown error'}, status=500)
