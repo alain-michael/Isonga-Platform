@@ -70,6 +70,11 @@ export const investorAPI = {
     return response.data.results;
   },
 
+  getMatchesNoExcluding: async (): Promise<MatchedCampaign[]> => {
+    const response = await api.get('/investors/opportunities/?exclude_existing=false');
+    return response.data.results;
+  },
+
   getDashboardStats: async () => {
     const response = await api.get<{
       activeMatches: number;
@@ -88,5 +93,21 @@ export const investorAPI = {
   getInterestedCampaigns: async () => {
     const response = await api.get('/investors/interested-campaigns/');
     return response.data.results || response.data;
-  }
+  },
+
+  // Match-specific APIs
+  getUserMatch: async (campaignId: string) => {
+    const response = await api.get(`/investors/matches/?campaign_id=${campaignId}`);
+    return response.data.results?.[0] || response.data[0] || null;
+  },
+
+  commitToMatch: async (matchId: string, committed_amount: number) => {
+    const response = await api.post(`/investors/matches/${matchId}/commit/`, { committed_amount });
+    return response.data;
+  },
+
+  withdrawMatch: async (matchId: string) => {
+    const response = await api.post(`/investors/matches/${matchId}/withdraw/`);
+    return response.data;
+  },
 };

@@ -108,6 +108,7 @@ class Match(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE, related_name='matches')
     enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='matches')
+    campaign = models.ForeignKey('campaigns.Campaign', on_delete=models.CASCADE, related_name='matches')
     
     # Matching score (0-100)
     match_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
@@ -118,6 +119,14 @@ class Match(models.Model):
     # Investor actions
     investor_approved = models.BooleanField(default=False)
     investor_notes = models.TextField(blank=True, null=True)
+    
+    # Investment commitment (from CampaignInterest)
+    committed_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    committed_at = models.DateTimeField(null=True, blank=True)
+    
+    # Payment confirmation
+    payment_received = models.BooleanField(default=False)
+    payment_received_at = models.DateTimeField(null=True, blank=True)
     
     # Enterprise actions
     enterprise_accepted = models.BooleanField(default=False)
@@ -130,10 +139,11 @@ class Match(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.enterprise.business_name} <-> {self.investor}"
+        campaign_info = f" - {self.campaign.title}" if self.campaign else ""
+        return f"{self.enterprise.business_name} <-> {self.investor}{campaign_info}"
 
     class Meta:
-        unique_together = ['investor', 'enterprise']
+        unique_together = ['investor', 'campaign']
         ordering = ['-match_score', '-created_at']
         verbose_name_plural = "Matches"
 

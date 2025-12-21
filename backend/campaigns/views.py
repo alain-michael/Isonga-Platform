@@ -3,16 +3,22 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
-from .models import Campaign, CampaignDocument, CampaignInterest
+from django.db.models import Q
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage
 from .serializers import (
     CampaignSerializer, CampaignDetailSerializer, CampaignCreateSerializer,
-    CampaignDocumentSerializer, CampaignInterestSerializer
+    CampaignDocumentSerializer, CampaignInterestSerializer, CampaignUpdateSerializer,
+    CampaignMessageSerializer
 )
 
 
 class IsEnterpriseOwner(permissions.BasePermission):
     """Check if user owns the enterprise"""
     def has_object_permission(self, request, view, obj):
+        # Admins can do anything
+        if request.user.user_type in ['admin', 'superadmin']:
+            return True
+        
         if request.method in permissions.SAFE_METHODS:
             return True
         return hasattr(request.user, 'enterprise') and obj.enterprise == request.user.enterprise
@@ -50,6 +56,25 @@ class CampaignViewSet(viewsets.ModelViewSet):
             return Campaign.objects.filter(enterprise=user.enterprise)
         
         return Campaign.objects.none()
+    
+    def perform_update(self, serializer):
+        """Override update to reset vetted status when enterprise edits campaign"""
+        campaign = self.get_object()
+        user = self.request.user
+        
+        # If enterprise (not admin) is editing a vetted or active campaign,
+        # reset it to draft to require re-approval
+        if (hasattr(user, 'enterprise') and 
+            user.user_type not in ['admin', 'superadmin'] and
+            (campaign.is_vetted or campaign.status in ['vetted', 'active'])):
+            serializer.save(
+                status='draft',
+                is_vetted=False,
+                vetted_by=None,
+                vetted_at=None
+            )
+        else:
+            serializer.save()
     
     @action(detail=False, methods=['get'])
     def my_campaigns(self, request):
@@ -160,6 +185,30 @@ class CampaignDocumentViewSet(viewsets.ModelViewSet):
         if campaign_id:
             return CampaignDocument.objects.filter(campaign_id=campaign_id)
         return CampaignDocument.objects.none()
+    
+    def perform_create(self, serializer):
+        # Get campaign from the request data
+        campaign_id = self.request.data.get('campaign')
+        if campaign_id:
+            serializer.save(campaign_id=campaign_id)
+        else:
+            serializer.save()
+
+
+class CampaignUpdateViewSet(viewsets.ModelViewSet):
+    queryset = CampaignUpdate.objects.all()
+    serializer_class = CampaignUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        campaign_id = self.request.query_params.get('campaign_id')
+        if campaign_id:
+            return CampaignUpdate.objects.filter(campaign_id=campaign_id)
+        return CampaignUpdate.objects.none()
+    
+    def perform_create(self, serializer):
+        # Auto-set posted_by to current user
+        serializer.save(posted_by=self.request.user)
 
 
 class CampaignInterestViewSet(viewsets.ModelViewSet):
@@ -201,27 +250,71 @@ class CampaignInterestViewSet(viewsets.ModelViewSet):
             serializer.save()
     
     @action(detail=True, methods=['post'])
-    def approve(self, request, pk=None):
-        """Enterprise approves interest"""
+    def commit(self, request, pk=None):
+        """Investor commits to an amount after interest is approved"""
         interest = self.get_object()
         
-        if not hasattr(request.user, 'enterprise') or interest.campaign.enterprise != request.user.enterprise:
+        if not hasattr(request.user, 'investor_profile') or interest.investor != request.user.investor_profile:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
-        interest.status = 'approved'
+        committed_amount = request.data.get('committed_amount')
+        if not committed_amount:
+            return Response({'error': 'committed_amount is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        interest.status = 'committed'
+        interest.committed_amount = committed_amount
         interest.save()
         
-        return Response({'message': 'Interest approved'})
+        return Response({'message': 'Amount committed successfully'})
     
     @action(detail=True, methods=['post'])
-    def reject(self, request, pk=None):
-        """Enterprise rejects interest"""
+    def withdraw(self, request, pk=None):
+        """Investor withdraws interest"""
         interest = self.get_object()
         
-        if not hasattr(request.user, 'enterprise') or interest.campaign.enterprise != request.user.enterprise:
+        if not hasattr(request.user, 'investor_profile') or interest.investor != request.user.investor_profile:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
-        interest.status = 'rejected'
+        interest.status = 'withdrawn'
         interest.save()
         
-        return Response({'message': 'Interest rejected'})
+        return Response({'message': 'Interest withdrawn'})
+
+
+class CampaignMessageViewSet(viewsets.ModelViewSet):
+    queryset = CampaignMessage.objects.all()
+    serializer_class = CampaignMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        campaign_id = self.request.query_params.get('campaign_id')
+        interest_id = self.request.query_params.get('interest_id')
+        
+        queryset = CampaignMessage.objects.filter(
+            Q(sender=user) | Q(receiver=user)
+        )
+        
+        if campaign_id:
+            queryset = queryset.filter(campaign_id=campaign_id)
+        
+        if interest_id:
+            queryset = queryset.filter(interest_id=interest_id)
+        
+        return queryset.order_by('created_at')
+    
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
+    
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark message as read"""
+        message = self.get_object()
+        
+        if message.receiver != request.user:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        message.is_read = True
+        message.save()
+        
+        return Response({'message': 'Message marked as read'})

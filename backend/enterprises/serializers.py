@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Enterprise, EnterpriseDocument
+from assessments.models import Assessment
 
 User = get_user_model()
 
@@ -9,17 +10,29 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
+class AssessmentSummarySerializer(serializers.ModelSerializer):
+    """Lightweight serializer for assessments in enterprise detail"""
+    questionnaire_title = serializers.CharField(source='questionnaire.title', read_only=True)
+    
+    class Meta:
+        model = Assessment
+        fields = ['id', 'questionnaire', 'questionnaire_title', 'fiscal_year', 'status', 
+                  'percentage_score', 'completed_at', 'created_at']
+        read_only_fields = ['id', 'questionnaire_title', 'percentage_score', 'completed_at', 'created_at']
+
 class EnterpriseDocumentSerializer(serializers.ModelSerializer):
     verified_by_name = serializers.CharField(source='verified_by.get_full_name', read_only=True)
     
     class Meta:
         model = EnterpriseDocument
         fields = '__all__'
+        read_only_fields = ['enterprise', 'verified_by', 'verified_at', 'uploaded_at']
 
 class EnterpriseDetailSerializer(serializers.ModelSerializer):
     """Comprehensive serializer for enterprise detail view"""
     user = UserSerializer(read_only=True)
     documents = EnterpriseDocumentSerializer(many=True, read_only=True)
+    assessments = AssessmentSummarySerializer(many=True, read_only=True)
     vetted_by_name = serializers.CharField(source='vetted_by.get_full_name', read_only=True)
     
     # Document statistics

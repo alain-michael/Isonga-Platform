@@ -129,3 +129,38 @@ class CampaignInterest(models.Model):
     class Meta:
         unique_together = ['campaign', 'investor']
         ordering = ['-created_at']
+
+
+class CampaignUpdate(models.Model):
+    """Updates posted by enterprises about their campaigns"""
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='updates')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='campaign_updates')
+    posted_at = models.DateTimeField(auto_now_add=True)
+    is_milestone = models.BooleanField(default=False, help_text="Mark as important milestone")
+    
+    def __str__(self):
+        return f"{self.campaign.title} - {self.title}"
+    
+    class Meta:
+        ordering = ['-posted_at']
+
+
+class CampaignMessage(models.Model):
+    """Messages between enterprise and investor regarding a campaign"""
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_campaign_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_campaign_messages')
+    interest = models.ForeignKey(CampaignInterest, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
+    
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.sender} -> {self.receiver} on {self.campaign.title}"
+    
+    class Meta:
+        ordering = ['created_at']

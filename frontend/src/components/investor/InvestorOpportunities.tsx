@@ -282,7 +282,7 @@ const InvestorOpportunities: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/campaigns/${opportunity.id}`)}
+                    onClick={() => navigate(`/investor/matches/${opportunity.id}`)}
                     className="w-full btn-primary flex items-center justify-center gap-2"
                   >
                     View Details

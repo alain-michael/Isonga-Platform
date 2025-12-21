@@ -22,11 +22,9 @@ import {
   Clock,
   AlertCircle,
   X,
-  Plus,
   Trash2,
   Download,
   Eye,
-  User,
 } from "lucide-react";
 import { useMyEnterprise } from "../../hooks/useEnterprises";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,7 +69,7 @@ type TabId =
   | "business"
   | "contact"
   | "legal"
-  | "management"
+  // | "management"
   | "documents"
   | "assessments";
 
@@ -85,7 +83,7 @@ const tabs: Tab[] = [
   { id: "business", label: "Business Info", icon: Building2 },
   { id: "contact", label: "Contact", icon: MapPin },
   { id: "legal", label: "Legal", icon: Scale },
-  { id: "management", label: "Management", icon: Users },
+  // { id: "management", label: "Management", icon: Users },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "assessments", label: "Assessments", icon: Briefcase },
 ];
@@ -153,7 +151,14 @@ const RWANDAN_DISTRICTS = [
 const EnterpriseProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>("business");
   const [isEditing, setIsEditing] = useState(false);
-  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [documentForm, setDocumentForm] = useState({
+    title: "",
+    document_type: "other",
+    description: "",
+    fiscal_year: new Date().getFullYear().toString(),
+    file: null as File | null,
+  });
 
   const queryClient = useQueryClient();
   const { data: enterprise, isLoading, error } = useMyEnterprise();
@@ -173,7 +178,14 @@ const EnterpriseProfile: React.FC = () => {
       enterpriseAPI.uploadDocument(enterprise?.id, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-enterprise"] });
-      setUploadingDocument(false);
+      setShowDocumentModal(false);
+      setDocumentForm({
+        title: "",
+        document_type: "other",
+        description: "",
+        fiscal_year: new Date().getFullYear().toString(),
+        file: null,
+      });
     },
   });
 
@@ -310,20 +322,22 @@ const EnterpriseProfile: React.FC = () => {
     );
   };
 
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    documentType: string
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleDocumentUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!documentForm.file || !documentForm.title) {
+      return;
+    }
 
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("document_type", documentType);
-    formData.append("title", file.name);
-    formData.append("fiscal_year", new Date().getFullYear().toString());
+    formData.append("file", documentForm.file);
+    formData.append("title", documentForm.title);
+    formData.append("document_type", documentForm.document_type);
+    formData.append("fiscal_year", documentForm.fiscal_year);
+    if (documentForm.description) {
+      formData.append("description", documentForm.description);
+    }
 
-    setUploadingDocument(true);
     uploadDocumentMutation.mutate(formData);
   };
 
@@ -794,60 +808,50 @@ const EnterpriseProfile: React.FC = () => {
     </div>
   );
 
-  const renderManagement = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-neutral-900">Management Team</h3>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Team Member
-        </button>
-      </div>
+  // const renderManagement = () => (
+  //   <div className="space-y-6">
+  //     <div className="flex items-center justify-between">
+  //       <h3 className="text-xl font-bold text-neutral-900">Management Team</h3>
+  //       <button className="btn-primary flex items-center gap-2">
+  //         <Plus className="h-4 w-4" />
+  //         Add Team Member
+  //       </button>
+  //     </div>
 
-      <p className="text-neutral-600">
-        Add key management team members to strengthen your enterprise profile
-        and build investor confidence.
-      </p>
+  //     <p className="text-neutral-600">
+  //       Add key management team members to strengthen your enterprise profile
+  //       and build investor confidence.
+  //     </p>
 
-      <div className="bg-neutral-50 rounded-xl border border-neutral-200 p-8 text-center">
-        <User className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-        <h4 className="font-medium text-neutral-700 mb-2">
-          No Team Members Added
-        </h4>
-        <p className="text-sm text-neutral-500 mb-4">
-          Add your CEO, CFO, CTO, and other key team members to showcase your
-          leadership.
-        </p>
-        <button className="btn-secondary">
-          <Plus className="h-4 w-4 mr-2" />
-          Add First Team Member
-        </button>
-      </div>
-    </div>
-  );
+  //     <div className="bg-neutral-50 rounded-xl border border-neutral-200 p-8 text-center">
+  //       <User className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+  //       <h4 className="font-medium text-neutral-700 mb-2">
+  //         No Team Members Added
+  //       </h4>
+  //       <p className="text-sm text-neutral-500 mb-4">
+  //         Add your CEO, CFO, CTO, and other key team members to showcase your
+  //         leadership.
+  //       </p>
+  //       <button className="btn-secondary">
+  //         <Plus className="h-4 w-4 mr-2" />
+  //         Add First Team Member
+  //       </button>
+  //     </div>
+  //   </div>
+  // );
 
   const renderDocuments = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-neutral-900">Documents</h3>
-        <label className="btn-primary flex items-center gap-2 cursor-pointer">
+        <button
+          className="btn-primary flex items-center gap-2"
+          onClick={() => setShowDocumentModal(true)}
+        >
           <Upload className="h-4 w-4" />
           Upload Document
-          <input
-            type="file"
-            className="hidden"
-            accept=".pdf,.doc,.docx,.xls,.xlsx"
-            onChange={(e) => handleFileUpload(e, "other")}
-          />
-        </label>
+        </button>
       </div>
-
-      {uploadingDocument && (
-        <div className="flex items-center gap-2 text-primary-600">
-          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600" />
-          Uploading document...
-        </div>
-      )}
 
       <div className="space-y-4">
         {enterprise.documents?.length > 0 ? (
@@ -935,21 +939,32 @@ const EnterpriseProfile: React.FC = () => {
               className="p-4 bg-white rounded-xl border border-neutral-200"
             >
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <h4 className="font-medium text-neutral-900">
-                    {assessment.questionnaire?.title || "Assessment"}
+                    {assessment.questionnaire_title || "Assessment"}
                   </h4>
-                  <p className="text-sm text-neutral-500">
-                    Completed on{" "}
-                    {new Date(assessment.completed_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-primary-600">
-                    {assessment.total_score}%
+                  <div className="flex items-center gap-4 mt-1">
+                    <p className="text-sm text-neutral-500">
+                      Fiscal Year: {assessment.fiscal_year}
+                    </p>
+                    <span className="text-sm text-neutral-400">•</span>
+                    <p className="text-sm text-neutral-500">
+                      {assessment.completed_at
+                        ? `Completed ${new Date(
+                            assessment.completed_at
+                          ).toLocaleDateString()}`
+                        : `Status: ${assessment.status}`}
+                    </p>
                   </div>
-                  <div className="text-sm text-neutral-500">Score</div>
                 </div>
+                {assessment.status === "completed" && (
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary-600">
+                      {parseFloat(assessment.percentage_score).toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-neutral-500">Score</div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -978,8 +993,8 @@ const EnterpriseProfile: React.FC = () => {
         return renderContactInfo();
       case "legal":
         return renderLegalInfo();
-      case "management":
-        return renderManagement();
+      // case "management":
+      //   return renderManagement();
       case "documents":
         return renderDocuments();
       case "assessments":
@@ -1041,6 +1056,163 @@ const EnterpriseProfile: React.FC = () => {
 
         <div className="p-6">{renderTabContent()}</div>
       </div>
+
+      {/* Document Upload Modal */}
+      {showDocumentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-neutral-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-neutral-900">
+                  Upload Document
+                </h3>
+                <button
+                  onClick={() => setShowDocumentModal(false)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleDocumentUpload} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Document Type *
+                </label>
+                <select
+                  value={documentForm.document_type}
+                  onChange={(e) =>
+                    setDocumentForm({
+                      ...documentForm,
+                      document_type: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                >
+                  <option value="registration_certificate">
+                    Registration Certificate
+                  </option>
+                  <option value="tax_clearance">Tax Clearance</option>
+                  <option value="business_license">Business License</option>
+                  <option value="financial_statement">
+                    Financial Statement
+                  </option>
+                  <option value="bank_statement">Bank Statement</option>
+                  <option value="audit_report">Audit Report</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Document Title *
+                </label>
+                <input
+                  type="text"
+                  value={documentForm.title}
+                  onChange={(e) =>
+                    setDocumentForm({ ...documentForm, title: e.target.value })
+                  }
+                  placeholder="e.g., Business Registration Certificate 2024"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Fiscal Year *
+                </label>
+                <input
+                  type="number"
+                  value={documentForm.fiscal_year}
+                  onChange={(e) =>
+                    setDocumentForm({
+                      ...documentForm,
+                      fiscal_year: e.target.value,
+                    })
+                  }
+                  min="2000"
+                  max={new Date().getFullYear() + 1}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={documentForm.description}
+                  onChange={(e) =>
+                    setDocumentForm({
+                      ...documentForm,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Optional: Add notes about this document"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  File *
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setDocumentForm({
+                      ...documentForm,
+                      file: e.target.files?.[0] || null,
+                    })
+                  }
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Accepted: PDF, Word, Excel, Images (Max 10MB)
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDocumentModal(false)}
+                  className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition"
+                  disabled={uploadDocumentMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary"
+                  disabled={
+                    uploadDocumentMutation.isPending || !documentForm.file
+                  }
+                >
+                  {uploadDocumentMutation.isPending ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

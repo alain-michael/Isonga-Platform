@@ -62,17 +62,21 @@ class InvestorCriteriaSerializer(serializers.ModelSerializer):
 
 class EnterpriseMatchSerializer(serializers.ModelSerializer):
     """Simplified enterprise serializer for matches"""
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    
     class Meta:
         model = Enterprise
         fields = ['id', 'business_name', 'sector', 'enterprise_size', 'district', 
-                  'number_of_employees', 'annual_revenue', 'verification_status']
+                  'number_of_employees', 'annual_revenue', 'verification_status', 'user_id']
 
 
 class InvestorMatchSerializer(serializers.ModelSerializer):
     """Simplified investor serializer for matches"""
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    
     class Meta:
         model = Investor
-        fields = ['id', 'organization_name', 'investor_type', 'contact_email']
+        fields = ['id', 'organization_name', 'investor_type', 'contact_email', 'user_id']
 
 
 class MatchSerializer(serializers.ModelSerializer):
@@ -92,7 +96,7 @@ class MatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'payment_received', 'payment_received_at']
 
 
 class MatchInteractionSerializer(serializers.ModelSerializer):
@@ -121,6 +125,7 @@ class MatchedCampaignSerializer(serializers.ModelSerializer):
     enterprise_location = serializers.CharField(source='enterprise.city')
     match_score = serializers.IntegerField(read_only=True)
     interested_at = serializers.DateTimeField(read_only=True, required=False)
+    documents = serializers.SerializerMethodField()
     
     class Meta:
         model = Campaign
@@ -128,5 +133,11 @@ class MatchedCampaignSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'target_amount', 'amount_raised',
             'min_investment', 'max_investment', 'campaign_type', 'status',
             'start_date', 'end_date', 'enterprise_name',
-            'enterprise_sector', 'enterprise_location', 'match_score', 'interested_at'
+            'enterprise_sector', 'enterprise_location', 'match_score', 'interested_at',
+            'documents'
         ]
+    
+    def get_documents(self, obj):
+        from campaigns.serializers import CampaignDocumentSerializer
+        documents = obj.documents.filter(is_public=True)
+        return CampaignDocumentSerializer(documents, many=True, context=self.context).data

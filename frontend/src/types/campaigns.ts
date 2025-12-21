@@ -1,16 +1,23 @@
 // Campaign Types
+export interface CampaignListResponse {
+  results: Campaign[];
+  count: number;
+  next?: string | null;
+  previous?: string | null;
+}
 
 export interface Campaign {
   id: string;
   enterprise: number;
   enterprise_name?: string;
   enterprise_sector?: string;
+  enterprise_user_id?: number;
   title: string;
   description: string;
   campaign_type: 'equity' | 'debt' | 'grant' | 'hybrid';
   target_amount: number;
   min_investment: number;
-  max_investment?: number;
+  max_investment?: number | null;
   amount_raised: number;
   investor_count: number;
   start_date?: string;
@@ -27,6 +34,13 @@ export interface Campaign {
   progress_percentage?: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface CampaignDocumentListResponse {
+  results: CampaignDocument[];
+  count: number;
+  next?: string | null;
+  previous?: string | null;
 }
 
 export interface CampaignDocument {
@@ -61,7 +75,7 @@ export interface CampaignCreateData {
   campaign_type: 'equity' | 'debt' | 'grant' | 'hybrid';
   target_amount: number;
   min_investment: number;
-  max_investment?: number;
+  max_investment?: number | null;
   start_date?: string;
   end_date?: string;
   use_of_funds?: Record<string, any>;

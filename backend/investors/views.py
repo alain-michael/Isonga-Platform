@@ -130,11 +130,11 @@ class MatchViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.user_type in ['admin', 'superadmin']:
-            return Match.objects.all()
+            return Match.objects.all().select_related('enterprise__user', 'investor__user', 'campaign')
         if hasattr(user, 'investor_profile'):
-            return Match.objects.filter(investor=user.investor_profile)
+            return Match.objects.filter(investor=user.investor_profile).select_related('enterprise__user', 'investor__user', 'campaign')
         if user.user_type == 'enterprise' and hasattr(user, 'enterprise'):
-            return Match.objects.filter(enterprise=user.enterprise)
+            return Match.objects.filter(enterprise=user.enterprise).select_related('enterprise__user', 'investor__user', 'campaign')
         return Match.objects.none()
     
     @action(detail=False, methods=['get'])
@@ -272,6 +272,87 @@ class MatchViewSet(viewsets.ModelViewSet):
         
         return Response({'message': 'Match rejected'})
 
+    @action(detail=True, methods=['post'])
+    def commit(self, request, pk=None):
+        """Investor commits to an investment amount"""
+        match = self.get_object()
+        
+        if not hasattr(request.user, 'investor_profile') or match.investor != request.user.investor_profile:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        committed_amount = request.data.get('committed_amount')
+        if not committed_amount:
+            return Response({'error': 'committed_amount is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from django.utils import timezone
+        match.status = 'engaged'
+        match.committed_amount = committed_amount
+        match.committed_at = timezone.now()
+        match.save()
+        
+        # Create interaction
+        MatchInteraction.objects.create(
+            match=match,
+            initiated_by=request.user,
+            interaction_type='status_change',
+            content=f'Investor committed ${committed_amount}'
+        )
+        
+        return Response({'message': 'Amount committed successfully'})
+    
+    @action(detail=True, methods=['post'])
+    def withdraw(self, request, pk=None):
+        """Investor withdraws from a match"""
+        match = self.get_object()
+        
+        if not hasattr(request.user, 'investor_profile') or match.investor != request.user.investor_profile:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        match.status = 'withdrawn'
+        match.save()
+        
+        # Create interaction
+        MatchInteraction.objects.create(
+            match=match,
+            initiated_by=request.user,
+            interaction_type='status_change',
+            content='Investor withdrew from match'
+        )
+        
+        return Response({'message': 'Match withdrawn'})
+    
+    @action(detail=True, methods=['post'])
+    def confirm_payment(self, request, pk=None):
+        """Enterprise confirms payment received from investor"""
+        match = self.get_object()
+        
+        if not hasattr(request.user, 'enterprise') or match.enterprise != request.user.enterprise:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if not match.committed_amount:
+            return Response({'error': 'No commitment made yet'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from django.utils import timezone
+        match.payment_received = True
+        match.payment_received_at = timezone.now()
+        match.status = 'completed'
+        match.save()
+        
+        # Update campaign amount_raised
+        campaign = match.campaign
+        campaign.amount_raised += match.committed_amount
+        campaign.save()
+        
+        # Create interaction
+        MatchInteraction.objects.create(
+            match=match,
+            initiated_by=request.user,
+            interaction_type='status_change',
+            content=f'Payment of ${match.committed_amount} confirmed received'
+        )
+        
+        return Response({'message': 'Payment confirmed successfully'})
+
 
 class MatchInteractionViewSet(viewsets.ModelViewSet):
     queryset = MatchInteraction.objects.all()
@@ -309,9 +390,14 @@ class InvestorMatchesView(generics.ListAPIView):
         
         queryset = Campaign.objects.filter(status='active')
 
-        # Exclude campaigns where investor already has a match (approved or rejected)
-        existing_matches = Match.objects.filter(investor=investor).values_list('enterprise_id', flat=True)
-        queryset = queryset.exclude(enterprise_id__in=existing_matches)
+        # Exclude campaigns where investor already has a match
+        existing_match_campaigns = Match.objects.filter(
+            investor=investor
+        ).values_list('campaign_id', flat=True)
+        if self.request.query_params.get('exclude_existing', 'false').lower() == 'false':
+            pass
+        else:
+            queryset = queryset.exclude(id__in=existing_match_campaigns)
 
         if not criteria:
             return queryset[:50]
@@ -365,34 +451,22 @@ class InterestedCampaignsView(generics.ListAPIView):
 
         investor = user.investor_profile
         
-        # Get enterprises where investor has approved matches
-        approved_enterprise_ids = Match.objects.filter(
-            investor=investor,
-            status='approved'
-        ).values_list('enterprise_id', flat=True)
+        # Get campaigns where investor has matches (any status except rejected)
+        matches = Match.objects.filter(
+            investor=investor
+        ).exclude(status='rejected').select_related('campaign', 'campaign__enterprise')
         
-        # Get campaigns from those enterprises
-        campaigns = Campaign.objects.filter(
-            enterprise_id__in=approved_enterprise_ids
-        ).select_related('enterprise')
-        
-        # Add interested_at from match created_at
         result = []
-        for campaign in campaigns:
-            match = Match.objects.filter(
-                investor=investor,
-                enterprise=campaign.enterprise,
-                status='approved'
-            ).first()
-            
-            if match:
-                campaign.interested_at = match.created_at
-                campaign.match_score = int(match.match_score or 0)
-                result.append(campaign)
+        for match in matches:
+            campaign = match.campaign
+            campaign.interested_at = match.created_at
+            campaign.match_score = int(match.match_score or 0)
+            campaign.match_status = match.status
+            campaign.committed_amount = match.committed_amount
+            result.append(campaign)
         
         return result
-
-
+    
 class InteractWithOpportunityView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -413,8 +487,11 @@ class InteractWithOpportunityView(APIView):
         # Check if match exists
         match, created = Match.objects.get_or_create(
             investor=investor,
-            enterprise=enterprise,
-            defaults={'status': 'pending'}
+            campaign=campaign,
+            defaults={
+                'enterprise': enterprise,
+                'status': 'pending'
+            }
         )
         
         if action == 'approve':

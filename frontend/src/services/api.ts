@@ -73,8 +73,14 @@ export const enterpriseAPI = {
   update: (id: string, data: any) =>
     api.put(`/enterprises/api/enterprises/${id}/`, data),
   
-  vet: (id: string) =>
-    api.post(`/enterprises/api/enterprises/${id}/vet/`),
+  approve: (id: string, notes?: string) =>
+    api.post(`/enterprises/api/enterprises/${id}/approve/`, { notes }),
+  
+  reject: (id: string, notes?: string) =>
+    api.post(`/enterprises/api/enterprises/${id}/reject/`, { notes }),
+  
+  requestDocuments: (id: string, documents_requested: string, notes?: string) =>
+    api.post(`/enterprises/api/enterprises/${id}/request_documents/`, { documents_requested, notes }),
   
   uploadDocument: (id: string, data: FormData) =>
     api.post(`/enterprises/api/enterprises/${id}/upload_document/`, data, {
@@ -93,6 +99,9 @@ export const enterpriseAPI = {
 
   rejectMatch: (id: string) =>
     api.post(`/investors/matches/${id}/reject/`),
+  
+  confirmPayment: (id: string) =>
+    api.post(`/investors/matches/${id}/confirm_payment/`),
 };
 
 // Assessment API

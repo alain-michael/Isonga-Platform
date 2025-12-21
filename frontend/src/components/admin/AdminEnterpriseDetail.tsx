@@ -48,9 +48,10 @@ const AdminEnterpriseDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<
-    "verified" | "rejected" | "request_documents" | null
+    "approved" | "rejected" | "request_documents" | null
   >(null);
   const [statusNotes, setStatusNotes] = useState("");
+  const [documentsRequested, setDocumentsRequested] = useState("");
   const [enterprise, setEnterprise] = useState<Enterprise | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,13 +82,26 @@ const AdminEnterpriseDetail: React.FC = () => {
     if (!selectedStatus || !enterprise) return;
 
     try {
-      if (selectedStatus === "verified") {
-        await enterpriseAPI.vet(enterprise.id.toString());
-        await fetchEnterprise(); // Refresh data
+      if (selectedStatus === "approved") {
+        await enterpriseAPI.approve(enterprise.id.toString(), statusNotes);
+      } else if (selectedStatus === "rejected") {
+        await enterpriseAPI.reject(enterprise.id.toString(), statusNotes);
+      } else if (selectedStatus === "request_documents") {
+        if (!documentsRequested) {
+          alert("Please specify which documents are requested");
+          return;
+        }
+        await enterpriseAPI.requestDocuments(
+          enterprise.id.toString(),
+          documentsRequested,
+          statusNotes
+        );
       }
+      await fetchEnterprise(); // Refresh data
       setShowStatusModal(false);
       setSelectedStatus(null);
       setStatusNotes("");
+      setDocumentsRequested("");
     } catch (err) {
       console.error("Error updating enterprise status:", err);
     }
@@ -471,11 +485,27 @@ const AdminEnterpriseDetail: React.FC = () => {
                   className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 py-2 px-3"
                 >
                   <option value="">Select status...</option>
-                  <option value="verified">Verified</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="approved">Approve</option>
+                  <option value="rejected">Reject</option>
                   <option value="request_documents">Request Documents</option>
                 </select>
               </div>
+
+              {selectedStatus === "request_documents" && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Documents Requested *
+                  </label>
+                  <textarea
+                    value={documentsRequested}
+                    onChange={(e) => setDocumentsRequested(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
+                    placeholder="List the specific documents needed..."
+                    required
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
@@ -504,6 +534,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                   setShowStatusModal(false);
                   setSelectedStatus(null);
                   setStatusNotes("");
+                  setDocumentsRequested("");
                 }}
                 className="flex-1 btn-secondary"
               >

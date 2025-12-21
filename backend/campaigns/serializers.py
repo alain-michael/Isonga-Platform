@@ -1,6 +1,15 @@
 from rest_framework import serializers
-from .models import Campaign, CampaignDocument, CampaignInterest
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage
 from enterprises.models import Enterprise
+
+
+class CampaignUpdateSerializer(serializers.ModelSerializer):
+    posted_by_name = serializers.CharField(source='posted_by.get_full_name', read_only=True)
+    
+    class Meta:
+        model = CampaignUpdate
+        fields = '__all__'
+        read_only_fields = ['posted_at', 'posted_by']
 
 
 class CampaignDocumentSerializer(serializers.ModelSerializer):
@@ -9,7 +18,7 @@ class CampaignDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CampaignDocument
         fields = '__all__'
-        read_only_fields = ['uploaded_at']
+        read_only_fields = ['uploaded_at', 'campaign']
     
     def get_file_url(self, obj):
         if obj.file:
@@ -55,8 +64,10 @@ class CampaignDetailSerializer(serializers.ModelSerializer):
     """Detailed campaign serializer with nested documents and interests"""
     enterprise_name = serializers.CharField(source='enterprise.business_name', read_only=True)
     enterprise_sector = serializers.CharField(source='enterprise.sector', read_only=True)
+    enterprise_user_id = serializers.IntegerField(source='enterprise.user.id', read_only=True)
     documents = CampaignDocumentSerializer(many=True, read_only=True)
     interests = CampaignInterestSerializer(many=True, read_only=True)
+    updates = CampaignUpdateSerializer(many=True, read_only=True)
     progress_percentage = serializers.SerializerMethodField()
     
     class Meta:
@@ -85,3 +96,24 @@ class CampaignCreateSerializer(serializers.ModelSerializer):
         
         validated_data['enterprise'] = user.enterprise
         return super().create(validated_data)
+
+
+class CampaignMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.SerializerMethodField()
+    sender_type = serializers.SerializerMethodField()
+    campaign_title = serializers.CharField(source='campaign.title', read_only=True)
+    
+    class Meta:
+        model = CampaignMessage
+        fields = '__all__'
+        read_only_fields = ['created_at', 'sender']
+    
+    def get_sender_name(self, obj):
+        if hasattr(obj.sender, 'enterprise'):
+            return obj.sender.enterprise.business_name
+        elif hasattr(obj.sender, 'investor_profile'):
+            return obj.sender.investor_profile.organization_name
+        return obj.sender.get_full_name()
+    
+    def get_sender_type(self, obj):
+        return obj.sender.user_type

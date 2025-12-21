@@ -136,6 +136,7 @@ export const useCreateCampaignInterest = () => {
   });
 };
 
+/*
 export const useApproveInterest = () => {
   const queryClient = useQueryClient();
   
@@ -146,3 +147,4 @@ export const useApproveInterest = () => {
     },
   });
 };
+*/

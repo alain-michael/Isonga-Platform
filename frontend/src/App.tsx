@@ -30,6 +30,8 @@ import AdminQuestionnaires from "./components/admin/AdminQuestionnaires";
 import AdminInvestors from "./components/admin/AdminInvestors";
 import InvestorDetailView from "./components/admin/InvestorDetailView";
 import AdminUsers from "./components/admin/AdminUsers";
+import AdminCampaigns from "./components/admin/AdminCampaigns";
+import AdminCampaignDetail from "./components/admin/AdminCampaignDetail";
 import NotFound from "./components/common/NotFound";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import {
@@ -37,11 +39,13 @@ import {
   CreateCampaign,
   CampaignDetail,
 } from "./components/campaigns";
+import EditCampaign from "./components/campaigns/EditCampaign";
 import InvestorDashboard from "./components/investor/InvestorDashboard";
 import InvestorMatches from "./components/investor/InvestorMatches";
 import InvestorMatchDetail from "./components/investor/InvestorMatchDetail";
 import InvestorProfile from "./components/investor/InvestorProfile";
 import InvestorOpportunities from "./components/investor/InvestorOpportunities";
+import Messages from "./components/messages/Messages";
 import "./styles.css";
 import AdminAssessments from "./components/admin/AdminAssessments";
 
@@ -135,6 +139,7 @@ const AppContent: React.FC = () => {
         <Route path="/campaigns" element={<CampaignList />} />
         <Route path="/campaigns/create" element={<CreateCampaign />} />
         <Route path="/campaigns/:id" element={<CampaignDetail />} />
+        <Route path="/campaigns/:id/edit" element={<EditCampaign />} />
 
         {/* Investor Routes */}
         <Route path="/investor/dashboard" element={<InvestorDashboard />} />
@@ -145,6 +150,9 @@ const AppContent: React.FC = () => {
           element={<InvestorOpportunities />}
         />
         <Route path="/investor/profile" element={<InvestorProfile />} />
+
+        {/* Messages Route */}
+        <Route path="/messages" element={<Messages />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
@@ -163,6 +171,8 @@ const AppContent: React.FC = () => {
           path="/admin/enterprises/:id"
           element={<AdminEnterpriseDetail />}
         />
+        <Route path="/admin/campaigns" element={<AdminCampaigns />} />
+        <Route path="/admin/campaigns/:id" element={<AdminCampaignDetail />} />
       </Route>
 
       {/* Welcome page - landing */}

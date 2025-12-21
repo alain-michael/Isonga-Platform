@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Campaign, CampaignDocument, CampaignInterest
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage
 
 
 @admin.register(Campaign)
@@ -33,3 +33,19 @@ class CampaignInterestAdmin(admin.ModelAdmin):
     list_display = ['campaign', 'investor', 'interest_amount', 'status', 'created_at']
     list_filter = ['status', 'created_at']
     search_fields = ['campaign__title', 'investor__organization_name']
+
+
+@admin.register(CampaignUpdate)
+class CampaignUpdateAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'title', 'posted_by', 'is_milestone', 'posted_at']
+    list_filter = ['is_milestone', 'posted_at']
+    search_fields = ['title', 'content', 'campaign__title']
+    readonly_fields = ['posted_at']
+
+
+@admin.register(CampaignMessage)
+class CampaignMessageAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'sender', 'receiver', 'is_read', 'created_at']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['content', 'campaign__title', 'sender__email', 'receiver__email']
+    readonly_fields = ['created_at']

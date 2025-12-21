@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { investorAPI } from "../../services/investor";
+import { campaignDocumentsAPI } from "../../services/campaignsService";
 import {
   Building2,
   MapPin,
@@ -11,42 +12,95 @@ import {
   ArrowLeft,
   Download,
   ExternalLink,
+  MessageSquare,
+  DollarSign,
+  X,
 } from "lucide-react";
 
 const InvestorMatchDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [showPledgeModal, setShowPledgeModal] = useState(false);
+  const [pledgeAmount, setPledgeAmount] = useState("");
+  const [userMatch, setUserMatch] = useState<any>(null);
 
-  // Fetch match details (using getMatches for now and filtering, ideally should have getMatchById)
-  // Since we don't have a direct getMatchById endpoint yet that returns the full campaign details + match info easily without creating a match record first,
-  // we might need to rely on the list or fetch campaign details.
-  // However, the requirement implies we are viewing a "Match" or a "Campaign" that is a match.
-  // Let's assume we are viewing a Campaign that is a potential match.
-
-  // For now, let's fetch the list and find the item. In a real app, we'd have a specific endpoint.
+  // Fetch match details
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["investorMatches"],
-    queryFn: investorAPI.getMatches,
+    queryFn: investorAPI.getMatchesNoExcluding,
   });
-
+  console.log("Matches fetched:", matches, id);
   const match = matches.find((m) => m.id === id);
 
-  // We also need to handle "Approve" (Express Interest) / "Reject" actions.
-  // These actions likely create a Match record in the backend if it doesn't exist, or update it.
-  // Currently our backend `InvestorMatchesView` returns Campaigns.
-  // We need an endpoint to "interact" with a campaign/match.
-  // Let's assume we add `investorAPI.interactWithMatch`
+  // Fetch user's match for this campaign
+  const { data: matchResponse } = useQuery({
+    queryKey: ["userMatch", id],
+    queryFn: () => investorAPI.getUserMatch(id!),
+    enabled: !!id,
+  });
 
-  const interactMutation = useMutation({
-    mutationFn: ({ action }: { action: "approve" | "reject" }) => {
-      return investorAPI.interactWithMatch(id!, action);
+  // Set user match if exists
+  React.useEffect(() => {
+    if (matchResponse) {
+      console.log("User match response:", matchResponse);
+      setUserMatch(matchResponse);
+    }
+  }, [matchResponse]);
+
+  // Fetch campaign documents
+  const { data: documentsResponse } = useQuery({
+    queryKey: ["campaignDocuments", id],
+    queryFn: () => campaignDocumentsAPI.getAll(id!),
+    enabled: !!id,
+  });
+
+  const documents = documentsResponse?.data?.results || [];
+
+  // Express interest mutation (creates/approves match)
+  const expressInterestMutation = useMutation({
+    mutationFn: async () => {
+      return await investorAPI.interactWithMatch(id!, "approve");
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
+      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["investorStats"] });
+    },
+  });
+
+  // Withdraw interest mutation
+  const withdrawInterestMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      return await investorAPI.withdrawMatch(matchId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
+      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["investorStats"] });
+    },
+  });
+
+  // Pledge mutation
+  const pledgeMutation = useMutation({
+    mutationFn: async (data: { matchId: string; amount: number }) => {
+      return await investorAPI.commitToMatch(data.matchId, data.amount);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
+      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      setShowPledgeModal(false);
+      setPledgeAmount("");
+    },
+  });
+
+  // Reject/Pass mutation
+  const rejectMutation = useMutation({
+    mutationFn: () => investorAPI.interactWithMatch(id!, "reject"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
       queryClient.invalidateQueries({ queryKey: ["investorStats"] });
       navigate("/investor/matches");
-      alert("Action submitted successfully!");
     },
   });
 
@@ -156,41 +210,45 @@ const InvestorMatchDetail: React.FC = () => {
             </p>
           </div>
 
-          {/* Documents (Placeholder) */}
+          {/* Documents */}
           <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Documents
             </h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-700">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 text-primary-500 mr-3" />
-                  <div>
-                    <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                      Pitch Deck
-                    </p>
-                    <p className="text-xs text-neutral-500">PDF • 2.4 MB</p>
+            {documents && documents.length > 0 ? (
+              <div className="space-y-3">
+                {documents.map((doc: any) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-700"
+                  >
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-primary-500 mr-3" />
+                      <div>
+                        <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                          {doc.title}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                          {doc.document_type.replace("_", " ").toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={doc.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 text-neutral-400 hover:text-primary-600 transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                    </a>
                   </div>
-                </div>
-                <button className="p-2 text-neutral-400 hover:text-primary-600 transition-colors">
-                  <Download className="h-5 w-5" />
-                </button>
+                ))}
               </div>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-700">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 text-primary-500 mr-3" />
-                  <div>
-                    <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                      Financial Projections
-                    </p>
-                    <p className="text-xs text-neutral-500">Excel • 1.1 MB</p>
-                  </div>
-                </div>
-                <button className="p-2 text-neutral-400 hover:text-primary-600 transition-colors">
-                  <Download className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
+            ) : (
+              <p className="text-neutral-500 text-sm">
+                No public documents available yet.
+              </p>
+            )}
           </div>
         </div>
 
@@ -198,33 +256,113 @@ const InvestorMatchDetail: React.FC = () => {
         <div className="space-y-6">
           <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 sticky top-24">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-              Interested?
+              {userMatch ? "Your Status" : "Interested?"}
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-              Expressing interest will notify the enterprise and allow them to
-              share more sensitive details with you.
-            </p>
 
-            <div className="space-y-3">
+            {!userMatch && (
+              <>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+                  Expressing interest will notify the enterprise and allow them
+                  to share more sensitive details with you.
+                </p>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => expressInterestMutation.mutate()}
+                    disabled={expressInterestMutation.isPending}
+                    className="w-full btn-primary flex items-center justify-center gap-2 py-3"
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                    {expressInterestMutation.isPending
+                      ? "Processing..."
+                      : "Express Interest"}
+                  </button>
+                  <button
+                    onClick={() => rejectMutation.mutate()}
+                    disabled={rejectMutation.isPending}
+                    className="w-full btn-secondary flex items-center justify-center gap-2 py-3 text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800"
+                  >
+                    <XCircle className="h-5 w-5" />
+                    Pass
+                  </button>
+                </div>
+              </>
+            )}
+
+            {userMatch &&
+              userMatch.status === "approved" &&
+              !userMatch.committed_amount && (
+                <>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+                    You've expressed interest. You can now pledge an amount or
+                    withdraw.
+                  </p>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setShowPledgeModal(true)}
+                      className="w-full btn-primary flex items-center justify-center gap-2 py-3"
+                    >
+                      <DollarSign className="h-5 w-5" />
+                      Pledge Amount
+                    </button>
+                    <button
+                      onClick={() =>
+                        withdrawInterestMutation.mutate(userMatch.id)
+                      }
+                      disabled={withdrawInterestMutation.isPending}
+                      className="w-full btn-secondary flex items-center justify-center gap-2 py-3"
+                    >
+                      <XCircle className="h-5 w-5" />
+                      {withdrawInterestMutation.isPending
+                        ? "Withdrawing..."
+                        : "Withdraw Interest"}
+                    </button>
+                  </div>
+                </>
+              )}
+
+            {userMatch && userMatch.committed_amount && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-300">
+                      Pledge Committed
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      ${userMatch.committed_amount?.toLocaleString() || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {userMatch && (
               <button
-                onClick={() => interactMutation.mutate({ action: "approve" })}
-                disabled={interactMutation.isPending}
-                className="w-full btn-primary flex items-center justify-center gap-2 py-3"
+                onClick={() => {
+                  const enterpriseUserId = userMatch.enterprise?.user_id;
+                  console.log("Message button clicked", {
+                    userMatch,
+                    enterpriseUserId,
+                    id,
+                    match,
+                  });
+
+                  navigate("/messages", {
+                    state: {
+                      campaignId: id,
+                      campaignTitle: match.title,
+                      otherPartyId: enterpriseUserId || 0,
+                      otherPartyType: "enterprise",
+                    },
+                  });
+                }}
+                className="w-full mt-3 btn-secondary flex items-center justify-center gap-2 py-3"
               >
-                <CheckCircle className="h-5 w-5" />
-                {interactMutation.isPending
-                  ? "Processing..."
-                  : "Express Interest"}
+                <MessageSquare className="h-5 w-5" />
+                Message Enterprise
               </button>
-              <button
-                onClick={() => interactMutation.mutate({ action: "reject" })}
-                disabled={interactMutation.isPending}
-                className="w-full btn-secondary flex items-center justify-center gap-2 py-3 text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800"
-              >
-                <XCircle className="h-5 w-5" />
-                Pass
-              </button>
-            </div>
+            )}
 
             <div className="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700">
               <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
@@ -257,6 +395,92 @@ const InvestorMatchDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Pledge Amount Modal */}
+      {showPledgeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                Pledge Amount
+              </h3>
+              <button
+                onClick={() => setShowPledgeModal(false)}
+                className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (userMatch && pledgeAmount) {
+                  pledgeMutation.mutate({
+                    matchId: userMatch.id,
+                    amount: parseFloat(pledgeAmount),
+                  });
+                }
+              }}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Amount to Pledge (RWF)
+                  </label>
+                  <input
+                    type="number"
+                    min={match.min_investment}
+                    step="1000"
+                    value={pledgeAmount}
+                    onChange={(e) => setPledgeAmount(e.target.value)}
+                    placeholder={`Min: $${match.min_investment.toLocaleString()}`}
+                    className="w-full px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:outline-none focus:border-primary-500 dark:bg-neutral-700 dark:text-neutral-100"
+                    required
+                  />
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    Minimum investment: ${match.min_investment.toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-4">
+                  <p className="text-sm text-primary-800 dark:text-primary-300">
+                    <strong>Note:</strong> This is a commitment to invest. The
+                    enterprise will be notified of your pledge amount.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPledgeModal(false)}
+                  className="flex-1 px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl font-medium hover:bg-neutral-50 dark:hover:bg-neutral-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={pledgeMutation.isPending}
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  {pledgeMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="h-4 w-4" />
+                      Commit Pledge
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

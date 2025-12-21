@@ -1,12 +1,12 @@
 import api from './api';
-import type { Campaign, CampaignDocument, CampaignInterest } from '../types/campaigns';
+import type { Campaign, CampaignDocument, CampaignDocumentListResponse, CampaignInterest, CampaignListResponse } from '../types/campaigns';
 
 const BASE_URL = '/campaigns/api';
 
 // Campaign APIs
 export const campaignsAPI = {
   // Get all campaigns
-  getAll: () => api.get<Campaign[]>(`${BASE_URL}/campaigns/`),
+  getAll: () => api.get<CampaignListResponse>(`${BASE_URL}/campaigns/`),
   
   // Get my campaigns (enterprise)
   getMyCampaigns: () => api.get<Campaign[]>(`${BASE_URL}/campaigns/my_campaigns/`),
@@ -47,17 +47,34 @@ export const campaignsAPI = {
   close: (id: string, reason?: string) => api.post(`${BASE_URL}/campaigns/${id}/close/`, { reason }),
 };
 
+// Default export for backward compatibility
+export const campaignAPI = campaignsAPI;
+
 // Campaign Document APIs
 export const campaignDocumentsAPI = {
   getAll: (campaignId: string) => 
-    api.get<CampaignDocument[]>(`${BASE_URL}/documents/?campaign_id=${campaignId}`),
+    api.get<CampaignDocumentListResponse>(`${BASE_URL}/documents/?campaign_id=${campaignId}`),
   
-  upload: (_campaignId: string, formData: FormData) => 
+  upload: (formData: FormData) => 
     api.post<CampaignDocument>(`${BASE_URL}/documents/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
   
   delete: (id: string) => api.delete(`${BASE_URL}/documents/${id}/`),
+};
+
+// Campaign Update APIs
+export const campaignUpdatesAPI = {
+  getAll: (campaignId: string) =>
+    api.get(`${BASE_URL}/updates/?campaign_id=${campaignId}`),
+  
+  create: (data: { campaign: string; title: string; content: string; is_milestone?: boolean }) =>
+    api.post(`${BASE_URL}/updates/`, data),
+  
+  update: (id: string, data: { title?: string; content?: string; is_milestone?: boolean }) =>
+    api.patch(`${BASE_URL}/updates/${id}/`, data),
+  
+  delete: (id: string) => api.delete(`${BASE_URL}/updates/${id}/`),
 };
 
 // Campaign Interest APIs
@@ -72,13 +89,32 @@ export const campaignInterestsAPI = {
   create: (data: Partial<CampaignInterest>) => 
     api.post<CampaignInterest>(`${BASE_URL}/interests/`, data),
   
-  approve: (id: string) => api.post(`${BASE_URL}/interests/${id}/approve/`),
+  commit: (id: string, committed_amount: number) => 
+    api.post(`${BASE_URL}/interests/${id}/commit/`, { committed_amount }),
   
-  reject: (id: string) => api.post(`${BASE_URL}/interests/${id}/reject/`),
+  withdraw: (id: string) => 
+    api.post(`${BASE_URL}/interests/${id}/withdraw/`),
+};
+
+// Campaign Message APIs
+export const campaignMessagesAPI = {
+  getAll: (params?: { campaign_id?: string; interest_id?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.campaign_id) queryParams.append('campaign_id', params.campaign_id);
+    if (params?.interest_id) queryParams.append('interest_id', params.interest_id);
+    return api.get(`${BASE_URL}/messages/?${queryParams.toString()}`);
+  },
+  
+  create: (data: { campaign: string; receiver: number; content: string; interest?: string }) =>
+    api.post(`${BASE_URL}/messages/`, data),
+  
+  markRead: (id: string) => 
+    api.post(`${BASE_URL}/messages/${id}/mark_read/`),
 };
 
 export default {
   campaigns: campaignsAPI,
   documents: campaignDocumentsAPI,
+  updates: campaignUpdatesAPI,
   interests: campaignInterestsAPI,
 };

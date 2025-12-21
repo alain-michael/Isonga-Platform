@@ -12,7 +12,7 @@ from .serializers import (
 )
 
 class EnterpriseViewSet(viewsets.ModelViewSet):
-    queryset = Enterprise.objects.select_related('user', 'vetted_by').prefetch_related('documents')
+    queryset = Enterprise.objects.select_related('user', 'vetted_by').prefetch_related('documents', 'assessments', 'assessments__questionnaire')
     serializer_class = EnterpriseSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -26,9 +26,9 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.user_type == 'enterprise':
-            return Enterprise.objects.filter(user=user).select_related('user', 'vetted_by').prefetch_related('documents')
+            return Enterprise.objects.filter(user=user).select_related('user', 'vetted_by').prefetch_related('documents', 'assessments', 'assessments__questionnaire')
         elif user.user_type in ['admin', 'superadmin']:
-            queryset = Enterprise.objects.all().select_related('user', 'vetted_by').prefetch_related('documents')
+            queryset = Enterprise.objects.all().select_related('user', 'vetted_by').prefetch_related('documents', 'assessments', 'assessments__questionnaire')
             # Add search by TIN number
             tin = self.request.query_params.get('tin', None)
             if tin:
@@ -47,7 +47,7 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
                           status=status.HTTP_403_FORBIDDEN)
         
         try:
-            enterprise = Enterprise.objects.select_related('user', 'vetted_by').prefetch_related('documents').get(user=request.user)
+            enterprise = Enterprise.objects.select_related('user', 'vetted_by').prefetch_related('documents', 'assessments', 'assessments__questionnaire').get(user=request.user)
             serializer = EnterpriseDetailSerializer(enterprise)
             return Response(serializer.data)
         except Enterprise.DoesNotExist:
@@ -127,7 +127,12 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         if request.user.user_type == 'enterprise' and enterprise.user != request.user:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
-        serializer = EnterpriseDocumentSerializer(data=request.data)
+        # Create a mutable copy of the request data
+        data = request.data.copy()
+        # Remove enterprise field if it exists (we'll set it from the URL parameter)
+        data.pop('enterprise', None)
+        
+        serializer = EnterpriseDocumentSerializer(data=data)
         if serializer.is_valid():
             serializer.save(enterprise=enterprise)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

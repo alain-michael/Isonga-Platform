@@ -15,6 +15,7 @@ import {
   ChevronDown,
   TrendingUp,
   Heart,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import ThemeToggle from "../ui/ThemeToggle";
@@ -78,6 +79,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       visible: user?.user_type === "investor",
     },
     {
+      name: "Messages",
+      path: "/messages",
+      icon: MessageSquare,
+      visible:
+        user?.user_type === "investor" || user?.user_type === "enterprise",
+    },
+    {
       name: t("navigation.profile"),
       path: "/profile",
       icon: User,
@@ -129,6 +137,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: t("navigation.enterprises"),
       path: "/admin/enterprises",
       icon: Building2,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    {
+      name: "Campaigns",
+      path: "/admin/campaigns",
+      icon: TrendingUp,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },
   ];
