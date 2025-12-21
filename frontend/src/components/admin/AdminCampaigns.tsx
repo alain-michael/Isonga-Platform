@@ -87,7 +87,7 @@ const AdminCampaigns: React.FC = () => {
     );
   };
 
-  const filteredCampaigns = campaigns?.filter((campaign: any) => {
+  const filteredCampaigns = campaigns?.filter((campaign: Campaign) => {
     const matchesSearch =
       campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       campaign.enterprise_name
