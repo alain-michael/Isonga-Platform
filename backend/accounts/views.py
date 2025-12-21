@@ -54,7 +54,17 @@ class UserViewSet(viewsets.ModelViewSet):
         password = request.data.get('password')
         
         if username and password:
+            # Try to authenticate with username first
             user = authenticate(username=username, password=password)
+            
+            # If authentication fails, try using the input as email
+            if not user:
+                try:
+                    user_obj = User.objects.get(email=username)
+                    user = authenticate(username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    pass
+            
             if user:
                 refresh = RefreshToken.for_user(user)
                 return Response({
