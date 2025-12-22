@@ -222,7 +222,7 @@ const BusinessProfileStep: React.FC<BusinessProfileStepProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8">
+    <div className="glass-effect rounded-lg shadow-sm border border-neutral-200 p-8">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-neutral-900 mb-2">
           Create Your Business Profile

@@ -113,7 +113,7 @@ const StartAssessment: React.FC = () => {
       {/* Questionnaires List */}
       <div className="space-y-4">
         {questionnaires.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700">
+          <div className="text-center py-12 glass-effect dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700">
             <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
               No Assessments Available
@@ -126,7 +126,7 @@ const StartAssessment: React.FC = () => {
           questionnaires.map((questionnaire) => (
             <div
               key={questionnaire.id}
-              className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-6 hover:border-primary-300 hover:shadow-lg transition-all"
+              className="glass-effect dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-6 hover:border-primary-300 hover:shadow-lg transition-all"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

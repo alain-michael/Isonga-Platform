@@ -11,7 +11,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
   registrationData,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8 text-center">
+    <div className="glass-effect rounded-lg shadow-sm border border-neutral-200 p-8 text-center">
       <div className="mb-8">
         {/* Success Icon */}
         <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
@@ -43,7 +43,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
           Registration Complete
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-          <div className="bg-white rounded-lg p-4">
+          <div className="glass-effect rounded-lg p-4">
             <h4 className="font-medium text-neutral-900 mb-2">
               Business Profile
             </h4>
@@ -61,7 +61,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-4">
+          <div className="glass-effect rounded-lg p-4">
             <h4 className="font-medium text-neutral-900 mb-2">Assessments</h4>
             <p className="text-sm text-neutral-600 mb-1">
               <span className="font-medium">Completed:</span>{" "}

@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import {
-  X,
-  User,
-  Building2,
-} from "lucide-react";
+import { X, User, Building2 } from "lucide-react";
 import { investorAPI } from "../../services/api";
 
 interface InvestorOnboardingModalProps {
@@ -107,8 +103,8 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex justify-between items-center">
+      <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 glass-effect dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
               Onboard New Investor

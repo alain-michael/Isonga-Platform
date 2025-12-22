@@ -140,7 +140,7 @@ const CampaignList: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Total Campaigns</p>
@@ -154,7 +154,7 @@ const CampaignList: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Active Campaigns</p>
@@ -168,7 +168,7 @@ const CampaignList: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Total Raised</p>
@@ -182,7 +182,7 @@ const CampaignList: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Interested Investors</p>
@@ -198,7 +198,7 @@ const CampaignList: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-sm">
+      <div className="glass-effect rounded-xl p-4 border border-neutral-200 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
@@ -235,7 +235,7 @@ const CampaignList: React.FC = () => {
       {/* Campaign List */}
       <div className="space-y-4">
         {filteredCampaigns?.length === 0 ? (
-          <div className="bg-white rounded-xl border border-neutral-200 p-12 text-center">
+          <div className="glass-effect rounded-xl border border-neutral-200 p-12 text-center">
             <Target className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-neutral-700 mb-2">
               No Campaigns Found
@@ -267,7 +267,7 @@ const CampaignList: React.FC = () => {
               <Link
                 key={campaign.id}
                 to={`/campaigns/${campaign.id}`}
-                className="block bg-white rounded-xl border border-neutral-200 p-6 hover:border-primary-300 hover:shadow-md transition group"
+                className="block glass-effect rounded-xl border border-neutral-200 p-6 hover:border-primary-300 hover:shadow-md transition group"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   {/* Campaign Info */}

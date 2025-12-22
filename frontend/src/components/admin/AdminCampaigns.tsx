@@ -160,7 +160,7 @@ const AdminCampaigns: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Total Campaigns</p>
@@ -174,7 +174,7 @@ const AdminCampaigns: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Active</p>
@@ -189,7 +189,7 @@ const AdminCampaigns: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Pending Review</p>
@@ -203,7 +203,7 @@ const AdminCampaigns: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Total Raised</p>
@@ -228,7 +228,7 @@ const AdminCampaigns: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-6 border border-neutral-200 mb-6">
+      <div className="glass-effect rounded-xl p-6 border border-neutral-200 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
@@ -271,7 +271,7 @@ const AdminCampaigns: React.FC = () => {
       </div>
 
       {/* Campaigns List */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="glass-effect rounded-xl border border-neutral-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 border-b border-neutral-200">

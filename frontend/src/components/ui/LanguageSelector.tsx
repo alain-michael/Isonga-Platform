@@ -56,7 +56,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 py-2 z-50">
+          <div className="absolute right-0 top-full mt-2 w-48 glass-effect dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 py-2 z-50">
             {supportedLanguages.map((lang) => (
               <button
                 key={lang.code}
@@ -107,7 +107,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-full bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 py-2 z-50">
+        <div className="absolute right-0 top-full mt-2 w-full glass-effect dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 py-2 z-50">
           {supportedLanguages.map((lang) => (
             <button
               key={lang.code}

@@ -152,9 +152,7 @@ const CreateCampaign: React.FC = () => {
         use_of_funds: { description: data.use_of_funds },
       };
 
-      await createCampaignMutation.mutateAsync(
-        campaignData as any
-      );
+      await createCampaignMutation.mutateAsync(campaignData as any);
       // console.log("Campaign created:", result);
       // alert("Campaign created successfully!");
       navigate("/campaigns");
@@ -703,7 +701,7 @@ const CreateCampaign: React.FC = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit, onError)}>
-        <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 mb-6">
+        <div className="glass-effect rounded-2xl border border-neutral-200 shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-neutral-900 mb-6">
             {STEPS[currentStep - 1]?.title}
           </h2>

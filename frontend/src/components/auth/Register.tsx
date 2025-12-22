@@ -225,6 +225,10 @@ const Register: React.FC = () => {
   const { register: authRegister } = useAuth();
   const navigate = useNavigate();
 
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add("light");
+
+
   const {
     register,
     handleSubmit,

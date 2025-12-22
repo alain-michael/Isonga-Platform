@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+        <div className="glass-effect dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+        <div className="glass-effect dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -147,7 +147,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+        <div className="glass-effect dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -163,7 +163,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
+        <div className="glass-effect dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 transition-transform hover:scale-[1.02]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 overflow-hidden">
+      <div className="glass-effect dark:bg-neutral-800 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 overflow-hidden">
         <div className="p-6 border-b border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
           <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
             Recent Assessments
@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
                           ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                           : assessment.status === "in_progress"
                           ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
-                          : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
+                          : "glass-effect text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
                       }`}
                     >
                       <FileText className="h-5 w-5" />
@@ -234,7 +234,7 @@ const Dashboard: React.FC = () => {
                           ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                           : assessment.status === "in_progress"
                           ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                          : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
+                          : "glass-effect text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400"
                       }`}
                     >
                       {assessment.status.replace("_", " ")}
@@ -251,7 +251,7 @@ const Dashboard: React.FC = () => {
             ))
           ) : (
             <div className="p-12 text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
+              <div className="mx-auto h-12 w-12 rounded-full glass-effect dark:bg-neutral-800 flex items-center justify-center mb-4">
                 <FileText className="h-6 w-6 text-neutral-400" />
               </div>
               <h3 className="text-sm font-medium text-neutral-900 dark:text-white">

@@ -61,7 +61,7 @@ const InvestorDashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 slide-up">
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
               <Briefcase className="h-6 w-6 text-white" />
@@ -77,7 +77,7 @@ const InvestorDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg">
               <DollarSign className="h-6 w-6 text-white" />
@@ -93,7 +93,7 @@ const InvestorDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl shadow-lg">
               <TrendingUp className="h-6 w-6 text-white" />
@@ -109,7 +109,7 @@ const InvestorDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg">
               <Users className="h-6 w-6 text-white" />
@@ -127,7 +127,7 @@ const InvestorDashboard: React.FC = () => {
       </div>
 
       {/* Recent Matches Section */}
-      <div className="glass-effect rounded-2xl shadow-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl shadow-xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="p-6 border-b border-neutral-200 dark:border-neutral-700 flex justify-between items-center">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
             Top Matches for You
@@ -194,13 +194,13 @@ const InvestorDashboard: React.FC = () => {
           </p>
           <Link
             to="/investor/profile"
-            className="inline-flex items-center px-4 py-2 bg-white text-primary-900 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+            className="inline-flex items-center px-4 py-2 glass-effect text-primary-900 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
           >
             Update Profile <ArrowRight className="h-4 w-4 ml-2" />
           </Link>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
             Market Insights
           </h3>

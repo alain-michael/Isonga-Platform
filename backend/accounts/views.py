@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
@@ -11,10 +11,33 @@ User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        data = super().validate(attrs)
+        # Support both username and email for authentication
+        username = attrs.get('username')
+        password = attrs.get('password')
         
-        # Add user data to the response
-        data['user'] = UserProfileSerializer(self.user).data
+        # Try to authenticate with username first
+        user = authenticate(username=username, password=password)
+        
+        # If authentication fails, try using the input as email
+        if not user:
+            try:
+                user_obj = User.objects.get(email=username)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+        
+        if not user:
+            raise serializers.ValidationError('No active account found with the given credentials')
+        
+        # Create tokens manually
+        refresh = RefreshToken.for_user(user)
+        
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': UserProfileSerializer(user).data
+        }
+        
         return data
 
 class CustomTokenObtainPairView(TokenObtainPairView):

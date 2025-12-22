@@ -238,7 +238,7 @@ const EditCampaign: React.FC = () => {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6">
         {/* Basic Details */}
-        <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-2xl p-6 border border-neutral-200 shadow-sm">
           <h2 className="text-xl font-semibold text-neutral-900 mb-6">
             Campaign Details
           </h2>
@@ -318,7 +318,7 @@ const EditCampaign: React.FC = () => {
         </div>
 
         {/* Funding Goals */}
-        <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-2xl p-6 border border-neutral-200 shadow-sm">
           <h2 className="text-xl font-semibold text-neutral-900 mb-6">
             Funding Goals
           </h2>
@@ -378,7 +378,7 @@ const EditCampaign: React.FC = () => {
         </div>
 
         {/* Timeline */}
-        <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-2xl p-6 border border-neutral-200 shadow-sm">
           <h2 className="text-xl font-semibold text-neutral-900 mb-6">
             Campaign Timeline
           </h2>
@@ -419,7 +419,7 @@ const EditCampaign: React.FC = () => {
         </div>
 
         {/* Use of Funds */}
-        <div className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-2xl p-6 border border-neutral-200 shadow-sm">
           <h2 className="text-xl font-semibold text-neutral-900 mb-6">
             Use of Funds
           </h2>

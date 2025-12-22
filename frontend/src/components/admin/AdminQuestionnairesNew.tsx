@@ -136,7 +136,7 @@ const AdminQuestionnaires: React.FC = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="glass-effect p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex gap-4">
+      <div className="glass-effect p-4 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <input
@@ -197,7 +197,7 @@ const AdminQuestionnaires: React.FC = () => {
         {filteredQuestionnaires.map((q: Questionnaire) => (
           <div
             key={q.id}
-            className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+            className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden"
           >
             <div
               className="p-6 flex items-center justify-between cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
@@ -288,7 +288,7 @@ const AdminQuestionnaires: React.FC = () => {
                       .map((question: any, idx: number) => (
                         <div
                           key={question.id || idx}
-                          className="p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700"
+                          className="p-3 glass-effect dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700"
                         >
                           <p className="text-sm text-neutral-700 dark:text-neutral-300">
                             {idx + 1}. {question.text}

@@ -280,7 +280,7 @@ const QuestionnaireForm: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
-            <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 space-y-6">
+            <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                   Questionnaire Title *
@@ -367,7 +367,7 @@ const QuestionnaireForm: React.FC = () => {
 
           {/* Step 2: Matching Criteria */}
           {currentStep === 2 && (
-            <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 space-y-6">
+            <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
                   Enterprise Matching Criteria
@@ -486,7 +486,7 @@ const QuestionnaireForm: React.FC = () => {
           {/* Step 3: Questions */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+              <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
@@ -510,7 +510,7 @@ const QuestionnaireForm: React.FC = () => {
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+                  className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex flex-col gap-2">
@@ -628,7 +628,7 @@ const QuestionnaireForm: React.FC = () => {
                                       `questions.${index}.options.${optionIndex}.text`
                                     )}
                                     type="text"
-                                    className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
+                                    className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
                                     placeholder="Option text"
                                   />
                                   <input
@@ -637,7 +637,7 @@ const QuestionnaireForm: React.FC = () => {
                                     )}
                                     type="number"
                                     min="0"
-                                    className="w-20 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
+                                    className="w-20 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
                                     placeholder="Points"
                                   />
                                   <button
@@ -686,7 +686,7 @@ const QuestionnaireForm: React.FC = () => {
               ))}
 
               {fields.length === 0 && (
-                <div className="glass-effect rounded-2xl p-12 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-center">
+                <div className="glass-effect rounded-2xl p-12 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-center">
                   <FileText className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">
                     No questions yet
@@ -705,7 +705,7 @@ const QuestionnaireForm: React.FC = () => {
                 </div>
               )}
 
-              <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+              <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
                 <div className="flex gap-3">
                   <button
                     type="button"

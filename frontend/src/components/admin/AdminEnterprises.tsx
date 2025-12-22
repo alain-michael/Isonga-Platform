@@ -109,7 +109,7 @@ const AdminEnterprises: React.FC = () => {
             <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-xl animate-pulse">
               <Building2 className="h-8 w-8 text-white" />
             </div>
-            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center shadow-lg">
+            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full glass-effect dark:bg-neutral-800 flex items-center justify-center shadow-lg">
               <RefreshCw className="h-4 w-4 text-primary-600 animate-spin" />
             </div>
           </div>
@@ -138,7 +138,7 @@ const AdminEnterprises: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="glass-effect rounded-3xl p-8 max-w-lg mx-auto text-center bg-white dark:bg-neutral-800 border border-error-200 dark:border-error-800">
+        <div className="glass-effect rounded-3xl p-8 max-w-lg mx-auto text-center glass-effect dark:bg-neutral-800 border border-error-200 dark:border-error-800">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-error-500 to-error-600 flex items-center justify-center mx-auto mb-6 shadow-xl">
             <AlertCircle className="h-8 w-8 text-white" />
           </div>
@@ -191,7 +191,7 @@ const AdminEnterprises: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8 slide-up">
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary-500/10 to-primary-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
@@ -208,7 +208,7 @@ const AdminEnterprises: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-success-500/10 to-success-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg shadow-success-500/25">
@@ -225,7 +225,7 @@ const AdminEnterprises: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-warning-500/10 to-warning-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg shadow-warning-500/25">
@@ -242,7 +242,7 @@ const AdminEnterprises: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-error-500/10 to-error-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-error-500 to-error-600 rounded-xl shadow-lg shadow-error-500/25">
@@ -261,7 +261,7 @@ const AdminEnterprises: React.FC = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="glass-effect rounded-2xl p-6 mb-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 mb-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -270,7 +270,7 @@ const AdminEnterprises: React.FC = () => {
               placeholder="Search enterprises, industries, or locations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400"
+              className="w-full pl-10 pr-4 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400"
             />
           </div>
 
@@ -280,7 +280,7 @@ const AdminEnterprises: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 min-w-[140px]"
+                className="pl-10 pr-8 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none appearance-none glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 min-w-[140px]"
               >
                 <option value="all">All Status</option>
                 <option value="verified">Verified</option>
@@ -293,7 +293,7 @@ const AdminEnterprises: React.FC = () => {
               <select
                 value={industryFilter}
                 onChange={(e) => setIndustryFilter(e.target.value)}
-                className="px-4 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 min-w-[140px]"
+                className="px-4 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none appearance-none glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 min-w-[140px]"
               >
                 <option value="all">All Industries</option>
                 {industries.map((industry) => (
@@ -312,7 +312,7 @@ const AdminEnterprises: React.FC = () => {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <div className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden mb-8">
+        <div className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden mb-8">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -473,7 +473,7 @@ const AdminEnterprises: React.FC = () => {
             {filteredEnterprises.map((enterprise) => (
               <div
                 key={enterprise.id}
-                className="group glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 transition-all duration-300"
+                className="group glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 transition-all duration-300"
               >
                 {/* Card Header with gradient accent */}
                 <div
@@ -602,7 +602,7 @@ const AdminEnterprises: React.FC = () => {
           </div>
 
           {filteredEnterprises.length === 0 && (
-            <div className="glass-effect rounded-3xl p-12 text-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+            <div className="glass-effect rounded-3xl p-12 text-center glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
               <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-800 flex items-center justify-center mx-auto mb-6">
                 <Building2 className="h-10 w-10 text-neutral-400 dark:text-neutral-500" />
               </div>

@@ -224,7 +224,7 @@ const AdminEnterpriseDetail: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        <div className="glass-effect rounded-xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <MapPin className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
             <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
@@ -236,7 +236,7 @@ const AdminEnterpriseDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <Users className="h-5 w-5 text-secondary-600 dark:text-secondary-400 mr-2" />
             <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
@@ -248,7 +248,7 @@ const AdminEnterpriseDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <TrendingUp className="h-5 w-5 text-success-600 dark:text-success-400 mr-2" />
             <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
@@ -260,7 +260,7 @@ const AdminEnterpriseDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <Calendar className="h-5 w-5 text-warning-600 dark:text-warning-400 mr-2" />
             <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
@@ -302,7 +302,7 @@ const AdminEnterpriseDetail: React.FC = () => {
 
       {/* Tab Content */}
       {activeTab === "profile" && (
-        <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Enterprise Profile
           </h2>
@@ -375,7 +375,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       )}
 
       {activeTab === "contact" && (
-        <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Contact Information
           </h2>
@@ -445,7 +445,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       )}
 
       {activeTab === "documents" && (
-        <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Documents
           </h2>
@@ -456,7 +456,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       )}
 
       {activeTab === "activity" && (
-        <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Activity Log
           </h2>
@@ -469,7 +469,7 @@ const AdminEnterpriseDetail: React.FC = () => {
       {/* Status Update Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6 border border-neutral-200 dark:border-neutral-700">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6 border border-neutral-200 dark:border-neutral-700">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Update Enterprise Status
             </h3>
@@ -482,7 +482,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                 <select
                   value={selectedStatus || ""}
                   onChange={(e) => setSelectedStatus(e.target.value as any)}
-                  className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 py-2 px-3"
+                  className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 py-2 px-3"
                 >
                   <option value="">Select status...</option>
                   <option value="approved">Approve</option>
@@ -500,7 +500,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                     value={documentsRequested}
                     onChange={(e) => setDocumentsRequested(e.target.value)}
                     rows={3}
-                    className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
+                    className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
                     placeholder="List the specific documents needed..."
                     required
                   />
@@ -515,7 +515,7 @@ const AdminEnterpriseDetail: React.FC = () => {
                   value={statusNotes}
                   onChange={(e) => setStatusNotes(e.target.value)}
                   rows={3}
-                  className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
+                  className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
                   placeholder="Add any notes about this status change..."
                 />
               </div>

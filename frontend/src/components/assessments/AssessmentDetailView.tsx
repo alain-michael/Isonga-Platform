@@ -410,7 +410,7 @@ const AssessmentDetailView: React.FC = () => {
       </div>
 
       {/* Enterprise Info Card */}
-      <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center">
           <Building2 className="h-5 w-5 mr-2 text-primary-600" />
           Enterprise Information
@@ -470,7 +470,7 @@ const AssessmentDetailView: React.FC = () => {
       {/* Timeline & Score Card */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Timeline */}
-        <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center">
             <Clock className="h-5 w-5 mr-2 text-primary-600" />
             Timeline
@@ -532,7 +532,7 @@ const AssessmentDetailView: React.FC = () => {
         </div>
 
         {/* Overall Score */}
-        <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center">
             <Award className="h-5 w-5 mr-2 text-primary-600" />
             Overall Score
@@ -611,7 +611,7 @@ const AssessmentDetailView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
         <div className="border-b border-neutral-200 dark:border-neutral-700">
           <div className="flex space-x-8 px-6">
             {[
@@ -694,7 +694,7 @@ const AssessmentDetailView: React.FC = () => {
                                     return (
                                       <div
                                         key={option.id}
-                                        className="flex items-center justify-between p-2 bg-white dark:bg-neutral-800 rounded-lg"
+                                        className="flex items-center justify-between p-2 glass-effect dark:bg-neutral-800 rounded-lg"
                                       >
                                         <span className="text-sm text-neutral-900 dark:text-neutral-100">
                                           {option.text}
@@ -708,7 +708,7 @@ const AssessmentDetailView: React.FC = () => {
                                 </div>
                               )}
                             {response.text_response && (
-                              <p className="text-sm text-neutral-900 dark:text-neutral-100 p-3 bg-white dark:bg-neutral-800 rounded-lg">
+                              <p className="text-sm text-neutral-900 dark:text-neutral-100 p-3 glass-effect dark:bg-neutral-800 rounded-lg">
                                 {response.text_response}
                               </p>
                             )}
@@ -939,7 +939,7 @@ const AssessmentDetailView: React.FC = () => {
                   </div>
 
                   {/* Recommendations Section */}
-                  <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-700">
+                  <div className="glass-effect dark:bg-neutral-800 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-700">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-blue-500 rounded-lg">
@@ -1024,7 +1024,7 @@ const AssessmentDetailView: React.FC = () => {
                                   <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-3">
                                     {rec.description}
                                   </p>
-                                  <div className="bg-white dark:bg-neutral-900 rounded-lg p-3">
+                                  <div className="glass-effect dark:bg-neutral-900 rounded-lg p-3">
                                     <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1">
                                       Suggested Actions:
                                     </p>
@@ -1060,7 +1060,7 @@ const AssessmentDetailView: React.FC = () => {
       {/* Assign Reviewer Modal */}
       {showAssignReviewer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Assign Reviewer
             </h3>
@@ -1108,7 +1108,7 @@ const AssessmentDetailView: React.FC = () => {
       {/* Edit Insights Modal */}
       {showEditInsights && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Edit AI Insights
             </h3>

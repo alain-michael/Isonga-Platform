@@ -102,7 +102,7 @@ const AdminDashboard: React.FC = () => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+            className="glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
           >
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-xl ${stat.color} bg-opacity-10`}>
@@ -126,7 +126,7 @@ const AdminDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart Area (Placeholder) */}
-        <div className="lg:col-span-2 glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="lg:col-span-2 glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
               Platform Growth
@@ -167,7 +167,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
               Recent Activity
@@ -208,7 +208,7 @@ const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           to="/admin/questionnaires"
-          className="group glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
+          className="group glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -226,7 +226,7 @@ const AdminDashboard: React.FC = () => {
 
         <Link
           to="/admin/investors"
-          className="group glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
+          className="group glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-100 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
@@ -244,7 +244,7 @@ const AdminDashboard: React.FC = () => {
 
         <Link
           to="/admin/users"
-          className="group glass-effect p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
+          className="group glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-100 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">

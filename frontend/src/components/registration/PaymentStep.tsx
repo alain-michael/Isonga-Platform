@@ -107,7 +107,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8">
+      <div className="glass-effect rounded-lg shadow-sm border border-neutral-200 p-8">
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-4 border-neutral-200 border-t-primary-600"></div>
           <span className="ml-2 text-neutral-600">
@@ -119,7 +119,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8">
+    <div className="glass-effect rounded-lg shadow-sm border border-neutral-200 p-8">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-neutral-900 mb-2">
           Choose Your Subscription Plan

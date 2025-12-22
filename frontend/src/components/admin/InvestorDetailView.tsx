@@ -242,7 +242,7 @@ const InvestorDetailView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
         <div className="border-b border-neutral-200 dark:border-neutral-700">
           <div className="flex space-x-8 px-6">
             {[

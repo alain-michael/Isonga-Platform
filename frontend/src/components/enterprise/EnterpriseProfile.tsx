@@ -787,7 +787,7 @@ const EnterpriseProfile: React.FC = () => {
         </div>
 
         {enterprise.verification_notes && (
-          <div className="mt-4 p-3 bg-white rounded-lg border border-neutral-200">
+          <div className="mt-4 p-3 glass-effect rounded-lg border border-neutral-200">
             <p className="text-sm text-neutral-700">
               {enterprise.verification_notes}
             </p>
@@ -858,7 +858,7 @@ const EnterpriseProfile: React.FC = () => {
           enterprise.documents.map((doc: any) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between p-4 bg-white rounded-xl border border-neutral-200 hover:border-neutral-300 transition"
+              className="flex items-center justify-between p-4 glass-effect rounded-xl border border-neutral-200 hover:border-neutral-300 transition"
             >
               <div className="flex items-center gap-4">
                 <div className="p-2 bg-primary-50 rounded-lg">
@@ -936,7 +936,7 @@ const EnterpriseProfile: React.FC = () => {
           {enterprise.assessments.map((assessment: any) => (
             <div
               key={assessment.id}
-              className="p-4 bg-white rounded-xl border border-neutral-200"
+              className="p-4 glass-effect rounded-xl border border-neutral-200"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -1028,7 +1028,7 @@ const EnterpriseProfile: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+      <div className="glass-effect rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
         <div className="border-b border-neutral-200">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => {
@@ -1060,7 +1060,7 @@ const EnterpriseProfile: React.FC = () => {
       {/* Document Upload Modal */}
       {showDocumentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="glass-effect rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-neutral-900">

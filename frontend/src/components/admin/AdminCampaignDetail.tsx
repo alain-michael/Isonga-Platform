@@ -222,7 +222,7 @@ const AdminCampaignDetail: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Funding Goal</p>
@@ -240,7 +240,7 @@ const AdminCampaignDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Amount Raised</p>
@@ -258,7 +258,7 @@ const AdminCampaignDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Interests</p>
@@ -272,7 +272,7 @@ const AdminCampaignDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-600">Days Left</p>
@@ -296,7 +296,7 @@ const AdminCampaignDetail: React.FC = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white rounded-xl p-6 border border-neutral-200 mb-6">
+      <div className="glass-effect rounded-xl p-6 border border-neutral-200 mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-neutral-700">
             Campaign Progress
@@ -346,7 +346,7 @@ const AdminCampaignDetail: React.FC = () => {
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl p-6 border border-neutral-200">
+          <div className="glass-effect rounded-xl p-6 border border-neutral-200">
             <h2 className="text-xl font-bold text-neutral-900 mb-4">
               Campaign Description
             </h2>
@@ -356,7 +356,7 @@ const AdminCampaignDetail: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 border border-neutral-200">
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">
                 Campaign Details
               </h3>
@@ -394,7 +394,7 @@ const AdminCampaignDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border border-neutral-200">
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">
                 Enterprise Information
               </h3>
@@ -427,7 +427,7 @@ const AdminCampaignDetail: React.FC = () => {
       )}
 
       {activeTab === "documents" && (
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <h2 className="text-xl font-bold text-neutral-900 mb-6">
             Campaign Documents
           </h2>
@@ -474,7 +474,7 @@ const AdminCampaignDetail: React.FC = () => {
       )}
 
       {activeTab === "updates" && (
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <h2 className="text-xl font-bold text-neutral-900 mb-6">
             Campaign Updates
           </h2>
@@ -517,7 +517,7 @@ const AdminCampaignDetail: React.FC = () => {
       )}
 
       {activeTab === "interests" && (
-        <div className="bg-white rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <h2 className="text-xl font-bold text-neutral-900 mb-6">
             Investor Interests
           </h2>
@@ -558,7 +558,7 @@ const AdminCampaignDetail: React.FC = () => {
       {/* Vet Modal */}
       {showVetModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="glass-effect rounded-xl shadow-xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-neutral-900 mb-4">
               Review Campaign
             </h3>

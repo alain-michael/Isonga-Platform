@@ -17,7 +17,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   iconBg,
 }) => {
   return (
-    <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+    <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
       <div
         className={`absolute top-0 right-0 w-24 h-24 ${gradient} rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150`}
       />

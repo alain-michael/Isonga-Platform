@@ -298,7 +298,7 @@ const AdminQuestionnaires: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
@@ -349,7 +349,7 @@ const AdminQuestionnaires: React.FC = () => {
 
       {/* Questionnaires List */}
       {filteredQuestionnaires.length === 0 ? (
-        <div className="glass-effect rounded-2xl p-16 text-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-16 text-center glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="w-24 h-24 bg-neutral-100 dark:bg-neutral-700 rounded-full flex items-center justify-center mx-auto mb-6">
             <FileText className="h-12 w-12 text-neutral-400 dark:text-neutral-500" />
           </div>
@@ -434,7 +434,7 @@ const AdminQuestionnaires: React.FC = () => {
           </div>
 
           {/* Desktop: Enhanced Table Layout */}
-          <div className="hidden sm:block glass-effect rounded-2xl overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg">
+          <div className="hidden sm:block glass-effect rounded-2xl overflow-hidden glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-700 border-b-2 border-neutral-200 dark:border-neutral-600">
@@ -621,7 +621,7 @@ const AdminQuestionnaires: React.FC = () => {
       {/* Translation Modal */}
       {showTranslateModal && selectedQuestionnaire && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                 <Languages className="h-6 w-6 text-blue-600 dark:text-blue-400" />

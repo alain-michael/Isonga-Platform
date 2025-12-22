@@ -240,7 +240,7 @@ const Messages: React.FC = () => {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+      <div className="glass-effect rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 h-[calc(100vh-250px)]">
           {/* Conversations List */}
           <div className="lg:col-span-1 border-r border-neutral-200 flex flex-col">

@@ -152,7 +152,7 @@ const InvestorProfile: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Navigation */}
         <div className="w-full lg:w-64 flex-shrink-0">
-          <div className="glass-effect rounded-2xl p-4 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 sticky top-24">
+          <div className="glass-effect rounded-2xl p-4 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 sticky top-24">
             <nav className="space-y-1">
               <button
                 onClick={() => setActiveTab("profile")}
@@ -204,7 +204,7 @@ const InvestorProfile: React.FC = () => {
 
         {/* Main Content */}
         <div className="flex-1">
-          <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             {activeTab === "profile" && (
               <div className="space-y-6 slide-up">
                 <div className="flex items-center justify-between mb-6">

@@ -16,7 +16,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
         onClick={() => onViewModeChange("table")}
         className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
           viewMode === "table"
-            ? "bg-white dark:bg-neutral-600 text-primary-600 dark:text-primary-400 shadow-sm"
+            ? "glass-effect dark:bg-neutral-600 text-primary-600 dark:text-primary-400 shadow-sm"
             : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
         }`}
       >
@@ -27,7 +27,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
         onClick={() => onViewModeChange("grid")}
         className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
           viewMode === "grid"
-            ? "bg-white dark:bg-neutral-600 text-primary-600 dark:text-primary-400 shadow-sm"
+            ? "glass-effect dark:bg-neutral-600 text-primary-600 dark:text-primary-400 shadow-sm"
             : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
         }`}
       >

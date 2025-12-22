@@ -103,7 +103,7 @@ const InvestorOpportunities: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="glass-effect rounded-2xl p-6 mb-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 mb-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -135,7 +135,7 @@ const InvestorOpportunities: React.FC = () => {
 
       {/* Opportunities List */}
       {filteredOpportunities.length === 0 ? (
-        <div className="glass-effect rounded-2xl p-12 text-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-12 text-center glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="mx-auto h-16 w-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
             <Heart className="h-8 w-8 text-neutral-400" />
           </div>
@@ -158,7 +158,7 @@ const InvestorOpportunities: React.FC = () => {
           {filteredOpportunities.map((opportunity: any) => (
             <div
               key={opportunity.id}
-              className="glass-effect rounded-2xl p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+              className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
             >
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 {/* Main Info */}
@@ -282,7 +282,9 @@ const InvestorOpportunities: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/investor/matches/${opportunity.id}`)}
+                    onClick={() =>
+                      navigate(`/investor/matches/${opportunity.id}`)
+                    }
                     className="w-full btn-primary flex items-center justify-center gap-2"
                   >
                     View Details

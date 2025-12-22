@@ -12,7 +12,7 @@ import {
   Users,
   Calendar,
   MoreVertical,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 
 const ManageAssessments: React.FC = () => {
@@ -24,30 +24,39 @@ const ManageAssessments: React.FC = () => {
     {
       id: 1,
       title: "SME Financial Health Assessment",
-      description: "Comprehensive financial evaluation for small and medium enterprises",
+      description:
+        "Comprehensive financial evaluation for small and medium enterprises",
       industry: "General",
-      questionnaires: ["Financial Health", "Business Information", "Funding Request"],
+      questionnaires: [
+        "Financial Health",
+        "Business Information",
+        "Funding Request",
+      ],
       languages: ["English", "Kinyarwanda"],
       status: "published",
       createdDate: "2024-08-20",
       totalQuestions: 15,
       participants: 45,
       averageScore: 78.5,
-      lastModified: "2024-08-22"
+      lastModified: "2024-08-22",
     },
     {
       id: 2,
       title: "Tech Startup Readiness Assessment",
       description: "Evaluation for technology startups seeking funding",
       industry: "Technology",
-      questionnaires: ["Business Information", "Market Analysis", "Technical Capabilities"],
+      questionnaires: [
+        "Business Information",
+        "Market Analysis",
+        "Technical Capabilities",
+      ],
       languages: ["English"],
       status: "draft",
       createdDate: "2024-08-18",
       totalQuestions: 22,
       participants: 0,
       averageScore: null,
-      lastModified: "2024-08-25"
+      lastModified: "2024-08-25",
     },
     {
       id: 3,
@@ -61,8 +70,8 @@ const ManageAssessments: React.FC = () => {
       totalQuestions: 18,
       participants: 23,
       averageScore: 82.1,
-      lastModified: "2024-08-20"
-    }
+      lastModified: "2024-08-20",
+    },
   ];
 
   const getStatusColor = (status: string) => {
@@ -79,11 +88,12 @@ const ManageAssessments: React.FC = () => {
   };
 
   const filteredAssessments = createdAssessments.filter((assessment) => {
-    const matchesSearch = 
+    const matchesSearch =
       assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assessment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assessment.industry.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || assessment.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || assessment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -100,8 +110,12 @@ const ManageAssessments: React.FC = () => {
               <ArrowLeft className="h-5 w-5 text-neutral-600" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Manage Created Assessments</h1>
-              <p className="text-lg text-neutral-600">Create, edit, and manage your assessment templates</p>
+              <h1 className="text-3xl font-bold text-neutral-900">
+                Manage Created Assessments
+              </h1>
+              <p className="text-lg text-neutral-600">
+                Create, edit, and manage your assessment templates
+              </p>
             </div>
           </div>
           <Link
@@ -142,7 +156,10 @@ const ManageAssessments: React.FC = () => {
                 Published
               </p>
               <p className="text-2xl font-bold text-neutral-900">
-                {createdAssessments.filter(a => a.status === "published").length}
+                {
+                  createdAssessments.filter((a) => a.status === "published")
+                    .length
+                }
               </p>
             </div>
           </div>
@@ -158,7 +175,7 @@ const ManageAssessments: React.FC = () => {
                 Drafts
               </p>
               <p className="text-2xl font-bold text-neutral-900">
-                {createdAssessments.filter(a => a.status === "draft").length}
+                {createdAssessments.filter((a) => a.status === "draft").length}
               </p>
             </div>
           </div>
@@ -199,7 +216,7 @@ const ManageAssessments: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none appearance-none bg-white min-w-[150px]"
+              className="pl-10 pr-8 py-2 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:outline-none appearance-none glass-effect min-w-[150px]"
             >
               <option value="all">All Status</option>
               <option value="published">Published</option>
@@ -213,16 +230,27 @@ const ManageAssessments: React.FC = () => {
       {/* Assessments Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredAssessments.map((assessment) => (
-          <div key={assessment.id} className="glass-effect rounded-2xl p-6 card-hover">
+          <div
+            key={assessment.id}
+            className="glass-effect rounded-2xl p-6 card-hover"
+          >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-xl font-bold text-neutral-900">{assessment.title}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(assessment.status)}`}>
+                  <h3 className="text-xl font-bold text-neutral-900">
+                    {assessment.title}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                      assessment.status
+                    )}`}
+                  >
                     {assessment.status}
                   </span>
                 </div>
-                <p className="text-neutral-600 mb-3">{assessment.description}</p>
+                <p className="text-neutral-600 mb-3">
+                  {assessment.description}
+                </p>
                 <div className="flex items-center space-x-4 text-sm text-neutral-500">
                   <span>📊 {assessment.industry}</span>
                   <span>❓ {assessment.totalQuestions} questions</span>
@@ -236,10 +264,15 @@ const ManageAssessments: React.FC = () => {
 
             <div className="space-y-3 mb-4">
               <div>
-                <p className="text-sm font-medium text-neutral-700 mb-1">Questionnaires:</p>
+                <p className="text-sm font-medium text-neutral-700 mb-1">
+                  Questionnaires:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {assessment.questionnaires.map((q, index) => (
-                    <span key={index} className="px-2 py-1 bg-primary-100 dark:text-primary-700 rounded-lg text-xs">
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-primary-100 dark:text-primary-700 rounded-lg text-xs"
+                    >
                       {q}
                     </span>
                   ))}
@@ -247,10 +280,15 @@ const ManageAssessments: React.FC = () => {
               </div>
 
               <div>
-                <p className="text-sm font-medium text-neutral-700 mb-1">Languages:</p>
+                <p className="text-sm font-medium text-neutral-700 mb-1">
+                  Languages:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {assessment.languages.map((lang, index) => (
-                    <span key={index} className="px-2 py-1 bg-secondary-100 dark:text-secondary-700 rounded-lg text-xs">
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-secondary-100 dark:text-secondary-700 rounded-lg text-xs"
+                    >
                       {lang}
                     </span>
                   ))}
@@ -259,7 +297,8 @@ const ManageAssessments: React.FC = () => {
 
               {assessment.averageScore && (
                 <div>
-                  <p className="text-sm font-medium text-neutral-700">Average Score: 
+                  <p className="text-sm font-medium text-neutral-700">
+                    Average Score:
                     <span className="ml-1 text-lg font-bold text-success-600">
                       {assessment.averageScore}%
                     </span>
@@ -273,7 +312,7 @@ const ManageAssessments: React.FC = () => {
                 <Calendar className="h-4 w-4 inline mr-1" />
                 Modified {assessment.lastModified}
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <button className="p-2 rounded-lg border border-neutral-200 hover:border-primary-300 hover:bg-primary-50 transition-colors">
                   <Eye className="h-4 w-4 text-neutral-600" />
@@ -299,8 +338,12 @@ const ManageAssessments: React.FC = () => {
       {filteredAssessments.length === 0 && (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-neutral-600 mb-2">No Assessments Found</h3>
-          <p className="text-neutral-500 mb-6">Try adjusting your search or create your first assessment.</p>
+          <h3 className="text-lg font-semibold text-neutral-600 mb-2">
+            No Assessments Found
+          </h3>
+          <p className="text-neutral-500 mb-6">
+            Try adjusting your search or create your first assessment.
+          </p>
           <Link
             to="/assessments/create"
             className="btn-primary inline-flex items-center space-x-2"

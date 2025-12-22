@@ -144,7 +144,7 @@ const InvestorMatchDetail: React.FC = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Header Card */}
-          <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -201,7 +201,7 @@ const InvestorMatchDetail: React.FC = () => {
           </div>
 
           {/* Description */}
-          <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               About the Opportunity
             </h2>
@@ -211,7 +211,7 @@ const InvestorMatchDetail: React.FC = () => {
           </div>
 
           {/* Documents */}
-          <div className="glass-effect rounded-2xl p-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Documents
             </h2>
@@ -254,7 +254,7 @@ const InvestorMatchDetail: React.FC = () => {
 
         {/* Sidebar Actions */}
         <div className="space-y-6">
-          <div className="glass-effect rounded-2xl p-6 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 sticky top-24">
+          <div className="glass-effect rounded-2xl p-6 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 sticky top-24">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               {userMatch ? "Your Status" : "Interested?"}
             </h3>
@@ -399,7 +399,7 @@ const InvestorMatchDetail: React.FC = () => {
       {/* Pledge Amount Modal */}
       {showPledgeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                 Pledge Amount

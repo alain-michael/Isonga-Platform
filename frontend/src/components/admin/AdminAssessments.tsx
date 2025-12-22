@@ -148,7 +148,7 @@ const AdminAssessments: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="glass-effect rounded-2xl p-8 border-2 border-error-200 dark:border-error-800 bg-white dark:bg-neutral-800">
+        <div className="glass-effect rounded-2xl p-8 border-2 border-error-200 dark:border-error-800 glass-effect dark:bg-neutral-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-error-100 dark:bg-error-900 rounded-xl">
@@ -203,7 +203,7 @@ const AdminAssessments: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8 slide-up">
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary-500/10 to-primary-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
@@ -220,7 +220,7 @@ const AdminAssessments: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-neutral-400/10 to-neutral-500/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-neutral-400 to-neutral-500 rounded-xl shadow-lg shadow-neutral-400/25">
@@ -237,7 +237,7 @@ const AdminAssessments: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-warning-500/10 to-warning-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl shadow-lg shadow-warning-500/25">
@@ -254,7 +254,7 @@ const AdminAssessments: React.FC = () => {
           </div>
         </div>
 
-        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
+        <div className="group glass-effect rounded-2xl p-5 lg:p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-success-500/10 to-success-600/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
           <div className="relative flex items-center">
             <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg shadow-success-500/25">
@@ -273,7 +273,7 @@ const AdminAssessments: React.FC = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="glass-effect rounded-2xl p-6 mb-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 mb-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -308,7 +308,7 @@ const AdminAssessments: React.FC = () => {
       </div>
 
       {/* Assessments Table */}
-      <div className="glass-effect rounded-2xl shadow-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div className="glass-effect rounded-2xl shadow-xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
         <div className="p-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100">

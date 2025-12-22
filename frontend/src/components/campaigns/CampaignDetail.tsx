@@ -540,7 +540,7 @@ const CampaignDetail: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-5 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-neutral-500">Amount Raised</span>
             <div className="p-2 bg-green-100 rounded-lg">
@@ -555,7 +555,7 @@ const CampaignDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-5 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-neutral-500">Progress</span>
             <div className="p-2 bg-primary-100 rounded-lg">
@@ -573,7 +573,7 @@ const CampaignDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-5 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-neutral-500">
               Interested Investors
@@ -588,7 +588,7 @@ const CampaignDetail: React.FC = () => {
           <p className="text-sm text-neutral-500 mt-1">investors interested</p>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+        <div className="glass-effect rounded-xl p-5 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-neutral-500">Campaign Views</span>
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -636,7 +636,7 @@ const CampaignDetail: React.FC = () => {
         )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+      <div className="glass-effect rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
         <div className="border-b border-neutral-200">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => {
@@ -763,7 +763,7 @@ const CampaignDetail: React.FC = () => {
                   {interestedInvestors.map((match: any) => (
                     <div
                       key={match.id}
-                      className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-white border border-neutral-200 rounded-xl hover:border-primary-200 transition-colors"
+                      className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 glass-effect border border-neutral-200 rounded-xl hover:border-primary-200 transition-colors"
                     >
                       <div className="flex items-center gap-4 mb-4 md:mb-0">
                         <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-lg">
@@ -911,7 +911,7 @@ const CampaignDetail: React.FC = () => {
                   {documents.map((doc: any) => (
                     <div
                       key={doc.id}
-                      className="flex items-center justify-between p-4 bg-white border border-neutral-200 rounded-xl hover:border-neutral-300 transition"
+                      className="flex items-center justify-between p-4 glass-effect border border-neutral-200 rounded-xl hover:border-neutral-300 transition"
                     >
                       <div className="flex items-center gap-4">
                         <div className="p-2 bg-primary-50 rounded-lg">
@@ -1056,7 +1056,7 @@ const CampaignDetail: React.FC = () => {
       {/* Document Upload Modal */}
       {showDocumentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="glass-effect rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-neutral-900">
                 Upload Document
@@ -1197,7 +1197,7 @@ const CampaignDetail: React.FC = () => {
       {/* Post Update Modal */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="glass-effect rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-neutral-900">
                 Post Campaign Update
@@ -1304,7 +1304,7 @@ const CampaignDetail: React.FC = () => {
       {/* Pledge Amount Modal */}
       {showPledgeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+          <div className="glass-effect rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold">Pledge Amount</h3>
               <button

@@ -77,7 +77,7 @@ const InvestorMatches: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="glass-effect rounded-2xl p-6 mb-8 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+      <div className="glass-effect rounded-2xl p-6 mb-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -114,7 +114,7 @@ const InvestorMatches: React.FC = () => {
           <div
             key={match.id}
             onClick={() => navigate(`/campaigns/${match.id}`)}
-            className="glass-effect rounded-2xl p-6 card-hover bg-white cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
+            className="glass-effect rounded-2xl p-6 card-hover glass-effect cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
           >
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-4">

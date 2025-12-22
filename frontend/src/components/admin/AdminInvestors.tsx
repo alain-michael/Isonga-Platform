@@ -128,7 +128,7 @@ const AdminInvestors: React.FC = () => {
             <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-xl animate-pulse">
               <Briefcase className="h-8 w-8 text-white" />
             </div>
-            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center shadow-lg">
+            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full glass-effect dark:bg-neutral-800 flex items-center justify-center shadow-lg">
               <RefreshCw className="h-4 w-4 text-purple-600 animate-spin" />
             </div>
           </div>
@@ -143,7 +143,7 @@ const AdminInvestors: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="glass-effect rounded-3xl p-8 max-w-lg mx-auto text-center bg-white dark:bg-neutral-800 border border-error-200 dark:border-error-800">
+        <div className="glass-effect rounded-3xl p-8 max-w-lg mx-auto text-center glass-effect dark:bg-neutral-800 border border-error-200 dark:border-error-800">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-error-500 to-error-600 flex items-center justify-center mx-auto mb-6 shadow-xl">
             <AlertCircle className="h-8 w-8 text-white" />
           </div>
@@ -228,7 +228,7 @@ const AdminInvestors: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="glass-effect p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 mb-6">
+      <div className="glass-effect p-4 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -294,7 +294,7 @@ const AdminInvestors: React.FC = () => {
           {filteredInvestors.map((investor) => (
             <div
               key={investor.id}
-              className="group glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200 cursor-pointer"
+              className="group glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-6 hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200 cursor-pointer"
               onClick={() => navigate(`/admin/investors/${investor.id}`)}
             >
               <div className="flex justify-between items-start mb-4">
@@ -368,7 +368,7 @@ const AdminInvestors: React.FC = () => {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <div className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+        <div className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gradient-to-r from-neutral-50 to-neutral-100 dark:from-neutral-700/50 dark:to-neutral-700/30">

@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex-shrink-0",
+          "fixed top-0 left-0 z-50 h-screen w-64 glass-effect border-r border-neutral-200 dark:border-neutral-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex-shrink-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -193,7 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     className={cn(
                       "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       active
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400"
+                        ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400"
                         : "text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-200"
                     )}
                   >
@@ -234,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               </button>
 
               {showLangDropdown && (
-                <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden z-50">
+                <div className="absolute bottom-full left-0 right-0 mb-1 glass-effect dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden z-50">
                   {supportedLanguages.map((lang) => (
                     <button
                       key={lang.code}

@@ -157,7 +157,7 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="glass-effect p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col sm:flex-row gap-4">
+      <div className="glass-effect p-4 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <input
@@ -193,7 +193,7 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="glass-effect rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div className="glass-effect rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-neutral-50 dark:bg-neutral-700/50">
@@ -297,7 +297,7 @@ const AdminUsers: React.FC = () => {
       {/* Edit User Modal */}
       {showEditModal && editingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
                 Edit User: {editingUser.username}
