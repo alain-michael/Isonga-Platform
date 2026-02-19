@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { campaignAPI } from "../../services/campaignsService";
 import {
   Users,
-  Building2,
   FileText,
   TrendingUp,
   Plus,
@@ -107,7 +106,7 @@ const AdminDashboard: React.FC = () => {
       action: "Updated investment criteria",
       time: "1 day ago",
       type: "investor",
-    },
+    },  
   ];
 
   return (
