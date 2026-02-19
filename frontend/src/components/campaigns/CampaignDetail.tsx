@@ -205,7 +205,7 @@ const CampaignDetail: React.FC = () => {
         (m: any) =>
           m.status === "approved" ||
           m.status === "engaged" ||
-          m.status === "completed"
+          m.status === "completed",
       )
     : [];
 
@@ -312,7 +312,7 @@ const CampaignDetail: React.FC = () => {
     const end = new Date(endDate);
     const now = new Date();
     const diff = Math.ceil(
-      (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return diff > 0 ? diff : 0;
   };
@@ -336,15 +336,15 @@ const CampaignDetail: React.FC = () => {
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
         <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Campaign Not Found
+          Funding Application Not Found
         </h3>
         <p className="text-red-600 mb-4">
-          Unable to load this campaign. It may have been deleted or you don't
-          have access.
+          Unable to load this funding application. It may have been deleted or
+          you don't have access.
         </p>
         <Link to="/campaigns" className="btn-primary">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Campaigns
+          Back to Funding Applications
         </Link>
       </div>
     );
@@ -353,7 +353,7 @@ const CampaignDetail: React.FC = () => {
   const StatusIcon = statusConfig[campaign.status]?.icon || Clock;
   const progressPercentage = getProgressPercentage(
     campaign.amount_raised || 0,
-    campaign.target_amount
+    campaign.target_amount,
   );
   const daysRemaining = campaign.end_date
     ? getDaysRemaining(campaign.end_date)
@@ -362,7 +362,7 @@ const CampaignDetail: React.FC = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: Activity },
     ...(!isInvestor
-      ? [{ id: "investors", label: "Investors", icon: Users }]
+      ? [{ id: "investors", label: "Partners", icon: Users }]
       : []),
     { id: "documents", label: "Documents", icon: FileText },
     { id: "updates", label: "Updates", icon: MessageSquare },
@@ -379,7 +379,7 @@ const CampaignDetail: React.FC = () => {
           className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to {isInvestor ? "Matches" : "Campaigns"}
+          Back to {isInvestor ? "Matches" : "Funding Applications"}
         </button>
 
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -406,19 +406,23 @@ const CampaignDetail: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {!isInvestor && campaign.status === "draft" && (
-              <button
-                onClick={handleSubmitForReview}
-                disabled={submitForReviewMutation.isPending}
-                className="btn-primary"
-              >
-                {submitForReviewMutation.isPending
-                  ? "Submitting..."
-                  : "Submit for Review"}
-              </button>
-            )}
             {!isInvestor &&
-              campaign.status === "vetted" &&
+              (campaign.status === "draft" ||
+                campaign.status === "revision_required") && (
+                <button
+                  onClick={handleSubmitForReview}
+                  disabled={submitForReviewMutation.isPending}
+                  className="btn-primary"
+                >
+                  {submitForReviewMutation.isPending
+                    ? "Submitting..."
+                    : campaign.status === "revision_required"
+                      ? "Resubmit for Review"
+                      : "Submit for Review"}
+                </button>
+              )}
+            {!isInvestor &&
+              campaign.status === "approved" &&
               campaign.is_vetted && (
                 <button
                   onClick={() => activateMutation.mutate()}
@@ -427,7 +431,7 @@ const CampaignDetail: React.FC = () => {
                 >
                   {activateMutation.isPending
                     ? "Activating..."
-                    : "Activate Campaign"}
+                    : "Make Partner Visible"}
                 </button>
               )}
             {isInvestor && campaign.status === "active" && !userInterest && (
@@ -781,7 +785,7 @@ const CampaignDetail: React.FC = () => {
                             <p className="text-sm font-semibold text-green-600 mt-1">
                               Pledged: $
                               {parseFloat(
-                                match.committed_amount
+                                match.committed_amount,
                               ).toLocaleString()}
                             </p>
                           )}
@@ -791,15 +795,15 @@ const CampaignDetail: React.FC = () => {
                                 match.status === "completed"
                                   ? "bg-emerald-100 text-emerald-800"
                                   : match.status === "engaged"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-blue-100 text-blue-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-blue-100 text-blue-800"
                               }`}
                             >
                               {match.status === "completed"
                                 ? "Payment Confirmed"
                                 : match.status === "engaged"
-                                ? "Connected"
-                                : "Interest Expressed"}
+                                  ? "Connected"
+                                  : "Interest Expressed"}
                             </span>
                           </div>
                         </div>

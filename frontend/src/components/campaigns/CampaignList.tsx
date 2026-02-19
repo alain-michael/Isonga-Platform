@@ -14,6 +14,8 @@ import {
   ChevronRight,
   Target,
   Calendar,
+  FileEdit,
+  XCircle,
 } from "lucide-react";
 import { useMyCampaigns } from "../../hooks/useCampaigns";
 
@@ -25,22 +27,32 @@ const statusConfig: Record<
   submitted: {
     color: "bg-blue-100 text-blue-800",
     icon: Clock,
-    label: "Submitted",
+    label: "Pending Review",
   },
-  vetted: {
-    color: "bg-purple-100 text-purple-800",
+  revision_required: {
+    color: "bg-orange-100 text-orange-800",
+    icon: FileEdit,
+    label: "Revision Required",
+  },
+  approved: {
+    color: "bg-green-100 text-green-800",
     icon: CheckCircle,
-    label: "Vetted",
+    label: "Approved",
   },
   active: {
-    color: "bg-green-100 text-green-800",
-    icon: TrendingUp,
-    label: "Active",
+    color: "bg-emerald-100 text-emerald-800",
+    icon: Target,
+    label: "Active - Partner Visible",
   },
   completed: {
-    color: "bg-emerald-100 text-emerald-800",
+    color: "bg-blue-100 text-blue-800",
     icon: CheckCircle,
     label: "Completed",
+  },
+  rejected: {
+    color: "bg-red-100 text-red-800",
+    icon: XCircle,
+    label: "Rejected",
   },
   cancelled: {
     color: "bg-red-100 text-red-800",
@@ -83,17 +95,17 @@ const CampaignList: React.FC = () => {
     totalRaised:
       campaigns?.reduce(
         (sum: number, c: any) => sum + (c.amount_raised || 0),
-        0
+        0,
       ) || 0,
     totalTarget:
       campaigns?.reduce(
         (sum: number, c: any) => sum + (c.target_amount || 0),
-        0
+        0,
       ) || 0,
     totalInvestors:
       campaigns?.reduce(
         (sum: number, c: any) => sum + (c.investor_count || 0),
-        0
+        0,
       ) || 0,
   };
 
@@ -110,10 +122,10 @@ const CampaignList: React.FC = () => {
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
         <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Error Loading Campaigns
+          Error Loading Funding Applications
         </h3>
         <p className="text-red-600">
-          Unable to load your campaigns. Please try again later.
+          Unable to load your funding applications. Please try again later.
         </p>
       </div>
     );
@@ -124,9 +136,11 @@ const CampaignList: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">My Campaigns</h1>
+          <h1 className="text-2xl font-bold text-neutral-900">
+            My Funding Applications
+          </h1>
           <p className="text-neutral-600 mt-1">
-            Manage your fundraising campaigns
+            Manage your funding applications
           </p>
         </div>
         <Link
@@ -134,7 +148,7 @@ const CampaignList: React.FC = () => {
           className="btn-primary inline-flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
-          Create Campaign
+          New Funding Application
         </Link>
       </div>
 
@@ -143,7 +157,7 @@ const CampaignList: React.FC = () => {
         <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600">Total Campaigns</p>
+              <p className="text-sm text-neutral-600">Total Applications</p>
               <p className="text-2xl font-bold text-neutral-900 mt-1">
                 {stats.total}
               </p>
@@ -157,7 +171,7 @@ const CampaignList: React.FC = () => {
         <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600">Active Campaigns</p>
+              <p className="text-sm text-neutral-600">Active Applications</p>
               <p className="text-2xl font-bold text-green-600 mt-1">
                 {stats.active}
               </p>
@@ -185,7 +199,7 @@ const CampaignList: React.FC = () => {
         <div className="glass-effect rounded-xl p-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600">Interested Investors</p>
+              <p className="text-sm text-neutral-600">Interested Partners</p>
               <p className="text-2xl font-bold text-purple-600 mt-1">
                 {stats.totalInvestors}
               </p>
@@ -204,7 +218,7 @@ const CampaignList: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search campaigns..."
+              placeholder="Search funding applications..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
@@ -238,12 +252,12 @@ const CampaignList: React.FC = () => {
           <div className="glass-effect rounded-xl border border-neutral-200 p-12 text-center">
             <Target className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-neutral-700 mb-2">
-              No Campaigns Found
+              No Funding Applications Found
             </h3>
             <p className="text-neutral-500 mb-6">
               {searchTerm || statusFilter !== "all"
-                ? "No campaigns match your search criteria."
-                : "You haven't created any campaigns yet."}
+                ? "No funding applications match your search criteria."
+                : "You haven't created any funding applications yet."}
             </p>
             {!searchTerm && statusFilter === "all" && (
               <Link
@@ -251,7 +265,7 @@ const CampaignList: React.FC = () => {
                 className="btn-primary inline-flex items-center gap-2"
               >
                 <Plus className="h-5 w-5" />
-                Create Your First Campaign
+                Create Your First Funding Application
               </Link>
             )}
           </div>
@@ -260,7 +274,7 @@ const CampaignList: React.FC = () => {
             const StatusIcon = statusConfig[campaign.status]?.icon || Clock;
             const progressPercentage = getProgressPercentage(
               campaign.amount_raised,
-              campaign.target_amount
+              campaign.target_amount,
             );
 
             return (

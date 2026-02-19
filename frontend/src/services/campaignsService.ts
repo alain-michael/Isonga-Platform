@@ -37,11 +37,17 @@ export const campaignsAPI = {
   // Approve (admin)
   approve: (id: string) => api.post(`${BASE_URL}/campaigns/${id}/approve/`),
   
+  // Require Revision (admin)
+  requireRevision: (id: string, notes: string) => api.post(`${BASE_URL}/campaigns/${id}/require_revision/`, { notes }),
+  
   // Reject (admin)
-  reject: (id: string) => api.post(`${BASE_URL}/campaigns/${id}/reject/`),
+  reject: (id: string, notes?: string) => api.post(`${BASE_URL}/campaigns/${id}/reject/`, { notes }),
   
   // Activate
   activate: (id: string) => api.post(`${BASE_URL}/campaigns/${id}/activate/`),
+  
+  // Check eligibility for partners
+  checkEligibility: (id: string) => api.get(`${BASE_URL}/campaigns/${id}/check_eligibility/`),
   
   // Close
   close: (id: string, reason?: string) => api.post(`${BASE_URL}/campaigns/${id}/close/`, { reason }),

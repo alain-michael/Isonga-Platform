@@ -13,6 +13,7 @@ import {
   Bell,
   DollarSign,
   Settings,
+  Target,
 } from "lucide-react";
 
 const InvestorProfile: React.FC = () => {
@@ -41,6 +42,7 @@ const InvestorProfile: React.FC = () => {
     minTicket: 0,
     maxTicket: 0,
     stages: [] as string[], // Not in backend model yet
+    minReadinessScore: 0, // Minimum readiness score required for SMEs
   });
 
   useEffect(() => {
@@ -64,6 +66,7 @@ const InvestorProfile: React.FC = () => {
           minTicket: criteria.min_funding_amount || 0,
           maxTicket: criteria.max_funding_amount || 0,
           stages: [], // Placeholder
+          minReadinessScore: criteria.min_readiness_score || 0,
         });
       }
     }
@@ -93,12 +96,13 @@ const InvestorProfile: React.FC = () => {
         sectors: data.sectors,
         min_funding_amount: data.minTicket,
         max_funding_amount: data.maxTicket,
+        min_readiness_score: data.minReadinessScore,
       };
 
       if (profile.criteria && profile.criteria.length > 0) {
         return investorAPI.updateCriteria(
           profile.criteria[0].id!,
-          criteriaData
+          criteriaData,
         );
       } else {
         // Create new criteria if none exists (need to implement create in backend/service if not exists)
@@ -124,7 +128,7 @@ const InvestorProfile: React.FC = () => {
   };
 
   const handleProfileChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
@@ -472,6 +476,82 @@ const InvestorProfile: React.FC = () => {
                           }
                           className="w-full pl-10 pr-4 py-2.5 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                         />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Minimum Readiness Score */}
+                  <div className="p-6 bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20 rounded-xl border border-primary-200 dark:border-primary-800">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
+                        <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                          Minimum Readiness Score
+                        </h4>
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+                          Set the minimum assessment readiness score required
+                          for SMEs to appear in your opportunities. Only funding
+                          applications from SMEs meeting this threshold will be
+                          visible to you.
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={preferences.minReadinessScore}
+                            onChange={(e) =>
+                              setPreferences((prev) => ({
+                                ...prev,
+                                minReadinessScore: parseInt(e.target.value),
+                              }))
+                            }
+                            className="flex-1 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={preferences.minReadinessScore}
+                              onChange={(e) =>
+                                setPreferences((prev) => ({
+                                  ...prev,
+                                  minReadinessScore: Math.min(
+                                    100,
+                                    Math.max(0, parseInt(e.target.value) || 0),
+                                  ),
+                                }))
+                              }
+                              className="w-20 px-3 py-2 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 text-center font-bold"
+                            />
+                            <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                              %
+                            </span>
+                          </div>
+                        </div>
+                        {preferences.minReadinessScore >= 70 && (
+                          <p className="mt-3 text-sm text-green-600 dark:text-green-400 flex items-center">
+                            <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            High quality filter - Only investment-ready SMEs
+                          </p>
+                        )}
+                        {preferences.minReadinessScore > 0 &&
+                          preferences.minReadinessScore < 70 && (
+                            <p className="mt-3 text-sm text-orange-600 dark:text-orange-400 flex items-center">
+                              <span className="inline-block w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                              Moderate filter - Mix of developing and ready SMEs
+                            </p>
+                          )}
+                        {preferences.minReadinessScore === 0 && (
+                          <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400 flex items-center">
+                            <span className="inline-block w-2 h-2 bg-neutral-400 rounded-full mr-2"></span>
+                            No filter - All approved funding applications
+                            visible
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

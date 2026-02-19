@@ -28,20 +28,15 @@ import LanguageSelector from "../ui/LanguageSelector";
 const registerSchema = yup.object({
   first_name: yup.string().required("First name is required"),
   last_name: yup.string().required("Last name is required"),
-  username: yup
-    .string()
-    .required("Username is required")
-    .min(3, "Username must be at least 3 characters"),
   email: yup
     .string()
     .required("Email is required")
     .email("Please enter a valid email"),
   phone_number: yup
     .string()
-    .optional()
+    .required("Phone number is required")
     .matches(/^(\+?250|0)?[7][2389]\d{7}$/, {
       message: "Please enter a valid Rwandan phone number",
-      excludeEmptyString: true,
     }),
   password: yup
     .string()
@@ -63,9 +58,8 @@ const registerSchema = yup.object({
 type RegisterFormData = {
   first_name: string;
   last_name: string;
-  username: string;
   email: string;
-  phone_number?: string;
+  phone_number: string;
   password: string;
   confirmPassword: string;
   agreeToTerms: boolean;
@@ -175,8 +169,8 @@ const ProgressStepper: React.FC<{
                     isCompleted
                       ? "bg-green-500 text-white"
                       : isCurrent
-                      ? "bg-primary-700 text-white ring-4 ring-primary-200 dark:ring-primary-900"
-                      : "bg-neutral-200 dark:bg-neutral-700 text-neutral-500"
+                        ? "bg-primary-700 text-white ring-4 ring-primary-200 dark:ring-primary-900"
+                        : "bg-neutral-200 dark:bg-neutral-700 text-neutral-500"
                   }`}
                 >
                   {isCompleted ? (
@@ -190,8 +184,8 @@ const ProgressStepper: React.FC<{
                     isCurrent
                       ? "text-primary-700 dark:text-primary-400"
                       : isCompleted
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-neutral-500"
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-neutral-500"
                   }`}
                 >
                   {step.title}
@@ -228,7 +222,6 @@ const Register: React.FC = () => {
   document.documentElement.classList.remove("light", "dark");
   document.documentElement.classList.add("light");
 
-
   const {
     register,
     handleSubmit,
@@ -241,7 +234,6 @@ const Register: React.FC = () => {
     defaultValues: {
       first_name: "",
       last_name: "",
-      username: "",
       email: "",
       phone_number: "",
       password: "",
@@ -256,13 +248,7 @@ const Register: React.FC = () => {
     let fieldsToValidate: (keyof RegisterFormData)[] = [];
 
     if (currentStep === 1) {
-      fieldsToValidate = [
-        "first_name",
-        "last_name",
-        "username",
-        "email",
-        "phone_number",
-      ];
+      fieldsToValidate = ["first_name", "last_name", "email", "phone_number"];
     }
 
     const isValid = await trigger(fieldsToValidate);
@@ -303,7 +289,7 @@ const Register: React.FC = () => {
         err.response?.data?.error ||
           err.response?.data?.detail ||
           err.message ||
-          "Registration failed. Please try again."
+          "Registration failed. Please try again.",
       );
     }
   };
@@ -488,37 +474,6 @@ const Register: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Username */}
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
-                  >
-                    Username
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="w-4 h-4 text-neutral-400" />
-                    </div>
-                    <input
-                      {...register("username")}
-                      type="text"
-                      id="username"
-                      className={`w-full pl-10 pr-3 py-3 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 text-sm focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
-                        errors.username
-                          ? "border-red-300 dark:border-red-600"
-                          : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
-                      }`}
-                      placeholder="Choose a username"
-                    />
-                  </div>
-                  {errors.username && (
-                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                      {errors.username.message}
-                    </p>
-                  )}
-                </div>
-
                 {/* Email */}
                 <div>
                   <label
@@ -556,10 +511,7 @@ const Register: React.FC = () => {
                     htmlFor="phone_number"
                     className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5"
                   >
-                    Phone Number{" "}
-                    <span className="text-xs font-normal text-neutral-500">
-                      (Optional)
-                    </span>
+                    Phone Number
                   </label>
                   <div className="flex gap-2">
                     <select

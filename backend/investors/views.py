@@ -159,9 +159,9 @@ class MatchViewSet(viewsets.ModelViewSet):
         if criteria.sectors:
             enterprises = enterprises.filter(sector__in=criteria.sectors)
         
-        # Filter by size
+        # Filter by management structure (if criteria specifies)
         if criteria.preferred_sizes:
-            enterprises = enterprises.filter(enterprise_size__in=criteria.preferred_sizes)
+            enterprises = enterprises.filter(management_structure__in=criteria.preferred_sizes)
         
         # Filter by years of operation
         from datetime import datetime
@@ -417,8 +417,8 @@ class InvestorMatchesView(generics.ListAPIView):
             if (criteria.min_funding_amount <= campaign.target_amount <= criteria.max_funding_amount):
                 score += 20
             
-            # Enterprise size match (+15)
-            if enterprise.enterprise_size in criteria.preferred_sizes:
+            # Management structure match (+15)
+            if enterprise.management_structure in criteria.preferred_sizes:
                 score += 15
                 
             # Min investment match (+10)

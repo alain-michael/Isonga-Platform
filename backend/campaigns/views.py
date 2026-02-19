@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Avg
 from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage
 from .serializers import (
     CampaignSerializer, CampaignDetailSerializer, CampaignCreateSerializer,
@@ -42,13 +42,21 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if user.user_type in ['admin', 'superadmin']:
             return Campaign.objects.all()
         
-        # Investors see vetted, active campaigns
+        # Investors/Partners see only active (partner-visible) campaigns that meet their criteria
         if hasattr(user, 'investor_profile'):
+            investor = user.investor_profile
+            
+            # Get investor's criteria
+            criteria = investor.criteria.filter(is_active=True).first()
+            min_score = criteria.min_readiness_score if criteria else 0
+            
+            # Filter campaigns by readiness score
             return Campaign.objects.filter(
                 status='active',
-                is_vetted=True
+                is_vetted=True,
+                readiness_score_at_submission__gte=min_score
             ) | Campaign.objects.filter(
-                interests__investor=user.investor_profile
+                interests__investor=investor
             )
         
         # Enterprise users see their own campaigns
@@ -109,59 +117,161 @@ class CampaignViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def submit_for_review(self, request, pk=None):
-        """Submit campaign for admin review"""
+        """Submit funding application for admin review"""
         campaign = self.get_object()
         
-        if campaign.status != 'draft':
-            return Response({'error': 'Campaign is not in draft status'}, 
+        if campaign.status not in ['draft', 'revision_required']:
+            return Response({'error': 'Application can only be submitted from draft or revision required status'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
+        # Check readiness score before submission
+        enterprise = campaign.enterprise
+        from assessments.models import Assessment
+        avg_score = Assessment.objects.filter(
+            enterprise=enterprise,
+            status='completed'
+        ).aggregate(avg=Avg('percentage_score'))['avg'] or 0
+        
+        # Store readiness score at submission
+        campaign.readiness_score_at_submission = avg_score
         campaign.status = 'submitted'
+        
+        # Track if this is a resubmission
+        if campaign.revision_notes:
+            campaign.revision_count += 1
+        
         campaign.save()
         
-        return Response({'message': 'Campaign submitted for review'})
+        return Response({
+            'message': 'Funding application submitted for review',
+            'readiness_score': float(avg_score)
+        })
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        """Admin approves/vets a campaign"""
+        """Admin approves a funding application - makes it visible to partners"""
         if request.user.user_type not in ['admin', 'superadmin']:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
         campaign = self.get_object()
-        campaign.status = 'vetted'
+        
+        if campaign.status not in ['submitted']:
+            return Response({'error': 'Only submitted applications can be approved'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        campaign.status = 'approved'
         campaign.is_vetted = True
         campaign.vetted_by = request.user
         campaign.vetted_at = timezone.now()
+        campaign.vetting_notes = request.data.get('notes', '')
+        campaign.revision_notes = None  # Clear revision notes
         campaign.save()
         
-        return Response({'message': 'Campaign approved'})
+        return Response({'message': 'Funding application approved'})
     
     @action(detail=True, methods=['post'])
-    def reject(self, request, pk=None):
-        """Admin rejects a campaign"""
+    def require_revision(self, request, pk=None):
+        """Admin requests revision on a funding application"""
         if request.user.user_type not in ['admin', 'superadmin']:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
         campaign = self.get_object()
-        campaign.status = 'cancelled'
+        
+        if campaign.status not in ['submitted']:
+            return Response({'error': 'Only submitted applications can be sent for revision'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        revision_notes = request.data.get('notes', '')
+        if not revision_notes:
+            return Response({'error': 'Revision notes are required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        campaign.status = 'revision_required'
+        campaign.revision_notes = revision_notes
+        campaign.save()
+        
+        return Response({'message': 'Revision request sent to SME'})
+    
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """Admin rejects a funding application"""
+        if request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        campaign = self.get_object()
+        
+        if campaign.status not in ['submitted', 'revision_required']:
+            return Response({'error': 'Only submitted or revision required applications can be rejected'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        campaign.status = 'rejected'
         campaign.vetting_notes = request.data.get('notes', '')
         campaign.save()
         
-        return Response({'message': 'Campaign rejected'})
+        return Response({'message': 'Funding application rejected'})
     
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        """Activate a vetted campaign"""
+        """Make an approved funding application visible to partners"""
         campaign = self.get_object()
         
-        if not campaign.is_vetted:
-            return Response({'error': 'Campaign must be vetted first'}, 
+        # Can be activated by admin or by enterprise owner
+        if request.user.user_type not in ['admin', 'superadmin']:
+            if not hasattr(request.user, 'enterprise') or campaign.enterprise != request.user.enterprise:
+                return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if campaign.status != 'approved':
+            return Response({'error': 'Only approved applications can be activated'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
         campaign.status = 'active'
         campaign.save()
         
-        return Response({'message': 'Campaign activated'})
+        return Response({'message': 'Funding application is now visible to partners'})
+    
+    @action(detail=True, methods=['get'])
+    def check_eligibility(self, request, pk=None):
+        """Check if enterprise meets readiness criteria for partners"""
+        campaign = self.get_object()
+        enterprise = campaign.enterprise
+        
+        from assessments.models import Assessment
+        from investors.models import InvestorCriteria
+        
+        # Get enterprise's average readiness score
+        avg_score = Assessment.objects.filter(
+            enterprise=enterprise,
+            status='completed'
+        ).aggregate(avg=Avg('percentage_score'))['avg'] or 0
+        
+        # Get all partner criteria
+        criteria_list = InvestorCriteria.objects.filter(is_active=True)
+        
+        eligible_partners = []
+        for criteria in criteria_list:
+            if avg_score >= criteria.min_readiness_score:
+                eligible_partners.append({
+                    'investor_id': criteria.investor.id,
+                    'investor_name': str(criteria.investor),
+                    'min_score_required': float(criteria.min_readiness_score),
+                    'eligible': True
+                })
+            else:
+                eligible_partners.append({
+                    'investor_id': criteria.investor.id,
+                    'investor_name': str(criteria.investor),
+                    'min_score_required': float(criteria.min_readiness_score),
+                    'eligible': False,
+                    'score_gap': float(criteria.min_readiness_score - avg_score)
+                })
+        
+        return Response({
+            'readiness_score': float(avg_score),
+            'eligible_partners': [p for p in eligible_partners if p['eligible']],
+            'ineligible_partners': [p for p in eligible_partners if not p['eligible']],
+            'total_partners': len(criteria_list),
+            'eligible_count': len([p for p in eligible_partners if p['eligible']])
+        })
     
     @action(detail=True, methods=['post'])
     def close(self, request, pk=None):

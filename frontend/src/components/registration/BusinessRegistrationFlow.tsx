@@ -2,22 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { enterpriseAPI } from "../../services/api";
 import BusinessProfileStep from "./BusinessProfileStep";
-import AssessmentStep from "./AssessmentStep";
 import SuccessStep from "./SuccessStep";
 
 export interface BusinessProfile {
   business_name: string;
   tin_number: string;
   enterprise_type: string;
-  enterprise_size: string;
+  management_structure: string;
   sector: string;
+  province: string;
   district: string;
-  address: string;
-  city: string;
   year_established: number;
   description: string;
   website?: string;
-  email: string;
+  email?: string;
   phone_number: string;
   number_of_employees: number | string;
 }
@@ -52,41 +50,30 @@ const BusinessRegistrationFlow: React.FC = () => {
         ...prev,
         businessProfile: enterprise,
       }));
-      setCurrentStep(2); // Skip to assessments
+      // If profile exists, go directly to dashboard
+      navigate("/dashboard");
     } catch (error) {
       console.log("No existing profile found");
     }
   };
 
-  const handleStepComplete = (
-    step: number,
-    data?: BusinessProfile | number[]
-  ) => {
+  const handleStepComplete = (step: number, data?: BusinessProfile) => {
     switch (step) {
       case 1:
         setRegistrationData((prev) => ({
           ...prev,
           businessProfile: data as BusinessProfile,
         }));
-        setCurrentStep(2);
+        setCurrentStep(2); // Go to success step
         break;
       case 2:
-        setRegistrationData((prev) => ({
-          ...prev,
-          completedAssessments: data as number[],
-          pdfGenerated: true,
-          paymentCompleted: true, // Skip payment for now
-        }));
-        setCurrentStep(3); // Go to success step
-        break;
-      case 3:
         navigate("/dashboard");
         break;
     }
   };
 
   const getStepProgress = () => {
-    return ((currentStep - 1) / 2) * 100; // Only 3 steps now (Profile, Assessment, Success)
+    return ((currentStep - 1) / 1) * 100; // Only 2 steps now (Profile, Success)
   };
 
   const renderCurrentStep = () => {
@@ -100,15 +87,8 @@ const BusinessRegistrationFlow: React.FC = () => {
         );
       case 2:
         return (
-          <AssessmentStep
-            onComplete={(data) => handleStepComplete(2, data)}
-            businessProfile={registrationData.businessProfile!}
-          />
-        );
-      case 3:
-        return (
           <SuccessStep
-            onComplete={() => handleStepComplete(3)}
+            onComplete={() => handleStepComplete(2)}
             registrationData={registrationData}
           />
         );
@@ -124,7 +104,7 @@ const BusinessRegistrationFlow: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-neutral-700">
-              Step {currentStep} of 3
+              Step {currentStep} of 2
             </span>
             <span className="text-sm font-medium text-neutral-700">
               {Math.round(getStepProgress())}% Complete
@@ -163,18 +143,6 @@ const BusinessRegistrationFlow: React.FC = () => {
               }`}
             >
               2
-            </div>
-            <span className="text-xs text-neutral-600 mt-2">Assessments</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= 3
-                  ? "bg-primary-500 text-white"
-                  : "bg-neutral-200 text-neutral-500"
-              }`}
-            >
-              3
             </div>
             <span className="text-xs text-neutral-600 mt-2">Complete</span>
           </div>

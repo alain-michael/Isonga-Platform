@@ -11,10 +11,17 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'phone_number', 'is_verified', 'password', 'last_login', 'date_joined', 'is_active']
         read_only_fields = ['id', 'user_type', 'is_verified', 'last_login', 'date_joined']
+        extra_kwargs = {
+            'username': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'phone_number': {'required': True}
+        }
         
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = User.objects.create_user(**validated_data)
+        # Ensure username is set to None or empty if not provided
+        if 'username' not in validated_data or not validated_data.get('username'):
+            validated_data['username'] = None
+        user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
         return user

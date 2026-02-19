@@ -19,6 +19,8 @@ import {
   RefreshCw,
   ThumbsUp,
   ThumbsDown,
+  FileEdit,
+  Target,
 } from "lucide-react";
 
 const AdminCampaignDetail: React.FC = () => {
@@ -26,7 +28,9 @@ const AdminCampaignDetail: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [showVetModal, setShowVetModal] = useState(false);
-  const [vetAction, setVetAction] = useState<"approve" | "reject" | null>(null);
+  const [vetAction, setVetAction] = useState<
+    "approve" | "revision" | "reject" | null
+  >(null);
   const [vetNotes, setVetNotes] = useState("");
 
   const {
@@ -44,13 +48,15 @@ const AdminCampaignDetail: React.FC = () => {
 
   const vetMutation = useMutation({
     mutationFn: async (data: {
-      action: "approve" | "reject";
+      action: "approve" | "revision" | "reject";
       notes: string;
     }) => {
       if (data.action === "approve") {
         return await campaignAPI.approve(id!);
+      } else if (data.action === "revision") {
+        return await campaignAPI.requireRevision(id!, data.notes);
       } else {
-        return await campaignAPI.reject(id!);
+        return await campaignAPI.reject(id!, data.notes);
       }
     },
     onSuccess: () => {
@@ -77,16 +83,7 @@ const AdminCampaignDetail: React.FC = () => {
     vetMutation.mutate({ action: vetAction, notes: vetNotes });
   };
 
-  const getStatusBadge = (status: string, isVetted: boolean) => {
-    if (!isVetted) {
-      return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200">
-          <AlertCircle className="h-4 w-4 mr-1" />
-          Pending Review
-        </span>
-      );
-    }
-
+  const getStatusBadge = (status: string) => {
     const statusConfig: Record<
       string,
       { color: string; icon: React.ElementType; label: string }
@@ -99,17 +96,32 @@ const AdminCampaignDetail: React.FC = () => {
       submitted: {
         color: "bg-blue-100 text-blue-800 border-blue-200",
         icon: Clock,
-        label: "Submitted",
+        label: "Pending Review",
       },
-      active: {
+      revision_required: {
+        color: "bg-orange-100 text-orange-800 border-orange-200",
+        icon: FileEdit,
+        label: "Revision Required",
+      },
+      approved: {
         color: "bg-green-100 text-green-800 border-green-200",
         icon: CheckCircle,
-        label: "Active",
+        label: "Approved",
+      },
+      active: {
+        color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        icon: Target,
+        label: "Active - Partner Visible",
       },
       completed: {
         color: "bg-blue-100 text-blue-800 border-blue-200",
         icon: CheckCircle,
         label: "Completed",
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800 border-red-200",
+        icon: XCircle,
+        label: "Rejected",
       },
       cancelled: {
         color: "bg-red-100 text-red-800 border-red-200",
@@ -194,26 +206,26 @@ const AdminCampaignDetail: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {getStatusBadge(campaign.status, campaign.is_vetted)}
-            {!campaign.is_vetted && (
+            {getStatusBadge(campaign.status)}
+            {campaign.status === "submitted" && (
               <button
                 onClick={() => setShowVetModal(true)}
                 className="btn-primary"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Review Campaign
+                Review Application
               </button>
             )}
-            {campaign.is_vetted && campaign.status === "vetted" && (
+            {campaign.status === "approved" && (
               <button
                 onClick={() => activateMutation.mutate()}
                 disabled={activateMutation.isPending}
                 className="btn-primary"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <Target className="h-4 w-4 mr-2" />
                 {activateMutation.isPending
                   ? "Activating..."
-                  : "Activate Campaign"}
+                  : "Make Partner Visible"}
               </button>
             )}
           </div>
@@ -282,8 +294,8 @@ const AdminCampaignDetail: React.FC = () => {
                       0,
                       Math.ceil(
                         (new Date(campaign.end_date).getTime() - Date.now()) /
-                          (1000 * 60 * 60 * 24)
-                      )
+                          (1000 * 60 * 60 * 24),
+                      ),
                     )
                   : "N/A"}
               </p>
@@ -386,7 +398,7 @@ const AdminCampaignDetail: React.FC = () => {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          }
+                          },
                         )
                       : "Not set"}
                   </p>
@@ -560,50 +572,83 @@ const AdminCampaignDetail: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="glass-effect rounded-xl shadow-xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-neutral-900 mb-4">
-              Review Campaign
+              Review Funding Application
             </h3>
+
+            {/* Readiness Score Display */}
+            {campaign.readiness_score_at_submission && (
+              <div className="mb-4 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
+                <p className="text-sm text-neutral-600">SME Readiness Score</p>
+                <p
+                  className={`text-2xl font-bold ${
+                    campaign.readiness_score_at_submission >= 70
+                      ? "text-green-600"
+                      : "text-orange-600"
+                  }`}
+                >
+                  {Math.round(campaign.readiness_score_at_submission)}%
+                </p>
+              </div>
+            )}
 
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Action
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setVetAction("approve")}
-                    className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition ${
+                    className={`flex flex-col items-center justify-center px-3 py-3 rounded-lg border-2 transition ${
                       vetAction === "approve"
                         ? "border-green-500 bg-green-50 text-green-700"
                         : "border-neutral-200 hover:border-green-300"
                     }`}
                   >
-                    <ThumbsUp className="h-5 w-5 mr-2" />
-                    Approve
+                    <ThumbsUp className="h-5 w-5 mb-1" />
+                    <span className="text-xs font-medium">Approve</span>
+                  </button>
+                  <button
+                    onClick={() => setVetAction("revision")}
+                    className={`flex flex-col items-center justify-center px-3 py-3 rounded-lg border-2 transition ${
+                      vetAction === "revision"
+                        ? "border-orange-500 bg-orange-50 text-orange-700"
+                        : "border-neutral-200 hover:border-orange-300"
+                    }`}
+                  >
+                    <FileEdit className="h-5 w-5 mb-1" />
+                    <span className="text-xs font-medium">Revision</span>
                   </button>
                   <button
                     onClick={() => setVetAction("reject")}
-                    className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition ${
+                    className={`flex flex-col items-center justify-center px-3 py-3 rounded-lg border-2 transition ${
                       vetAction === "reject"
                         ? "border-red-500 bg-red-50 text-red-700"
                         : "border-neutral-200 hover:border-red-300"
                     }`}
                   >
-                    <ThumbsDown className="h-5 w-5 mr-2" />
-                    Reject
+                    <ThumbsDown className="h-5 w-5 mb-1" />
+                    <span className="text-xs font-medium">Reject</span>
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Notes (Optional)
+                  {vetAction === "revision"
+                    ? "Revision Notes (Required)"
+                    : "Notes (Optional)"}
                 </label>
                 <textarea
                   value={vetNotes}
                   onChange={(e) => setVetNotes(e.target.value)}
                   rows={4}
                   className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Add notes about your decision..."
+                  placeholder={
+                    vetAction === "revision"
+                      ? "Describe what changes the SME needs to make..."
+                      : "Add notes about your decision..."
+                  }
                 />
               </div>
             </div>
@@ -622,16 +667,30 @@ const AdminCampaignDetail: React.FC = () => {
               </button>
               <button
                 onClick={handleVet}
-                className="flex-1 btn-primary"
-                disabled={!vetAction || vetMutation.isPending}
+                className={`flex-1 ${
+                  vetAction === "approve"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : vetAction === "revision"
+                      ? "bg-orange-600 hover:bg-orange-700"
+                      : "bg-red-600 hover:bg-red-700"
+                } text-white px-4 py-2 rounded-lg transition disabled:opacity-50`}
+                disabled={
+                  !vetAction ||
+                  vetMutation.isPending ||
+                  (vetAction === "revision" && !vetNotes)
+                }
               >
                 {vetMutation.isPending ? (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin inline" />
                     Processing...
                   </>
+                ) : vetAction === "approve" ? (
+                  "Approve"
+                ) : vetAction === "revision" ? (
+                  "Request Revision"
                 ) : (
-                  "Confirm"
+                  "Reject"
                 )}
               </button>
             </div>

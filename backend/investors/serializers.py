@@ -8,7 +8,7 @@ from campaigns.models import Campaign
 class InvestorUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'email', 'phone_number']
 
 
 class InvestorSerializer(serializers.ModelSerializer):
@@ -37,11 +37,9 @@ class InvestorSerializer(serializers.ModelSerializer):
         if user_data:
             # Create user account
             user = User.objects.create_user(
-                username=user_data['username'],
+                phone_number=user_data['phone_number'],
                 email=user_data['email'],
                 password=user_data['password'],
-                first_name=user_data.get('first_name', ''),
-                last_name=user_data.get('last_name', ''),
                 user_type='investor'
             )
             validated_data['user'] = user

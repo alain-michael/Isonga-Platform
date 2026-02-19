@@ -54,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   };
 
   const navItems = [
+    // Dashboard - Always first
     {
       name: t("navigation.dashboard"),
       path: "/dashboard",
@@ -67,9 +68,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       visible: user?.user_type === "investor",
     },
     {
+      name: t("navigation.profile"),
+      path: "/investor/profile",
+      icon: User,
+      visible: user?.user_type === "investor",
+    },
+    // Partner-specific navigation
+    {
       name: "Opportunities",
       path: "/investor/matches",
-      icon: TrendingUp,
+      icon: Target,
       visible: user?.user_type === "investor",
     },
     {
@@ -78,82 +86,80 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: Heart,
       visible: user?.user_type === "investor",
     },
+    // SME & Admin shared features
+    {
+      name: t("navigation.assessments"),
+      path:
+      user?.user_type === "admin" || user?.user_type === "superadmin"
+      ? "/admin/assessments"
+      : "/assessments",
+      icon: ClipboardList,
+      visible:
+        user?.user_type === "admin" ||
+        user?.user_type === "superadmin" ||
+        user?.user_type === "enterprise",
+      },
+      {
+        name: t("navigation.campaigns"),
+        path: "/campaigns",
+      icon: Target,
+      visible: user?.user_type === "enterprise",
+    },
+    {
+      name: "Funding Applications",
+      path: "/admin/campaigns",
+      icon: Target,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    // Messages
     {
       name: "Messages",
       path: "/messages",
       icon: MessageSquare,
       visible:
         user?.user_type === "investor" || user?.user_type === "enterprise",
-    },
-    {
-      name: t("navigation.profile"),
-      path: "/profile",
-      icon: User,
-      visible: user?.user_type === "enterprise",
-    },
-    {
-      name: t("navigation.profile"),
-      path: "/investor/profile",
-      icon: User,
-      visible: user?.user_type === "investor",
-    },
-    {
-      name: t("navigation.campaigns"),
-      path: "/campaigns",
-      icon: Target,
-      visible: user?.user_type === "enterprise",
-    },
-    {
-      name: t("navigation.assessments"),
-      path:
-        user?.user_type === "admin" || user?.user_type === "superadmin"
-          ? "/admin/assessments"
-          : "/assessments",
-      icon: ClipboardList,
-      visible:
-        user?.user_type === "admin" ||
-        user?.user_type === "superadmin" ||
-        user?.user_type === "enterprise",
-    },
-    {
-      name: t("admin.manageQuestionnaires"),
-      path: "/admin/questionnaires",
-      icon: FileText,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
-    {
-      name: "Investors",
-      path: "/admin/investors",
-      icon: TrendingUp,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
-    {
-      name: "Users",
-      path: "/admin/users",
-      icon: Users,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
-    {
-      name: t("navigation.enterprises"),
-      path: "/admin/enterprises",
-      icon: Building2,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
-    {
-      name: "Campaigns",
-      path: "/admin/campaigns",
-      icon: TrendingUp,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
-  ];
-
-  return (
+      },
+      // Admin-only navigation
+      {
+        name: "Users",
+        path: "/admin/users",
+        icon: Users,
+        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      },
+      {
+        name: t("navigation.enterprises"),
+        path: "/admin/enterprises",
+        icon: Building2,
+        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      },
+      {
+        name: "Funding Partners",
+        path: "/admin/investors",
+        icon: TrendingUp,
+        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      },
+      {
+        name: t("admin.manageQuestionnaires"),
+        path: "/admin/questionnaires",
+        icon: FileText,
+        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      },
+      // Profile - Personal information
+      {
+        name: t("navigation.profile"),
+        path: "/profile",
+        icon: User,
+        visible: user?.user_type === "enterprise",
+      },
+    ];
+    
+    return (
     <>
       {/* Mobile Overlay */}
       <div
         className={cn(
           "fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={() => setIsOpen(false)}
       />
@@ -162,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       <aside
         className={cn(
           "fixed top-0 left-0 z-50 h-screen w-64 glass-effect border-r border-neutral-200 dark:border-neutral-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex-shrink-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex flex-col h-full">
@@ -194,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       active
                         ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400"
-                        : "text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-200"
+                        : "text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-200",
                     )}
                   >
                     <Icon
@@ -202,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         "h-5 w-5",
                         active
                           ? "text-primary-600 dark:text-primary-400"
-                          : "text-neutral-400 dark:text-neutral-500"
+                          : "text-neutral-400 dark:text-neutral-500",
                       )}
                     />
                     <span>{item.name}</span>
@@ -228,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 <ChevronDown
                   className={cn(
                     "h-4 w-4 text-neutral-400 transition-transform duration-200",
-                    showLangDropdown && "rotate-180"
+                    showLangDropdown && "rotate-180",
                   )}
                 />
               </button>
@@ -243,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         "w-full flex items-center space-x-2 px-3 py-2 text-sm transition-colors",
                         i18n.language === lang.code
                           ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400"
-                          : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+                          : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700",
                       )}
                     >
                       <span>{lang.flag}</span>

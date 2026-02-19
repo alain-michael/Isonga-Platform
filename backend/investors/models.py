@@ -22,6 +22,7 @@ class Investor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='investor_profile')
     investor_type = models.CharField(max_length=20, choices=INVESTOR_TYPES)
     organization_name = models.CharField(max_length=255, blank=True, null=True)
+    partner_name = models.CharField(max_length=255, blank=True, null=True, help_text="Name of the partner contact person")
     description = models.TextField(blank=True, null=True)
     
     # Contact

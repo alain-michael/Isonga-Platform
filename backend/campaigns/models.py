@@ -7,13 +7,15 @@ User = get_user_model()
 
 
 class Campaign(models.Model):
-    """Fundraising/Investment campaigns by SMEs"""
+    """Funding Applications by SMEs"""
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('submitted', 'Submitted for Review'),
-        ('vetted', 'Vetted'),
-        ('active', 'Active'),
+        ('revision_required', 'Revision Required'),
+        ('approved', 'Approved'),
+        ('active', 'Active - Partner Visible'),
         ('completed', 'Completed'),
+        ('rejected', 'Rejected'),
         ('cancelled', 'Cancelled'),
     )
     
@@ -48,11 +50,18 @@ class Campaign(models.Model):
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     
-    # Vetting
+    # Vetting/Approval
     is_vetted = models.BooleanField(default=False)
     vetted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='vetted_campaigns')
     vetted_at = models.DateTimeField(null=True, blank=True)
     vetting_notes = models.TextField(blank=True, null=True)
+    
+    # Revision tracking
+    revision_notes = models.TextField(blank=True, null=True, help_text="Notes for SME when revision is required")
+    revision_count = models.PositiveIntegerField(default=0)
+    
+    # Readiness score at time of submission (captured from assessment)
+    readiness_score_at_submission = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
     # Use of funds
     use_of_funds = models.JSONField(default=dict, help_text="Breakdown of how funds will be used")

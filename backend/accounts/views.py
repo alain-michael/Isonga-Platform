@@ -10,21 +10,15 @@ from .serializers import UserSerializer, UserProfileSerializer
 User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'phone_number'
+    
     def validate(self, attrs):
-        # Support both username and email for authentication
-        username = attrs.get('username')
+        # Use phone_number for authentication
+        phone_number = attrs.get('phone_number')
         password = attrs.get('password')
         
-        # Try to authenticate with username first
-        user = authenticate(username=username, password=password)
-        
-        # If authentication fails, try using the input as email
-        if not user:
-            try:
-                user_obj = User.objects.get(email=username)
-                user = authenticate(username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                pass
+        # Authenticate with phone_number
+        user = authenticate(username=phone_number, password=password)
         
         if not user:
             raise serializers.ValidationError('No active account found with the given credentials')
@@ -73,18 +67,21 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def login(self, request):
-        username = request.data.get('username')
+        identifier = request.data.get('phone_number') or request.data.get('email')
         password = request.data.get('password')
         
-        if username and password:
-            # Try to authenticate with username first
-            user = authenticate(username=username, password=password)
+        if identifier and password:
+            # Try to authenticate with phone_number first, then email
+            user = None
             
-            # If authentication fails, try using the input as email
+            # Try phone_number authentication
+            user = authenticate(username=identifier, password=password)
+            
+            # If phone_number auth failed, try email
             if not user:
                 try:
-                    user_obj = User.objects.get(email=username)
-                    user = authenticate(username=user_obj.username, password=password)
+                    user_obj = User.objects.get(email=identifier)
+                    user = authenticate(username=user_obj.phone_number, password=password)
                 except User.DoesNotExist:
                     pass
             
@@ -98,7 +95,7 @@ class UserViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Phone number or email and password required'}, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'])
     def refresh(self, request):

@@ -15,8 +15,10 @@ import {
   Lightbulb,
   Handshake,
   Award,
-  FileText,
   Clock,
+  Search,
+  Wrench,
+  Link2,
 } from "lucide-react";
 
 type Language = "en" | "rw" | "fr";
@@ -24,21 +26,24 @@ type Language = "en" | "rw" | "fr";
 const translations = {
   en: {
     welcome: "Welcome to Isonga",
-    subtitle: "SME Assessment & Investor Matching Platform",
+    subtitle: "SME Assessment & Funding Partner Matching Platform",
     description:
-      "Empowering Rwandan businesses to access investment opportunities through comprehensive assessments and intelligent matching.",
+      "Empowering Rwandan businesses to access funding opportunities through comprehensive assessments and intelligent matching.",
     signIn: "Sign In",
     register: "Register Your Business",
     learnMore: "Learn More",
     features: {
       title: "Why Choose Isonga?",
+      smeTab: "For SMEs",
+      partnerTab: "For Funding Partners",
+      // SME features (4 cards)
       assessment: {
         title: "Comprehensive Assessment",
-        desc: "Get a detailed evaluation of your business readiness for investment",
+        desc: "Get a detailed evaluation of your business readiness for funding",
       },
       matching: {
-        title: "Smart Investor Matching",
-        desc: "Connect with investors who align with your business goals",
+        title: "Smart Partner Matching",
+        desc: "Connect with funding partners who align with your business goals",
       },
       support: {
         title: "Continuous Support",
@@ -48,21 +53,38 @@ const translations = {
         title: "Secure & Confidential",
         desc: "Your business data is protected with enterprise-grade security",
       },
+      // Funding Partner features (3 cards)
+      vettedPipeline: {
+        title: "Vetted Pipeline",
+        desc: "Stop wasting time on unready businesses. Access a pre-screened pipeline of 'Capital-Ready' SMEs.",
+      },
+      standardizedData: {
+        title: "Standardized Data",
+        desc: "Standardized opportunities with unified financial health data and risk analysis reports ready for credit committees.",
+      },
+      monitoring: {
+        title: "Monitoring",
+        desc: "Post-disbursement tracking of SME health and performance metrics.",
+      },
     },
     howItWorks: {
       title: "How It Works",
-      subtitle: "Your journey to investment in three simple steps",
+      subtitle: "Your journey to funding in four simple steps",
       step1: {
-        title: "Complete Your Assessment",
-        desc: "Fill out a comprehensive questionnaire about your business operations, financials, and growth plans",
+        title: "Register & Data Sync",
+        desc: "Connect your business records and tax data for a baseline assessment",
       },
       step2: {
-        title: "Receive Your Score & Insights",
-        desc: "Get AI-powered analysis of your strengths, weaknesses, and actionable recommendations",
+        title: "Gap Analysis",
+        desc: "Our engine identifies specific risks that deter potential funders",
       },
       step3: {
-        title: "Connect with Investors",
-        desc: "Get matched with investors looking for businesses like yours and start conversations",
+        title: "Optimization",
+        desc: "Work with advisors or tools to fix compliance and financial gaps",
+      },
+      step4: {
+        title: "Capital Matching",
+        desc: "Get introduced to lenders once you hit the 70% readiness score",
       },
     },
     benefits: {
@@ -70,29 +92,25 @@ const translations = {
       subtitle: "Unlock growth opportunities with Isonga",
       visibility: {
         title: "Increased Visibility",
-        desc: "Showcase your business to a network of active investors seeking opportunities in Rwanda",
+        desc: "Showcase your business to a network of active funding partners seeking opportunities in Rwanda",
       },
       insights: {
         title: "Actionable Insights",
-        desc: "Receive detailed analysis and recommendations to improve your investment readiness",
+        desc: "Receive detailed analysis and recommendations to improve your funding readiness",
       },
       network: {
         title: "Access to Network",
-        desc: "Join a community of ambitious entrepreneurs and experienced investors",
+        desc: "Join a community of ambitious entrepreneurs and experienced funding partners",
       },
       funding: {
         title: "Faster Funding",
-        desc: "Streamline the investment process with standardized assessments and intelligent matching",
+        desc: "Streamline the funding process with standardized assessments and intelligent matching",
       },
     },
-    testimonials: {
-      title: "Success Stories",
-      subtitle: "Hear from businesses that have grown with Isonga",
-    },
-    forInvestors: {
-      title: "For Investors",
+    forPartners: {
+      title: "For Funding Partners",
       subtitle:
-        "Discover vetted investment opportunities in Rwanda's growing market",
+        "Discover vetted funding opportunities in Rwanda's growing market",
       feature1: {
         title: "Pre-Screened Opportunities",
         desc: "Access businesses that have completed comprehensive assessments",
@@ -103,39 +121,41 @@ const translations = {
       },
       feature3: {
         title: "Smart Matching",
-        desc: "Find businesses that match your investment criteria and sector preferences",
+        desc: "Find businesses that match your funding criteria and sector preferences",
       },
     },
     stats: {
       businesses: "Businesses Assessed",
-      investors: "Active Investors",
+      partners: "Active Funding Partners",
       matched: "Successful Matches",
-      raised: "Funding Raised",
+      raised: "Funding Disbursed",
     },
     cta: {
       title: "Ready to Grow Your Business?",
-      subtitle:
-        "Join hundreds of Rwandan SMEs accessing investment opportunities",
+      subtitle: "Join hundreds of Rwandan SMEs accessing funding opportunities",
       button: "Get Started Today",
     },
   },
   rw: {
     welcome: "Murakaza neza kuri Isonga",
-    subtitle: "Urubuga rwo Gusuzuma Ubucuruzi no Guhuza n'Abashoramari",
+    subtitle:
+      "Urubuga rwo Gusuzuma Ubucuruzi no Guhuza n'Abafatanyabikorwa b'Imari",
     description:
-      "Dufasha ubucuruzi bw'Abanyarwanda kubona amahirwe yo gushora imari binyuze mu isuzuma rinoze no guhuza mu buryo bwiza.",
+      "Dufasha ubucuruzi bw'Abanyarwanda kubona amahirwe yo kubona imari binyuze mu isuzuma rinoze no guhuza mu buryo bwiza.",
     signIn: "Injira",
     register: "Andikisha Ubucuruzi Bwawe",
     learnMore: "Menya Byinshi",
     features: {
       title: "Kuki Wahitamo Isonga?",
+      smeTab: "Ku bicuruzi",
+      partnerTab: "Ku bafatanyabikorwa b'Imari",
       assessment: {
         title: "Isuzuma Ryuzuye",
         desc: "Bona isuzuma rirambuye ry'ubwitegure bw'ubucuruzi bwawe",
       },
       matching: {
-        title: "Guhuza Abashoramari mu Buryo Bwiza",
-        desc: "Hura n'abashoramari bahuje n'intego z'ubucuruzi bwawe",
+        title: "Guhuza Abafatanyabikorwa mu Buryo Bwiza",
+        desc: "Hura n'abafatanyabikorwa b'imari bahuje n'intego z'ubucuruzi bwawe",
       },
       support: {
         title: "Ubufasha Buhoraho",
@@ -145,22 +165,37 @@ const translations = {
         title: "Byizewe kandi Byihishwa",
         desc: "Amakuru y'ubucuruzi bwawe arindwa n'umutekano ukomeye",
       },
+      vettedPipeline: {
+        title: "Pipeline Yasuzumwe",
+        desc: "Hagarika guta igihe ku bicuruzi bititeguye. Bona pipeline y'ibicuruzi 'Biteguye Imari'.",
+      },
+      standardizedData: {
+        title: "Amakuru Yunze",
+        desc: "Amahirwe yunze hamwe n'amakuru y'ubuzima bw'imari n'isesengura ry'ingaruka biteguye.",
+      },
+      monitoring: {
+        title: "Gukurikirana",
+        desc: "Gukurikirana ubuzima bw'ibicuruzi nyuma yo gutanga imari.",
+      },
     },
     howItWorks: {
       title: "Imikorere",
-      subtitle:
-        "Urugendo rwawe rwo kubona ishoramari mu ntambwe eshatu zoroshye",
+      subtitle: "Urugendo rwawe rwo kubona imari mu ntambwe enye zoroshye",
       step1: {
-        title: "Uzuza Isuzuma",
-        desc: "Uzuza ibibazo byuzuye bijyanye n'ibikorwa by'ubucuruzi, imari, n'imigambi yo gukura",
+        title: "Kwiyandikisha no Guhuza Amakuru",
+        desc: "Huza inyandiko z'ubucuruzi bwawe n'amakuru y'imisoro kugirango hakorwe isuzuma ry'ibanze",
       },
       step2: {
-        title: "Bona Amanota n'Ubushakashatsi",
-        desc: "Bona isesengura rifite AI ry'imbaraga zawe, intege nke, n'ibyifuzo bikorwa",
+        title: "Isesengura ry'Ibibuze",
+        desc: "System yacu ibona ingaruka zibuza abafatanyabikorwa b'imari",
       },
       step3: {
-        title: "Hura n'Abashoramari",
-        desc: "Huzwa n'abashoramari bashaka ubucuruzi nk'ubwawe utangire ibiganiro",
+        title: "Kunoza",
+        desc: "Korana n'abajyanama cyangwa ibikoresho kugirango ukemure ibibuze",
+      },
+      step4: {
+        title: "Guhuza n'Imari",
+        desc: "Bwirwa abakodesheje iyo ugeze ku manota y'ubwitegure ya 70%",
       },
     },
     benefits: {
@@ -168,29 +203,24 @@ const translations = {
       subtitle: "Fungura amahirwe yo gukura hamwe na Isonga",
       visibility: {
         title: "Kugaragara Byinshi",
-        desc: "Erekana ubucuruzi bwawe ku isano y'abashoramari bakora bashaka amahirwe mu Rwanda",
+        desc: "Erekana ubucuruzi bwawe ku isano y'abafatanyabikorwa b'imari bakora bashaka amahirwe mu Rwanda",
       },
       insights: {
         title: "Ubushakashatsi Bukorwa",
-        desc: "Bona isesengura ryimbitse n'ibyifuzo byo kunoza ubwitegure bw'ishoramari",
+        desc: "Bona isesengura ryimbitse n'ibyifuzo byo kunoza ubwitegure bw'imari",
       },
       network: {
         title: "Kubona Urusobe",
-        desc: "Injira mu muryango w'abacuruzi bafite intego n'abashoramari babizi",
+        desc: "Injira mu muryango w'abacuruzi bafite intego n'abafatanyabikorwa b'imari babizi",
       },
       funding: {
-        title: "Inkunga Yihuse",
-        desc: "Oroshya inzira y'ishoramari hamwe n'isuzuma risanzwe no guhuza ubwenge",
+        title: "Imari Yihuse",
+        desc: "Oroshya inzira y'imari hamwe n'isuzuma risanzwe no guhuza ubwenge",
       },
     },
-    testimonials: {
-      title: "Inkuru zo Gutsinda",
-      subtitle: "Umva ubucuruzi bwakuze hamwe na Isonga",
-    },
-    forInvestors: {
-      title: "Ku bashoramari",
-      subtitle:
-        "Vumbura amahirwe y'ishoramari yemejwe mu isoko ry'u Rwanda rikura",
+    forPartners: {
+      title: "Ku bafatanyabikorwa b'Imari",
+      subtitle: "Vumbura amahirwe y'imari yemejwe mu isoko ry'u Rwanda rikura",
       feature1: {
         title: "Amahirwe Yasuzumwe Mbere",
         desc: "Bona ubucuruzi bwuzuye isuzuma ryimbitse",
@@ -201,40 +231,42 @@ const translations = {
       },
       feature3: {
         title: "Guhuza Ubwenge",
-        desc: "Shakisha ubucuruzi buhuje n'ibipimo byawe by'ishoramari n'amasoko wakunda",
+        desc: "Shakisha ubucuruzi buhuje n'ibipimo byawe by'imari n'amasoko wakunda",
       },
     },
     stats: {
       businesses: "Ibicuruzi Byasuzumwe",
-      investors: "Abashoramari Bakora",
+      partners: "Abafatanyabikorwa b'Imari Bakora",
       matched: "Guhuza Kwagenze Neza",
-      raised: "Imari Yabonetse",
+      raised: "Imari Yatanzwe",
     },
     cta: {
       title: "Witeguye Gukuza Ubucuruzi Bwawe?",
       subtitle:
-        "Ifatanye n'amagana y'ibicuruzi by'Abanyarwanda bibona amahirwe yo gushora",
+        "Ifatanye n'amagana y'ibicuruzi by'Abanyarwanda bibona amahirwe yo kubona imari",
       button: "Tangira Uyu Munsi",
     },
   },
   fr: {
     welcome: "Bienvenue sur Isonga",
     subtitle:
-      "Plateforme d'Évaluation des PME et Mise en Relation avec les Investisseurs",
+      "Plateforme d'Évaluation des PME et Mise en Relation avec les Partenaires de Financement",
     description:
-      "Permettre aux entreprises rwandaises d'accéder aux opportunités d'investissement grâce à des évaluations complètes et un matching intelligent.",
+      "Permettre aux entreprises rwandaises d'accéder aux opportunités de financement grâce à des évaluations complètes et un matching intelligent.",
     signIn: "Se Connecter",
     register: "Enregistrer Votre Entreprise",
     learnMore: "En Savoir Plus",
     features: {
       title: "Pourquoi Choisir Isonga?",
+      smeTab: "Pour les PME",
+      partnerTab: "Pour les Partenaires de Financement",
       assessment: {
         title: "Évaluation Complète",
-        desc: "Obtenez une évaluation détaillée de la préparation de votre entreprise",
+        desc: "Obtenez une évaluation détaillée de la préparation de votre entreprise au financement",
       },
       matching: {
         title: "Matching Intelligent",
-        desc: "Connectez-vous avec des investisseurs alignés avec vos objectifs",
+        desc: "Connectez-vous avec des partenaires de financement alignés avec vos objectifs",
       },
       support: {
         title: "Support Continu",
@@ -244,21 +276,37 @@ const translations = {
         title: "Sécurisé & Confidentiel",
         desc: "Vos données sont protégées avec une sécurité de niveau entreprise",
       },
+      vettedPipeline: {
+        title: "Pipeline Vérifiée",
+        desc: "Arrêtez de perdre du temps sur des entreprises non prêtes. Accédez à un pipeline pré-sélectionné de PME 'Prêtes pour le Capital'.",
+      },
+      standardizedData: {
+        title: "Données Standardisées",
+        desc: "Opportunités standardisées avec données de santé financière unifiées et rapports d'analyse des risques prêts pour les comités de crédit.",
+      },
+      monitoring: {
+        title: "Suivi",
+        desc: "Suivi post-décaissement de la santé des PME et des indicateurs de performance.",
+      },
     },
     howItWorks: {
       title: "Comment Ça Marche",
-      subtitle: "Votre parcours vers l'investissement en trois étapes simples",
+      subtitle: "Votre parcours vers le financement en quatre étapes simples",
       step1: {
-        title: "Complétez Votre Évaluation",
-        desc: "Remplissez un questionnaire complet sur vos opérations, finances et plans de croissance",
+        title: "Inscription & Synchronisation des Données",
+        desc: "Connectez vos registres d'entreprise et données fiscales pour une évaluation de base",
       },
       step2: {
-        title: "Recevez Votre Score & Analyses",
-        desc: "Obtenez une analyse IA de vos forces, faiblesses et recommandations actionnables",
+        title: "Analyse des Écarts",
+        desc: "Notre moteur identifie les risques spécifiques qui dissuadent les financeurs potentiels",
       },
       step3: {
-        title: "Connectez-vous aux Investisseurs",
-        desc: "Soyez mis en relation avec des investisseurs recherchant des entreprises comme la vôtre",
+        title: "Optimisation",
+        desc: "Travaillez avec des conseillers ou des outils pour corriger les lacunes de conformité et financières",
+      },
+      step4: {
+        title: "Matching de Capital",
+        desc: "Soyez présenté aux prêteurs une fois que vous atteignez le score de préparation de 70%",
       },
     },
     benefits: {
@@ -266,29 +314,25 @@ const translations = {
       subtitle: "Débloquez des opportunités de croissance avec Isonga",
       visibility: {
         title: "Visibilité Accrue",
-        desc: "Présentez votre entreprise à un réseau d'investisseurs actifs au Rwanda",
+        desc: "Présentez votre entreprise à un réseau de partenaires de financement actifs au Rwanda",
       },
       insights: {
         title: "Analyses Actionnables",
-        desc: "Recevez des analyses détaillées pour améliorer votre préparation à l'investissement",
+        desc: "Recevez des analyses détaillées pour améliorer votre préparation au financement",
       },
       network: {
         title: "Accès au Réseau",
-        desc: "Rejoignez une communauté d'entrepreneurs ambitieux et d'investisseurs expérimentés",
+        desc: "Rejoignez une communauté d'entrepreneurs ambitieux et de partenaires de financement expérimentés",
       },
       funding: {
         title: "Financement Plus Rapide",
-        desc: "Rationalisez le processus d'investissement avec des évaluations standardisées",
+        desc: "Rationalisez le processus de financement avec des évaluations standardisées",
       },
     },
-    testimonials: {
-      title: "Histoires de Succès",
-      subtitle: "Découvrez les entreprises qui ont grandi avec Isonga",
-    },
-    forInvestors: {
-      title: "Pour les Investisseurs",
+    forPartners: {
+      title: "Pour les Partenaires de Financement",
       subtitle:
-        "Découvrez des opportunités d'investissement vérifiées sur le marché rwandais",
+        "Découvrez des opportunités de financement vérifiées sur le marché rwandais",
       feature1: {
         title: "Opportunités Pré-Vérifiées",
         desc: "Accédez aux entreprises ayant complété des évaluations complètes",
@@ -304,14 +348,14 @@ const translations = {
     },
     stats: {
       businesses: "Entreprises Évaluées",
-      investors: "Investisseurs Actifs",
+      partners: "Partenaires de Financement Actifs",
       matched: "Matches Réussis",
-      raised: "Fonds Levés",
+      raised: "Fonds Décaissés",
     },
     cta: {
       title: "Prêt à Développer Votre Entreprise?",
       subtitle:
-        "Rejoignez des centaines de PME rwandaises accédant aux opportunités d'investissement",
+        "Rejoignez des centaines de PME rwandaises accédant aux opportunités de financement",
       button: "Commencer Aujourd'hui",
     },
   },
@@ -320,6 +364,7 @@ const translations = {
 const Welcome: React.FC = () => {
   const [language, setLanguage] = useState<Language>("en");
   const [scrolled, setScrolled] = useState(false);
+  const [featuresTab, setFeaturesTab] = useState<"sme" | "partner">("sme");
   const t = translations[language];
 
   useEffect(() => {
@@ -338,22 +383,31 @@ const Welcome: React.FC = () => {
 
   const stats = [
     { value: "500+", label: t.stats.businesses },
-    { value: "50+", label: t.stats.investors },
+    { value: "50+", label: t.stats.partners },
     { value: "100+", label: t.stats.matched },
     { value: "₿2B+", label: t.stats.raised },
   ];
 
-  const features = [
+  // SME features (4 cards)
+  const smeFeatures = [
     { icon: TrendingUp, ...t.features.assessment },
     { icon: Users, ...t.features.matching },
     { icon: Building2, ...t.features.support },
     { icon: Shield, ...t.features.secure },
   ];
 
+  // Funding Partner features (3 cards)
+  const partnerFeatures = [
+    { icon: Search, ...t.features.vettedPipeline },
+    { icon: BarChart3, ...t.features.standardizedData },
+    { icon: Target, ...t.features.monitoring },
+  ];
+
   const howItWorksSteps = [
-    { icon: FileText, number: "01", ...t.howItWorks.step1 },
-    { icon: BarChart3, number: "02", ...t.howItWorks.step2 },
-    { icon: Handshake, number: "03", ...t.howItWorks.step3 },
+    { icon: Link2, number: "01", ...t.howItWorks.step1 },
+    { icon: Search, number: "02", ...t.howItWorks.step2 },
+    { icon: Wrench, number: "03", ...t.howItWorks.step3 },
+    { icon: Handshake, number: "04", ...t.howItWorks.step4 },
   ];
 
   const benefits = [
@@ -363,49 +417,10 @@ const Welcome: React.FC = () => {
     { icon: Clock, ...t.benefits.funding },
   ];
 
-  const investorFeatures = [
-    { icon: CheckCircle2, ...t.forInvestors.feature1 },
-    { icon: BarChart3, ...t.forInvestors.feature2 },
-    { icon: Target, ...t.forInvestors.feature3 },
-  ];
-
-  const testimonials = [
-    {
-      name: "Marie Uwimana",
-      business: "Kigali Fresh Foods",
-      sector: "Agriculture",
-      quote:
-        language === "en"
-          ? "Isonga helped us secure $150K in funding. The assessment showed us exactly what investors were looking for."
-          : language === "rw"
-          ? "Isonga yadufashije kubona $150K. Isuzuma ryatweretse neza ibyo abashoramari bari gushaka."
-          : "Isonga nous a aidés à obtenir 150K$. L'évaluation nous a montré exactement ce que les investisseurs recherchaient.",
-      amount: "$150K",
-    },
-    {
-      name: "Jean Baptiste Nkusi",
-      business: "Tech Solutions Rwanda",
-      sector: "Technology",
-      quote:
-        language === "en"
-          ? "The AI-powered insights were game-changing. We improved our readiness score from 45% to 78% in 6 months."
-          : language === "rw"
-          ? "Ubushakashatsi bwa AI bwahinduye imikino. Twongereye amanota kuva 45% kugeza 78% mu mezi 6."
-          : "Les analyses IA ont tout changé. Nous avons amélioré notre score de 45% à 78% en 6 mois.",
-      amount: "$250K",
-    },
-    {
-      name: "Grace Mukamana",
-      business: "EcoWear Rwanda",
-      sector: "Fashion",
-      quote:
-        language === "en"
-          ? "Being matched with the right investors saved us months of networking. Highly recommend to any SME."
-          : language === "rw"
-          ? "Guhuza n'abashoramari bakwiye byatujije amezi menshi yo gushaka. Ndabisubiriza ubucuruzi bwose."
-          : "Être mis en relation avec les bons investisseurs nous a fait gagner des mois. Je recommande vivement.",
-      amount: "$75K",
-    },
+  const fundingPartnerFeatures = [
+    { icon: CheckCircle2, ...t.forPartners.feature1 },
+    { icon: BarChart3, ...t.forPartners.feature2 },
+    { icon: Target, ...t.forPartners.feature3 },
   ];
 
   return (
@@ -614,43 +629,101 @@ const Welcome: React.FC = () => {
       {/* Features Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
+          <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {t.features.title}
             </h2>
             <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="group relative p-8 rounded-3xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/5"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative z-10">
-                    <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300 border border-gray-100 dark:border-gray-700">
-                      <Icon className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                      {feature.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+
+          {/* Tab Buttons */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1.5">
+              <button
+                onClick={() => setFeaturesTab("sme")}
+                className={`px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                  featuresTab === "sme"
+                    ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                {t.features.smeTab}
+              </button>
+              <button
+                onClick={() => setFeaturesTab("partner")}
+                className={`px-6 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                  featuresTab === "partner"
+                    ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                {t.features.partnerTab}
+              </button>
+            </div>
           </div>
+
+          {/* SME Features - 4 cards */}
+          {featuresTab === "sme" && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in duration-500">
+              {smeFeatures.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={index}
+                    className="group relative p-8 rounded-3xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/5"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300 border border-gray-100 dark:border-gray-700">
+                        <Icon className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {feature.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Funding Partner Features - 3 cards */}
+          {featuresTab === "partner" && (
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+              {partnerFeatures.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={index}
+                    className="group relative p-8 rounded-3xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/5"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300 border border-gray-100 dark:border-gray-700">
+                        <Icon className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {feature.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
       {/* How It Works Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
         {/* Connecting line background */}
-        <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-200 dark:via-blue-800 to-transparent -translate-y-12"></div>
+        <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-200 dark:via-blue-800 to-transparent -translate-y-12"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-20">
@@ -661,7 +734,7 @@ const Welcome: React.FC = () => {
               {t.howItWorks.subtitle}
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorksSteps.map((step, index) => {
               const Icon = step.icon;
               return (
@@ -750,57 +823,7 @@ const Welcome: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t.testimonials.title}
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              {t.testimonials.subtitle}
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 relative"
-              >
-                <div className="absolute -top-4 right-8 text-6xl text-blue-100 dark:text-blue-900 font-serif leading-none">
-                  "
-                </div>
-                <div className="flex items-center gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-8 italic leading-relaxed relative z-10">
-                  "{testimonial.quote}"
-                </p>
-                <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800">
-                  <div>
-                    <div className="font-bold text-gray-900 dark:text-white">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {testimonial.business}
-                    </div>
-                  </div>
-                  <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-bold">
-                    {testimonial.amount}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* For Investors Section */}
+      {/* For Funding Partners Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-900 relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -812,18 +835,18 @@ const Welcome: React.FC = () => {
           <div className="text-center mb-20">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-900/30 border border-blue-500/30 text-blue-300 rounded-full text-sm font-medium mb-6">
               <Handshake className="w-4 h-4" />
-              <span>{t.forInvestors.title}</span>
+              <span>{t.forPartners.title}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Find Your Next <span className="text-gradient">Unicorn</span>
+              Find Your Next <span className="text-gradient">Opportunity</span>
             </h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              {t.forInvestors.subtitle}
+              {t.forPartners.subtitle}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {investorFeatures.map((feature, index) => {
+            {fundingPartnerFeatures.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <div
@@ -853,10 +876,10 @@ const Welcome: React.FC = () => {
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
             >
               {language === "en"
-                ? "Join as Investor"
+                ? "Join as Funding Partner"
                 : language === "rw"
-                ? "Injira Nk'Umushoramari"
-                : "Rejoindre en tant qu'Investisseur"}
+                  ? "Injira Nk'Umufatanyabikorwa w'Imari"
+                  : "Rejoindre en tant que Partenaire de Financement"}
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
@@ -917,8 +940,8 @@ const Welcome: React.FC = () => {
                 {language === "en"
                   ? "Empowering Rwandan businesses to access investment opportunities through comprehensive assessments and intelligent matching."
                   : language === "rw"
-                  ? "Dufasha ubucuruzi bw'Abanyarwanda kubona amahirwe yo gushora imari binyuze mu isuzuma rinoze no guhuza mu buryo bwiza."
-                  : "Permettre aux entreprises rwandaises d'accéder aux opportunités d'investissement grâce à des évaluations complètes."}
+                    ? "Dufasha ubucuruzi bw'Abanyarwanda kubona amahirwe yo gushora imari binyuze mu isuzuma rinoze no guhuza mu buryo bwiza."
+                    : "Permettre aux entreprises rwandaises d'accéder aux opportunités d'investissement grâce à des évaluations complètes."}
               </p>
             </div>
 
@@ -928,8 +951,8 @@ const Welcome: React.FC = () => {
                 {language === "en"
                   ? "Platform"
                   : language === "rw"
-                  ? "Urubuga"
-                  : "Plateforme"}
+                    ? "Urubuga"
+                    : "Plateforme"}
               </h3>
               <ul className="space-y-2">
                 <li>
@@ -957,8 +980,8 @@ const Welcome: React.FC = () => {
                 {language === "en"
                   ? "Contact"
                   : language === "rw"
-                  ? "Twandikire"
-                  : "Contact"}
+                    ? "Twandikire"
+                    : "Contact"}
               </h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li>Kigali, Rwanda</li>
@@ -981,8 +1004,8 @@ const Welcome: React.FC = () => {
                 {language === "en"
                   ? "Privacy"
                   : language === "rw"
-                  ? "Ibanga"
-                  : "Confidentialité"}
+                    ? "Ibanga"
+                    : "Confidentialité"}
               </a>
               <a
                 href="#"
@@ -991,8 +1014,8 @@ const Welcome: React.FC = () => {
                 {language === "en"
                   ? "Terms"
                   : language === "rw"
-                  ? "Amategeko"
-                  : "Conditions"}
+                    ? "Amategeko"
+                    : "Conditions"}
               </a>
             </div>
           </div>

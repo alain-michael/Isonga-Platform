@@ -120,12 +120,18 @@ const AppContent: React.FC = () => {
         }
       />
 
+      {/* Business Registration - Protected but no sidebar */}
+      <Route
+        path="/business-registration"
+        element={
+          <ProtectedRoute>
+            <BusinessRegistrationFlow />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Protected Routes with Sidebar Layout */}
       <Route element={<ProtectedLayout />}>
-        <Route
-          path="/business-registration"
-          element={<BusinessRegistrationFlow />}
-        />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<EnterpriseProfile />} />
         <Route path="/assessments" element={<Assessments />} />

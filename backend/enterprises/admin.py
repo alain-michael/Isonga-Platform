@@ -3,8 +3,8 @@ from .models import Enterprise, EnterpriseDocument
 
 @admin.register(Enterprise)
 class EnterpriseAdmin(admin.ModelAdmin):
-    list_display = ['business_name', 'tin_number', 'enterprise_type', 'sector', 'is_vetted', 'created_at']
-    list_filter = ['enterprise_type', 'enterprise_size', 'sector', 'is_vetted', 'created_at']
+    list_display = ['business_name', 'tin_number', 'enterprise_type', 'sector', 'province', 'is_vetted', 'created_at']
+    list_filter = ['enterprise_type', 'management_structure', 'sector', 'province', 'is_vetted', 'created_at']
     search_fields = ['business_name', 'tin_number', 'email']
     readonly_fields = ['created_at', 'updated_at']
     
@@ -13,10 +13,10 @@ class EnterpriseAdmin(admin.ModelAdmin):
             'fields': ('user', 'business_name', 'tin_number', 'registration_number')
         }),
         ('Business Details', {
-            'fields': ('enterprise_type', 'enterprise_size', 'sector', 'year_established', 'number_of_employees', 'annual_revenue', 'description')
+            'fields': ('enterprise_type', 'management_structure', 'sector', 'year_established', 'number_of_employees', 'annual_revenue', 'description')
         }),
-        ('Contact Information', {
-            'fields': ('address', 'city', 'district', 'phone', 'email', 'website')
+        ('Location', {
+            'fields': ('province', 'district', 'phone', 'email', 'website')
         }),
         ('Verification', {
             'fields': ('is_vetted', 'vetted_by', 'vetted_at')

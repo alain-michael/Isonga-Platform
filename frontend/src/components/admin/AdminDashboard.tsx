@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { campaignAPI } from "../../services/campaignsService";
 import {
   Users,
   Building2,
@@ -8,38 +10,72 @@ import {
   Plus,
   ArrowRight,
   Briefcase,
+  Clock,
+  Eye,
+  DollarSign,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
+  // Fetch funding applications for approval queue
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["admin-campaigns"],
+    queryFn: async () => {
+      const response = await campaignAPI.getAll();
+      return response.data.results || [];
+    },
+  });
+
+  // Calculate real stats from campaigns
+  const pendingReview = campaigns.filter(
+    (c: any) => c.status === "submitted",
+  ).length;
+  const revisionRequired = campaigns.filter(
+    (c: any) => c.status === "revision_required",
+  ).length;
+  const activeApplications = campaigns.filter(
+    (c: any) => c.status === "active",
+  ).length;
+  const totalRaised = campaigns.reduce(
+    (sum: number, c: any) => sum + (parseFloat(c.amount_raised) || 0),
+    0,
+  );
+
   // Mock data for dashboard - in real app, fetch from API
   const stats = [
     {
-      label: "Total SMEs",
-      value: "124",
-      change: "+12%",
-      icon: Building2,
-      color: "bg-blue-500",
+      label: "Pending Review",
+      value: pendingReview.toString(),
+      change: pendingReview > 0 ? "Action needed" : "All clear",
+      icon: Clock,
+      color: pendingReview > 0 ? "bg-orange-500" : "bg-green-500",
+      urgent: pendingReview > 0,
     },
     {
-      label: "Active Investors",
-      value: "32",
-      change: "+5%",
-      icon: Briefcase,
-      color: "bg-purple-500",
-    },
-    {
-      label: "Assessments Completed",
-      value: "89",
-      change: "+24%",
+      label: "Revision Required",
+      value: revisionRequired.toString(),
+      change: "Awaiting SME response",
       icon: FileText,
-      color: "bg-green-500",
+      color: "bg-yellow-500",
+      urgent: false,
     },
     {
-      label: "Total Matches",
-      value: "45",
-      change: "+18%",
+      label: "Active Applications",
+      value: activeApplications.toString(),
+      change: "Partner Visible",
       icon: TrendingUp,
-      color: "bg-orange-500",
+      color: "bg-green-500",
+      urgent: false,
+    },
+    {
+      label: "Total Raised",
+      value:
+        new Intl.NumberFormat("en-RW", { notation: "compact" }).format(
+          totalRaised,
+        ) + " RWF",
+      change: "All time",
+      icon: DollarSign,
+      color: "bg-blue-500",
+      urgent: false,
     },
   ];
 
@@ -102,7 +138,11 @@ const AdminDashboard: React.FC = () => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+            className={`glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border ${
+              stat.urgent
+                ? "border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10"
+                : "border-neutral-200 dark:border-neutral-700"
+            }`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-xl ${stat.color} bg-opacity-10`}>
@@ -110,7 +150,13 @@ const AdminDashboard: React.FC = () => {
                   className={`h-6 w-6 ${stat.color.replace("bg-", "text-")}`}
                 />
               </div>
-              <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <span
+                className={`text-xs font-medium px-2 py-1 rounded-full ${
+                  stat.urgent
+                    ? "text-orange-600 bg-orange-100"
+                    : "text-green-600 bg-green-100"
+                }`}
+              >
                 {stat.change}
               </span>
             </div>
@@ -123,6 +169,60 @@ const AdminDashboard: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Approval Queue Alert */}
+      {pendingReview > 0 && (
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-orange-900 dark:text-orange-100">
+                  {pendingReview} Funding Application
+                  {pendingReview > 1 ? "s" : ""} Awaiting Review
+                </h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  SMEs are waiting for your feedback on their funding
+                  applications
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/admin/campaigns"
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl transition font-medium"
+            >
+              <Eye className="h-4 w-4" />
+              Review Now
+            </Link>
+          </div>
+          {/* Recent pending applications */}
+          <div className="mt-4 grid gap-2">
+            {campaigns
+              .filter((c: any) => c.status === "submitted")
+              .slice(0, 3)
+              .map((campaign: any) => (
+                <Link
+                  key={campaign.id}
+                  to={`/admin/campaigns/${campaign.id}`}
+                  className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg hover:shadow-md transition"
+                >
+                  <div>
+                    <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {campaign.title}
+                    </p>
+                    <p className="text-sm text-neutral-500">
+                      {campaign.enterprise_name} • Submitted{" "}
+                      {new Date(campaign.updated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-orange-500" />
+                </Link>
+              ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart Area (Placeholder) */}
@@ -205,7 +305,25 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Link
+          to="/admin/campaigns"
+          className="group glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-100 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-colors">
+              <DollarSign className="h-6 w-6" />
+            </div>
+            <ArrowRight className="h-5 w-5 text-neutral-400 group-hover:text-primary-500" />
+          </div>
+          <h3 className="font-bold text-neutral-900 dark:text-neutral-100 mb-1">
+            Funding Applications
+          </h3>
+          <p className="text-sm text-neutral-500">
+            Review, approve, and manage funding applications.
+          </p>
+        </Link>
+
         <Link
           to="/admin/questionnaires"
           className="group glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-primary-500 transition-colors"
@@ -235,10 +353,10 @@ const AdminDashboard: React.FC = () => {
             <ArrowRight className="h-5 w-5 text-neutral-400 group-hover:text-primary-500" />
           </div>
           <h3 className="font-bold text-neutral-900 dark:text-neutral-100 mb-1">
-            Investor Management
+            Funding Partners
           </h3>
           <p className="text-sm text-neutral-500">
-            Onboard investors and configure matching profiles.
+            Onboard partners and configure matching profiles.
           </p>
         </Link>
 

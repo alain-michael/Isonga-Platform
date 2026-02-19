@@ -67,15 +67,16 @@ class EnterpriseListSerializer(serializers.ModelSerializer):
     
     # Additional computed fields
     phone_number = serializers.CharField(source='phone', read_only=True)  # For frontend compatibility
-    enterprise_size_display = serializers.CharField(source='get_enterprise_size_display', read_only=True)
+    management_structure_display = serializers.CharField(source='get_management_structure_display', read_only=True)
+    province_display = serializers.CharField(source='get_province_display', read_only=True)
     sector_display = serializers.CharField(source='get_sector_display', read_only=True)
     
     class Meta:
         model = Enterprise
         fields = [
             'id', 'business_name', 'tin_number', 'registration_number', 'enterprise_type', 
-            'enterprise_size', 'enterprise_size_display', 'sector', 'sector_display',
-            'address', 'city', 'district', 'phone', 'phone_number', 'email', 'website',
+            'management_structure', 'management_structure_display', 'sector', 'sector_display',
+            'province', 'province_display', 'district', 'phone', 'phone_number', 'email', 'website',
             'year_established', 'number_of_employees', 'annual_revenue', 'description',
             'verification_status', 'verification_status_display', 'is_vetted', 'vetted_by', 
             'vetted_by_name', 'vetted_at', 'verification_notes', 'documents_requested',

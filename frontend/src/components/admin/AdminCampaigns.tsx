@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Search,
   RefreshCw,
+  FileEdit,
+  Target,
 } from "lucide-react";
 import type { Campaign } from "../../types/campaigns";
 
@@ -33,16 +35,7 @@ const AdminCampaigns: React.FC = () => {
     },
   });
 
-  const getStatusBadge = (status: string, isVetted: boolean) => {
-    if (!isVetted) {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
-          <AlertCircle className="h-3 w-3 mr-1" />
-          Pending Review
-        </span>
-      );
-    }
-
+  const getStatusBadge = (status: string) => {
     const statusConfig: Record<
       string,
       { color: string; icon: React.ElementType; label: string }
@@ -55,17 +48,32 @@ const AdminCampaigns: React.FC = () => {
       submitted: {
         color: "bg-blue-100 text-blue-800 border-blue-200",
         icon: Clock,
-        label: "Submitted",
+        label: "Pending Review",
       },
-      active: {
+      revision_required: {
+        color: "bg-orange-100 text-orange-800 border-orange-200",
+        icon: FileEdit,
+        label: "Revision Required",
+      },
+      approved: {
         color: "bg-green-100 text-green-800 border-green-200",
         icon: CheckCircle,
-        label: "Active",
+        label: "Approved",
+      },
+      active: {
+        color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        icon: Target,
+        label: "Active - Partner Visible",
       },
       completed: {
         color: "bg-blue-100 text-blue-800 border-blue-200",
         icon: CheckCircle,
         label: "Completed",
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800 border-red-200",
+        icon: XCircle,
+        label: "Rejected",
       },
       cancelled: {
         color: "bg-red-100 text-red-800 border-red-200",
@@ -111,7 +119,7 @@ const AdminCampaigns: React.FC = () => {
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin text-primary-600" />
           <span className="ml-2 text-lg font-medium text-neutral-600">
-            Loading campaigns...
+            Loading funding applications...
           </span>
         </div>
       </div>
@@ -124,10 +132,10 @@ const AdminCampaigns: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-red-800 mb-2">
-            Error Loading Campaigns
+            Error Loading Funding Applications
           </h3>
           <p className="text-red-600 mb-4">
-            Unable to load campaigns. Please try again.
+            Unable to load funding applications. Please try again.
           </p>
           <button onClick={() => refetch()} className="btn-primary">
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -145,10 +153,10 @@ const AdminCampaigns: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-neutral-900">
-              Campaign Management
+              Funding Application Management
             </h1>
             <p className="text-neutral-600 mt-2">
-              Review and manage all fundraising campaigns
+              Review and manage all funding applications
             </p>
           </div>
           <button onClick={() => refetch()} className="btn-secondary">
@@ -159,11 +167,11 @@ const AdminCampaigns: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div className="glass-effect rounded-xl p-6 border border-neutral-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600">Total Campaigns</p>
+              <p className="text-sm text-neutral-600">Total Applications</p>
               <p className="text-2xl font-bold text-neutral-900 mt-1">
                 {campaigns?.length || 0}
               </p>
@@ -174,10 +182,42 @@ const AdminCampaigns: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
+        <div className="glass-effect rounded-xl p-6 border border-blue-200 bg-blue-50">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600">Active</p>
+              <p className="text-sm text-blue-700">Pending Review</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">
+                {campaigns?.filter((c: any) => c.status === "submitted")
+                  .length || 0}
+              </p>
+            </div>
+            <div className="p-3 bg-blue-100 rounded-xl">
+              <Clock className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-effect rounded-xl p-6 border border-orange-200 bg-orange-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-orange-700">Revision Required</p>
+              <p className="text-2xl font-bold text-orange-600 mt-1">
+                {campaigns?.filter((c: any) => c.status === "revision_required")
+                  .length || 0}
+              </p>
+            </div>
+            <div className="p-3 bg-orange-100 rounded-xl">
+              <FileEdit className="h-6 w-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-effect rounded-xl p-6 border border-green-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-600">
+                Active (Partner Visible)
+              </p>
               <p className="text-2xl font-bold text-green-600 mt-1">
                 {campaigns?.filter((c: any) => c.status === "active").length ||
                   0}
@@ -185,20 +225,6 @@ const AdminCampaigns: React.FC = () => {
             </div>
             <div className="p-3 bg-green-100 rounded-xl">
               <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-effect rounded-xl p-6 border border-neutral-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-neutral-600">Pending Review</p>
-              <p className="text-2xl font-bold text-orange-600 mt-1">
-                {campaigns?.filter((c: any) => !c.is_vetted).length || 0}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-xl">
-              <Clock className="h-6 w-6 text-orange-600" />
             </div>
           </div>
         </div>
@@ -214,8 +240,8 @@ const AdminCampaigns: React.FC = () => {
                 }).format(
                   (campaigns as any[])?.reduce(
                     (sum: number, c: any) => sum + parseFloat(c.amount_raised),
-                    0
-                  ) || 0
+                    0,
+                  ) || 0,
                 )}{" "}
                 RWF
               </p>
@@ -227,6 +253,86 @@ const AdminCampaigns: React.FC = () => {
         </div>
       </div>
 
+      {/* Approval Queue - Highlighted Section */}
+      {(campaigns?.filter((c: any) => c.status === "submitted").length ?? 0) >
+        0 && (
+        <div className="mb-6 glass-effect rounded-xl border-2 border-blue-300 bg-blue-50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Clock className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">
+                  Approval Queue
+                </h3>
+                <p className="text-sm text-blue-700">
+                  {
+                    campaigns?.filter((c: any) => c.status === "submitted")
+                      .length
+                  }{" "}
+                  applications awaiting your review
+                </p>
+              </div>
+            </div>
+            <Link
+              to="#"
+              onClick={() => setStatusFilter("submitted")}
+              className="btn-primary text-sm"
+            >
+              Review All
+            </Link>
+          </div>
+          <div className="grid gap-3">
+            {campaigns
+              ?.filter((c: any) => c.status === "submitted")
+              .slice(0, 3)
+              .map((campaign: any) => (
+                <div
+                  key={campaign.id}
+                  className="bg-white rounded-lg p-4 flex items-center justify-between border border-blue-200"
+                >
+                  <div className="flex items-center">
+                    <div className="mr-4">
+                      <p className="font-medium text-neutral-900">
+                        {campaign.title}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {campaign.enterprise_name} • Submitted{" "}
+                        {new Date(campaign.updated_at).toLocaleDateString()}
+                        {campaign.readiness_score_at_submission && (
+                          <span className="ml-2">
+                            • Readiness:{" "}
+                            <span
+                              className={
+                                campaign.readiness_score_at_submission >= 70
+                                  ? "text-green-600 font-medium"
+                                  : "text-orange-600 font-medium"
+                              }
+                            >
+                              {Math.round(
+                                campaign.readiness_score_at_submission,
+                              )}
+                              %
+                            </span>
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to={`/admin/campaigns/${campaign.id}`}
+                    className="btn-primary text-sm"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Review
+                  </Link>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="glass-effect rounded-xl p-6 border border-neutral-200 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -234,7 +340,7 @@ const AdminCampaigns: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search campaigns..."
+              placeholder="Search funding applications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -249,9 +355,12 @@ const AdminCampaigns: React.FC = () => {
             >
               <option value="all">All Statuses</option>
               <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="active">Active</option>
+              <option value="submitted">Pending Review</option>
+              <option value="revision_required">Revision Required</option>
+              <option value="approved">Approved</option>
+              <option value="active">Active - Partner Visible</option>
               <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
@@ -262,7 +371,7 @@ const AdminCampaigns: React.FC = () => {
               onChange={(e) => setVettedFilter(e.target.value)}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
-              <option value="all">All Campaigns</option>
+              <option value="all">All Applications</option>
               <option value="vetted">Vetted Only</option>
               <option value="pending">Pending Review</option>
             </select>
@@ -270,14 +379,14 @@ const AdminCampaigns: React.FC = () => {
         </div>
       </div>
 
-      {/* Campaigns List */}
+      {/* Funding Applications List */}
       <div className="glass-effect rounded-xl border border-neutral-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 border-b border-neutral-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Campaign
+                  Application
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                   Enterprise
@@ -345,7 +454,7 @@ const AdminCampaigns: React.FC = () => {
                             style={{
                               width: `${Math.min(
                                 campaign.progress_percentage || 0,
-                                100
+                                100,
                               )}%`,
                             }}
                           />
@@ -353,7 +462,7 @@ const AdminCampaigns: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {getStatusBadge(campaign.status, campaign.is_vetted)}
+                      {getStatusBadge(campaign.status)}
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-neutral-900 font-medium">

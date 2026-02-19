@@ -12,10 +12,18 @@ class Enterprise(models.Model):
         ('ngo', 'NGO'),
     )
     
-    ENTERPRISE_SIZES = (
-        ('micro', 'Micro (1-4 employees)'),
-        ('small', 'Small (5-30 employees)'),
-        ('medium', 'Medium (31-100 employees)'),
+    # Replaced enterprise_size with management_structure
+    MANAGEMENT_STRUCTURES = (
+        ('owner_managed', 'Owner-managed'),
+        ('professional_management', 'Professional Management'),
+    )
+    
+    PROVINCES = (
+        ('kigali_city', 'Kigali City'),
+        ('eastern', 'Eastern Province'),
+        ('western', 'Western Province'),
+        ('northern', 'Northern Province'),
+        ('southern', 'Southern Province'),
     )
     
     SECTORS = (
@@ -36,15 +44,14 @@ class Enterprise(models.Model):
     tin_number = models.CharField(max_length=50, unique=True)
     registration_number = models.CharField(max_length=100, blank=True, null=True)
     enterprise_type = models.CharField(max_length=50, choices=ENTERPRISE_TYPES)
-    enterprise_size = models.CharField(max_length=50, choices=ENTERPRISE_SIZES)
+    management_structure = models.CharField(max_length=50, choices=MANAGEMENT_STRUCTURES, default='owner_managed')
     sector = models.CharField(max_length=50, choices=SECTORS)
     
-    # Contact Information
-    address = models.TextField()
-    city = models.CharField(max_length=100)
+    # Contact Information - removed address and city, added province
+    province = models.CharField(max_length=50, choices=PROVINCES, default='kigali_city')
     district = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
-    email = models.EmailField()
+    email = models.EmailField(blank=True, null=True)  # Made optional
     website = models.URLField(blank=True, null=True)
     
     # Business Information

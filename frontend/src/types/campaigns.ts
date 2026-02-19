@@ -22,11 +22,14 @@ export interface Campaign {
   investor_count: number;
   start_date?: string;
   end_date?: string;
-  status: 'draft' | 'submitted' | 'vetted' | 'active' | 'completed' | 'cancelled';
+  status: 'draft' | 'submitted' | 'revision_required' | 'approved' | 'active' | 'completed' | 'rejected' | 'cancelled';
   is_vetted: boolean;
   vetted_by?: number;
   vetted_at?: string;
   vetting_notes?: string;
+  revision_notes?: string;
+  revision_count?: number;
+  readiness_score_at_submission?: number;
   use_of_funds?: Record<string, any>;
   views_count: number;
   documents_count?: number;

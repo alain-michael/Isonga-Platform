@@ -9,7 +9,7 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
-  Mail,
+  Phone,
   Lock,
   AlertCircle,
   Loader2,
@@ -20,7 +20,7 @@ import LanguageSelector from "../ui/LanguageSelector";
 
 // Validation schema
 const loginSchema = yup.object({
-  username: yup.string().required("Username is required"),
+  phone_number: yup.string().required("Phone number or email is required"),
   password: yup
     .string()
     .required("Password is required")
@@ -28,7 +28,7 @@ const loginSchema = yup.object({
 });
 
 type LoginFormData = {
-  username: string;
+  phone_number: string;
   password: string;
 };
 
@@ -53,14 +53,14 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setError("");
     try {
-      await login(data.username, data.password);
+      await login(data.phone_number, data.password);
       navigate("/dashboard");
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
           err.response?.data?.detail ||
           err.message ||
-          "Login failed. Please check your credentials."
+          "Login failed. Please check your credentials.",
       );
     }
   };
@@ -118,33 +118,33 @@ const Login: React.FC = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Username */}
+            {/* Phone Number or Email */}
             <div>
               <label
-                htmlFor="username"
+                htmlFor="phone_number"
                 className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2"
               >
-                Username or Email
+                Phone Number or Email
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
+                  <Phone className="w-5 h-5 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
                 </div>
                 <input
-                  {...register("username")}
+                  {...register("phone_number")}
                   type="text"
-                  id="username"
+                  id="phone_number"
                   className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:bg-white dark:focus:bg-neutral-800 transition-all ${
-                    errors.username
+                    errors.phone_number
                       ? "border-red-300 dark:border-red-600 focus:border-red-500"
                       : "border-neutral-200 dark:border-neutral-700 focus:border-neutral-900 dark:focus:border-white"
                   }`}
-                  placeholder="Enter your username or email"
+                  placeholder="Phone number or email"
                 />
               </div>
-              {errors.username && (
+              {errors.phone_number && (
                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                  {errors.username.message}
+                  {errors.phone_number.message}
                 </p>
               )}
             </div>

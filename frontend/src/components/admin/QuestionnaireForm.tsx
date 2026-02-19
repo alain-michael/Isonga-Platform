@@ -40,9 +40,24 @@ const questionnaireSchema = yup.object({
         yup.object({
           text: yup.string().required("Option text is required"),
           score: yup.number().min(0, "Score must be positive"),
-        })
+        }),
       ),
-    })
+      conditional_recommendations: yup.array().of(
+        yup.object({
+          min_score: yup
+            .number()
+            .min(0, "Min score must be positive")
+            .required(),
+          max_score: yup
+            .number()
+            .min(0, "Max score must be positive")
+            .required(),
+          recommendation_text: yup
+            .string()
+            .required("Recommendation text is required"),
+        }),
+      ),
+    }),
   ),
 });
 
@@ -95,7 +110,7 @@ const QuestionnaireForm: React.FC = () => {
 
   const { data: categories = [] } = useAssessmentCategories();
   const { data: existingQuestionnaire } = useQuestionnaire(
-    isEditMode ? parseInt(editId!) : undefined
+    isEditMode ? parseInt(editId!) : undefined,
   );
 
   const createMutation = useCreateQuestionnaire();
@@ -139,11 +154,11 @@ const QuestionnaireForm: React.FC = () => {
       setValue("target_sectors", existingQuestionnaire.target_sectors || []);
       setValue(
         "target_enterprise_sizes",
-        existingQuestionnaire.target_enterprise_sizes || []
+        existingQuestionnaire.target_enterprise_sizes || [],
       );
       setValue(
         "target_districts",
-        existingQuestionnaire.target_districts || []
+        existingQuestionnaire.target_districts || [],
       );
       setValue("min_employees", existingQuestionnaire.min_employees);
       setValue("max_employees", existingQuestionnaire.max_employees);
@@ -174,7 +189,7 @@ const QuestionnaireForm: React.FC = () => {
       alert(
         err.response?.data?.error ||
           err.message ||
-          "Failed to save questionnaire"
+          "Failed to save questionnaire",
       );
     }
   };
@@ -189,6 +204,7 @@ const QuestionnaireForm: React.FC = () => {
         { text: "", score: 10 },
         { text: "", score: 0 },
       ],
+      conditional_recommendations: [],
     });
   };
 
@@ -391,7 +407,7 @@ const QuestionnaireForm: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={(watch("target_sectors") || []).includes(
-                          sector
+                          sector,
                         )}
                         onChange={() =>
                           toggleArrayValue("target_sectors", sector)
@@ -424,7 +440,7 @@ const QuestionnaireForm: React.FC = () => {
                         onChange={() =>
                           toggleArrayValue(
                             "target_enterprise_sizes",
-                            size.value
+                            size.value,
                           )
                         }
                         className="mr-2"
@@ -625,7 +641,7 @@ const QuestionnaireForm: React.FC = () => {
                                   </span>
                                   <input
                                     {...register(
-                                      `questions.${index}.options.${optionIndex}.text`
+                                      `questions.${index}.options.${optionIndex}.text`,
                                     )}
                                     type="text"
                                     className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
@@ -633,7 +649,7 @@ const QuestionnaireForm: React.FC = () => {
                                   />
                                   <input
                                     {...register(
-                                      `questions.${index}.options.${optionIndex}.score`
+                                      `questions.${index}.options.${optionIndex}.score`,
                                     )}
                                     type="number"
                                     min="0"
@@ -650,8 +666,8 @@ const QuestionnaireForm: React.FC = () => {
                                         `questions.${index}.options`,
                                         currentOptions.filter(
                                           (_: any, i: number) =>
-                                            i !== optionIndex
-                                        )
+                                            i !== optionIndex,
+                                        ),
                                       );
                                     }}
                                     className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1"
@@ -659,7 +675,7 @@ const QuestionnaireForm: React.FC = () => {
                                     <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
-                              )
+                              ),
                             )}
                             {(!watch(`questions.${index}.options`) ||
                               watch(`questions.${index}.options`)?.length ===
@@ -672,6 +688,135 @@ const QuestionnaireForm: React.FC = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Conditional Recommendations */}
+                      <div className="mt-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <label className="text-sm font-semibold text-neutral-900 dark:text-white">
+                              Conditional Recommendations
+                            </label>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                              Show recommendations based on score ranges
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentRecs =
+                                watch(
+                                  `questions.${index}.conditional_recommendations`,
+                                ) || [];
+                              setValue(
+                                `questions.${index}.conditional_recommendations`,
+                                [
+                                  ...currentRecs,
+                                  {
+                                    min_score: 0,
+                                    max_score: 5,
+                                    recommendation_text: "",
+                                  },
+                                ],
+                              );
+                            }}
+                            className="text-xs btn-primary py-1 px-3"
+                          >
+                            <Plus className="w-3 h-3 mr-1 inline" />
+                            Add Recommendation
+                          </button>
+                        </div>
+
+                        <div className="space-y-3">
+                          {(
+                            watch(
+                              `questions.${index}.conditional_recommendations`,
+                            ) || []
+                          ).map((_: any, recIndex: number) => (
+                            <div
+                              key={recIndex}
+                              className="glass-effect dark:bg-neutral-800/50 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex-1 space-y-3">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1 block">
+                                        Min Score
+                                      </label>
+                                      <input
+                                        {...register(
+                                          `questions.${index}.conditional_recommendations.${recIndex}.min_score`,
+                                        )}
+                                        type="number"
+                                        min="0"
+                                        className="w-full px-2 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
+                                        placeholder="0"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1 block">
+                                        Max Score
+                                      </label>
+                                      <input
+                                        {...register(
+                                          `questions.${index}.conditional_recommendations.${recIndex}.max_score`,
+                                        )}
+                                        type="number"
+                                        min="0"
+                                        className="w-full px-2 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
+                                        placeholder="10"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1 block">
+                                      Recommendation Text
+                                    </label>
+                                    <textarea
+                                      {...register(
+                                        `questions.${index}.conditional_recommendations.${recIndex}.recommendation_text`,
+                                      )}
+                                      rows={2}
+                                      className="w-full px-2 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 glass-effect dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-primary-500 focus:outline-none text-sm"
+                                      placeholder="e.g., Consider improving your documentation processes..."
+                                    />
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const currentRecs =
+                                      watch(
+                                        `questions.${index}.conditional_recommendations`,
+                                      ) || [];
+                                    setValue(
+                                      `questions.${index}.conditional_recommendations`,
+                                      currentRecs.filter(
+                                        (_: any, i: number) => i !== recIndex,
+                                      ),
+                                    );
+                                  }}
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 mt-5"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          {(!watch(
+                            `questions.${index}.conditional_recommendations`,
+                          ) ||
+                            watch(
+                              `questions.${index}.conditional_recommendations`,
+                            )?.length === 0) && (
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400 italic text-center py-4">
+                              No recommendations added. Add conditional
+                              recommendations to provide guidance based on
+                              scores.
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <button
@@ -723,8 +868,8 @@ const QuestionnaireForm: React.FC = () => {
                     {isSubmitting
                       ? "Saving..."
                       : isEditMode
-                      ? "Update Questionnaire"
-                      : "Create Questionnaire"}
+                        ? "Update Questionnaire"
+                        : "Create Questionnaire"}
                   </button>
                 </div>
               </div>

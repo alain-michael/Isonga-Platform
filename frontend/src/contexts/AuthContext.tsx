@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (phone_number: string, password: string) => Promise<void>;
   logout: () => void;
   register: (userData: any) => Promise<void>;
   isLoading: boolean;
@@ -55,9 +55,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (phone_number: string, password: string) => {
     try {
-      const response = await authAPI.login({ username, password });
+      const response = await authAPI.login({ phone_number, password });
       const { access, refresh, user: newUser } = response.data;
 
       setToken(access);

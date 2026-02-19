@@ -35,7 +35,7 @@ interface CampaignFormData {
 const campaignSchema = yup.object({
   title: yup
     .string()
-    .required("Campaign title is required")
+    .required("Application title is required")
     .min(5, "Title must be at least 5 characters"),
   description: yup
     .string()
@@ -44,7 +44,7 @@ const campaignSchema = yup.object({
   campaign_type: yup
     .string()
     .oneOf(["equity", "debt", "grant", "hybrid"] as const)
-    .required("Campaign type is required"),
+    .required("Funding type is required"),
   target_amount: yup
     .number()
     .required("Target amount is required")
@@ -62,7 +62,7 @@ const campaignSchema = yup.object({
       originalValue === null ||
       originalValue === undefined
         ? null
-        : value
+        : value,
     ),
   start_date: yup.string().required("Start date is required"),
   end_date: yup.string().required("End date is required"),
@@ -73,7 +73,7 @@ const CAMPAIGN_TYPES = [
   {
     value: "equity",
     label: "Equity",
-    description: "Investors receive ownership shares in your company",
+    description: "Partners receive ownership shares in your company",
   },
   {
     value: "debt",
@@ -93,7 +93,7 @@ const CAMPAIGN_TYPES = [
 ];
 
 const STEPS = [
-  { id: 1, title: "Campaign Details", icon: FileText },
+  { id: 1, title: "Application Details", icon: FileText },
   { id: 2, title: "Funding Goals", icon: Target },
   { id: 3, title: "Timeline", icon: Calendar },
   { id: 4, title: "Documents", icon: Upload },
@@ -176,7 +176,7 @@ const CreateCampaign: React.FC = () => {
       "Please check the form for validation errors:\n" +
         Object.keys(errors)
           .map((key) => `${key}: ${errors[key]?.message}`)
-          .join("\n")
+          .join("\n"),
     );
   };
 
@@ -206,7 +206,7 @@ const CreateCampaign: React.FC = () => {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Campaign Title *
+                Application Title *
               </label>
               <input
                 {...register("title")}
@@ -222,7 +222,7 @@ const CreateCampaign: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Campaign Type *
+                Funding Type *
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {CAMPAIGN_TYPES.map((type) => (
@@ -265,13 +265,13 @@ const CreateCampaign: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Campaign Description *
+                Application Description *
               </label>
               <textarea
                 {...register("description")}
                 rows={6}
                 className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition resize-none"
-                placeholder="Describe your campaign, what you're raising funds for, and why investors should be interested..."
+                placeholder="Describe your funding application, what you're raising funds for, and why funding partners should be interested..."
               />
               {errors.description && (
                 <p className="text-red-500 text-sm mt-1">
@@ -363,11 +363,11 @@ const CreateCampaign: React.FC = () => {
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Investment Terms</p>
+                  <p className="font-medium mb-1">Funding Terms</p>
                   <p>
                     Be transparent about how funds will be used. This builds
-                    trust with potential investors and increases your chances of
-                    reaching your target.
+                    trust with potential funding partners and increases your
+                    chances of reaching your target.
                   </p>
                 </div>
               </div>
@@ -418,11 +418,11 @@ const CreateCampaign: React.FC = () => {
               <div className="flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
                 <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">Campaign Duration</p>
+                  <p className="font-medium mb-1">Funding Duration</p>
                   <p>
-                    Most successful campaigns run for 30-60 days. Longer
-                    campaigns may lose momentum, while shorter ones may not give
-                    enough time for investor due diligence.
+                    Most successful funding applications run for 30-60 days.
+                    Longer durations may lose momentum, while shorter ones may
+                    not give enough time for partner due diligence.
                   </p>
                 </div>
               </div>
@@ -438,8 +438,8 @@ const CreateCampaign: React.FC = () => {
                 Supporting Documents
               </label>
               <p className="text-sm text-neutral-500 mb-4">
-                Upload documents to support your campaign (pitch deck, financial
-                statements, business plan, etc.)
+                Upload documents to support your funding application (pitch
+                deck, financial statements, business plan, etc.)
               </p>
 
               <div className="border-2 border-dashed border-neutral-200 rounded-xl p-8 text-center hover:border-primary-300 transition">
@@ -534,8 +534,8 @@ const CreateCampaign: React.FC = () => {
                 <div className="text-sm text-green-800">
                   <p className="font-medium">Ready to Submit!</p>
                   <p>
-                    Review your campaign details below before submitting for
-                    approval.
+                    Review your funding application details below before
+                    submitting for approval.
                   </p>
                 </div>
               </div>
@@ -544,7 +544,7 @@ const CreateCampaign: React.FC = () => {
             <div className="space-y-4">
               <div className="border border-neutral-200 rounded-xl p-4">
                 <h4 className="font-medium text-neutral-900 mb-3">
-                  Campaign Details
+                  Application Details
                 </h4>
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -557,7 +557,7 @@ const CreateCampaign: React.FC = () => {
                     <dt className="text-neutral-500">Type:</dt>
                     <dd className="text-neutral-900">
                       {CAMPAIGN_TYPES.find(
-                        (t) => t.value === watchedValues.campaign_type
+                        (t) => t.value === watchedValues.campaign_type,
                       )?.label || "Not set"}
                     </dd>
                   </div>
@@ -640,13 +640,13 @@ const CreateCampaign: React.FC = () => {
           className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Campaigns
+          Back to Funding Applications
         </button>
         <h1 className="text-2xl font-bold text-neutral-900">
-          Create New Campaign
+          New Funding Application
         </h1>
         <p className="text-neutral-600 mt-1">
-          Set up your fundraising campaign in a few simple steps
+          Set up your funding application in a few simple steps
         </p>
       </div>
 
@@ -666,8 +666,8 @@ const CreateCampaign: React.FC = () => {
                       isCompleted
                         ? "bg-green-500 text-white"
                         : isCurrent
-                        ? "bg-primary-600 text-white"
-                        : "bg-neutral-100 text-neutral-400"
+                          ? "bg-primary-600 text-white"
+                          : "bg-neutral-100 text-neutral-400"
                     }`}
                   >
                     {isCompleted ? (
@@ -738,7 +738,9 @@ const CreateCampaign: React.FC = () => {
               type="submit"
               disabled={createCampaignMutation.isPending}
               className="btn-primary flex items-center gap-2"
-              onClick={() => console.log("Create Campaign button clicked!")}
+              onClick={() =>
+                console.log("Create Funding Application button clicked!")
+              }
             >
               {createCampaignMutation.isPending ? (
                 <>
@@ -748,7 +750,7 @@ const CreateCampaign: React.FC = () => {
               ) : (
                 <>
                   <Check className="h-4 w-4" />
-                  Create Campaign
+                  Submit Application
                 </>
               )}
             </button>

@@ -25,11 +25,9 @@ class Questionnaire(models.Model):
         ('sw', 'Swahili'),
     )
     
-    ENTERPRISE_SIZES = (
-        ('micro', 'Micro (1-9 employees)'),
-        ('small', 'Small (10-49 employees)'),
-        ('medium', 'Medium (50-249 employees)'),
-        ('large', 'Large (250+ employees)'),
+    MANAGEMENT_STRUCTURES = (
+        ('owner_managed', 'Owner-managed'),
+        ('professional_management', 'Professional Management'),
     )
     
     title = models.CharField(max_length=255)
@@ -41,7 +39,7 @@ class Questionnaire(models.Model):
     
     # Enterprise matching criteria
     target_sectors = models.JSONField(default=list, blank=True, help_text="List of sectors this questionnaire is for. Empty means all sectors.")
-    target_enterprise_sizes = models.JSONField(default=list, blank=True, help_text="List of enterprise sizes. Empty means all sizes.")
+    target_management_structures = models.JSONField(default=list, blank=True, help_text="List of management structures. Empty means all.")
     target_districts = models.JSONField(default=list, blank=True, help_text="List of districts. Empty means all districts.")
     min_employees = models.PositiveIntegerField(null=True, blank=True, help_text="Minimum number of employees")
     max_employees = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum number of employees")
@@ -66,7 +64,7 @@ class Questionnaire(models.Model):
     def matches_enterprise(self, enterprise):
         """Check if this questionnaire matches the given enterprise criteria"""
         # If no criteria set, matches all enterprises
-        if not self.target_sectors and not self.target_enterprise_sizes and not self.target_districts:
+        if not self.target_sectors and not self.target_management_structures and not self.target_districts:
             return True
         
         matches = True
@@ -75,8 +73,8 @@ class Questionnaire(models.Model):
         if self.target_sectors and enterprise.sector not in self.target_sectors:
             matches = False
         
-        # Check enterprise size
-        if self.target_enterprise_sizes and enterprise.enterprise_size not in self.target_enterprise_sizes:
+        # Check management structure
+        if self.target_management_structures and enterprise.management_structure not in self.target_management_structures:
             matches = False
         
         # Check district
@@ -141,6 +139,26 @@ class QuestionOption(models.Model):
     
     class Meta:
         ordering = ['order']
+
+class QuestionRecommendation(models.Model):
+    """Conditional recommendations based on score ranges for a question"""
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='conditional_recommendations')
+    min_score = models.PositiveIntegerField(help_text="Minimum score (inclusive) for this recommendation to apply")
+    max_score = models.PositiveIntegerField(help_text="Maximum score (inclusive) for this recommendation to apply")
+    recommendation_text = models.TextField(help_text="Recommendation text to show when score is in this range")
+    translations = models.JSONField(default=dict, blank=True, help_text="Translations: {'en': 'text', 'fr': 'texte', ...}")
+    
+    def get_text(self, language=None):
+        """Get recommendation text in specified language, fallback to default"""
+        if language and language in self.translations:
+            return self.translations[language]
+        return self.recommendation_text
+    
+    def __str__(self):
+        return f"{self.question.text[:30]}... - Score {self.min_score}-{self.max_score}"
+    
+    class Meta:
+        ordering = ['min_score']
 
 class Assessment(models.Model):
     STATUS_CHOICES = (

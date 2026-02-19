@@ -16,13 +16,12 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // User account fields
-    username: "",
+    phone_number: "",
     email: "",
     password: "",
-    first_name: "",
-    last_name: "",
+    partner_name: "",
     // Investor profile fields
-    investor_type: "individual",
+    investor_type: "institutional",
     organization_name: "",
     description: "",
     contact_email: "",
@@ -37,7 +36,7 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -51,13 +50,12 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
       // Create the investor profile (backend should handle user creation)
       await investorAPI.create({
         user_data: {
-          username: formData.username,
+          phone_number: formData.phone_number,
           email: formData.email,
           password: formData.password,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
           user_type: "investor",
         },
+        partner_name: formData.partner_name,
         investor_type: formData.investor_type,
         organization_name: formData.organization_name,
         description: formData.description,
@@ -72,12 +70,11 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
       onClose();
       // Reset form
       setFormData({
-        username: "",
+        phone_number: "",
         email: "",
         password: "",
-        first_name: "",
-        last_name: "",
-        investor_type: "individual",
+        partner_name: "",
+        investor_type: "institutional",
         organization_name: "",
         description: "",
         contact_email: "",
@@ -92,7 +89,7 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
       setError(
         err.response?.data?.message ||
           err.response?.data?.detail ||
-          "Failed to create investor profile"
+          "Failed to create investor profile",
       );
     } finally {
       setLoading(false);
@@ -107,7 +104,7 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
         <div className="sticky top-0 glass-effect dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Onboard New Investor
+              Onboard New Partner
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
               Step {step} of 2
@@ -121,7 +118,7 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white/76">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
               <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
@@ -136,46 +133,32 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
                   Account Information
                 </h3>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="first_name"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="last_name"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Partner Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="partner_name"
+                    value={formData.partner_name}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g., John Doe, Jane Smith"
+                    className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    Username *
+                    Phone Number *
                   </label>
                   <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
+                    type="tel"
+                    name="phone_number"
+                    value={formData.phone_number}
                     onChange={handleChange}
                     required
+                    placeholder="+250..."
                     className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                   />
                 </div>
@@ -220,12 +203,12 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center">
                   <Building2 className="h-5 w-5 mr-2 text-primary-600" />
-                  Investor Profile
+                  Partner Profile
                 </h3>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    Investor Type *
+                    Partner Type *
                   </label>
                   <select
                     name="investor_type"
@@ -366,7 +349,7 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
                 disabled={loading}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Creating..." : "Create Investor"}
+                {loading ? "Creating..." : "Create Partner"}
               </button>
             )}
           </div>

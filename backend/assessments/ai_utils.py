@@ -67,8 +67,10 @@ def generate_assessment_insights(assessment, enterprise):
     # Add optional fields if available
     if hasattr(enterprise, 'enterprise_type') and enterprise.enterprise_type:
         enterprise_details.append(f"Type: {enterprise.enterprise_type}")
-    if hasattr(enterprise, 'enterprise_size') and enterprise.enterprise_size:
-        enterprise_details.append(f"Size: {enterprise.enterprise_size}")
+    if hasattr(enterprise, 'management_structure') and enterprise.management_structure:
+        enterprise_details.append(f"Management: {enterprise.management_structure}")
+    if hasattr(enterprise, 'province') and enterprise.province:
+        enterprise_details.append(f"Province: {enterprise.province}")
     if hasattr(enterprise, 'number_of_employees') and enterprise.number_of_employees:
         enterprise_details.append(f"Employees: {enterprise.number_of_employees}")
     if hasattr(enterprise, 'years_in_operation') and enterprise.years_in_operation:

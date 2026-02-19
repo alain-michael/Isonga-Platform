@@ -98,7 +98,7 @@ const InvestorOpportunities: React.FC = () => {
           Tracked Opportunities
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-2">
-          Monitor campaigns you've shown interest in.
+          Monitor funding applications you've shown interest in.
         </p>
       </div>
 
@@ -109,7 +109,7 @@ const InvestorOpportunities: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search tracked campaigns..."
+              placeholder="Search tracked applications..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500"
@@ -143,8 +143,8 @@ const InvestorOpportunities: React.FC = () => {
             No tracked opportunities yet
           </h3>
           <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            Start exploring opportunities and mark campaigns you're interested
-            in.
+            Start exploring opportunities and mark applications you're
+            interested in.
           </p>
           <button
             onClick={() => navigate("/investor/matches")}
@@ -192,12 +192,12 @@ const InvestorOpportunities: React.FC = () => {
                     {opportunity.description}
                   </p>
 
-                  {/* Campaign Type & Date */}
+                  {/* Funding Type & Date */}
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <div className="flex items-center text-neutral-600 dark:text-neutral-400">
                       <TrendingUp className="h-4 w-4 mr-1.5" />
                       <span className="capitalize">
-                        {opportunity.campaign_type} Campaign
+                        {opportunity.campaign_type} Funding
                       </span>
                     </div>
                     {opportunity.end_date && (
@@ -215,7 +215,7 @@ const InvestorOpportunities: React.FC = () => {
                         <span>
                           Saved{" "}
                           {new Date(
-                            opportunity.interested_at
+                            opportunity.interested_at,
                           ).toLocaleDateString()}
                         </span>
                       </div>
@@ -233,7 +233,7 @@ const InvestorOpportunities: React.FC = () => {
                       <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
                         {calculateProgress(
                           opportunity.amount_raised || 0,
-                          opportunity.target_amount
+                          opportunity.target_amount,
                         ).toFixed(1)}
                         %
                       </span>
@@ -244,7 +244,7 @@ const InvestorOpportunities: React.FC = () => {
                         style={{
                           width: `${calculateProgress(
                             opportunity.amount_raised || 0,
-                            opportunity.target_amount
+                            opportunity.target_amount,
                           )}%`,
                         }}
                       />

@@ -35,7 +35,7 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  login: (credentials: { username: string; password: string }) =>
+  login: (credentials: { phone_number: string; password: string }) =>
     api.post('/accounts/api/token/', credentials),
   
   register: (userData: any) =>
