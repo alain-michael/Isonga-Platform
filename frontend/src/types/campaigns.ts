@@ -35,6 +35,38 @@ export interface Campaign {
   documents_count?: number;
   interests_count?: number;
   progress_percentage?: number;
+  target_partners_count?: number;
+  targeted_partner_names?: string[];
+  target_partners_data?: TargetPartner[];
+  partner_applications?: PartnerApplication[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TargetPartner {
+  id: number;
+  organization_name: string;
+  investor_type: string;
+}
+
+export interface PartnerApplication {
+  id: number;
+  campaign: string;
+  partner: number;
+  partner_name: string;
+  funding_form?: number;
+  funding_form_name?: string;
+  status: 'submitted' | 'under_review' | 'approved' | 'conditional_approved' | 'declined' | 'withdrawn';
+  form_responses?: Record<string, any>;
+  auto_screened: boolean;
+  auto_screen_passed?: boolean;
+  auto_screen_reason?: string;
+  reviewed_by?: number;
+  reviewed_at?: string;
+  review_notes?: string;
+  approval_conditions?: Array<{condition: string; met: boolean}>;
+  proposed_amount?: number;
+  proposed_terms?: string;
   created_at: string;
   updated_at: string;
 }

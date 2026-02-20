@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Heart,
   MessageSquare,
+  Settings,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import ThemeToggle from "../ui/ThemeToggle";
@@ -68,9 +69,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       visible: user?.user_type === "investor",
     },
     {
-      name: t("navigation.profile"),
-      path: "/investor/profile",
-      icon: User,
+      name: "Investment Criteria",
+      path: "/investor/criteria",
+      icon: Settings,
       visible: user?.user_type === "investor",
     },
     // Partner-specific navigation
@@ -86,22 +87,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: Heart,
       visible: user?.user_type === "investor",
     },
+    {
+      name: t("admin.manageQuestionnaires"),
+      path: "/admin/questionnaires",
+      icon: FileText,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
     // SME & Admin shared features
     {
       name: t("navigation.assessments"),
       path:
-      user?.user_type === "admin" || user?.user_type === "superadmin"
-      ? "/admin/assessments"
-      : "/assessments",
+        user?.user_type === "admin" || user?.user_type === "superadmin"
+          ? "/admin/assessments"
+          : "/assessments",
       icon: ClipboardList,
       visible:
         user?.user_type === "admin" ||
         user?.user_type === "superadmin" ||
         user?.user_type === "enterprise",
-      },
-      {
-        name: t("navigation.campaigns"),
-        path: "/campaigns",
+    },
+    {
+      name: t("navigation.campaigns"),
+      path: "/campaigns",
       icon: Target,
       visible: user?.user_type === "enterprise",
     },
@@ -118,42 +125,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: MessageSquare,
       visible:
         user?.user_type === "investor" || user?.user_type === "enterprise",
-      },
-      // Admin-only navigation
-      {
-        name: "Users",
-        path: "/admin/users",
-        icon: Users,
-        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-      },
-      {
-        name: t("navigation.enterprises"),
-        path: "/admin/enterprises",
-        icon: Building2,
-        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-      },
-      {
-        name: "Funding Partners",
-        path: "/admin/investors",
-        icon: TrendingUp,
-        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-      },
-      {
-        name: t("admin.manageQuestionnaires"),
-        path: "/admin/questionnaires",
-        icon: FileText,
-        visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-      },
-      // Profile - Personal information
-      {
-        name: t("navigation.profile"),
-        path: "/profile",
-        icon: User,
-        visible: user?.user_type === "enterprise",
-      },
-    ];
-    
-    return (
+    },
+    // Admin-only navigation
+    {
+      name: "Users",
+      path: "/admin/users",
+      icon: Users,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    {
+      name: t("navigation.enterprises"),
+      path: "/admin/enterprises",
+      icon: Building2,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    {
+      name: "Funding Partners",
+      path: "/admin/investors",
+      icon: TrendingUp,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    // Profile - Personal information
+    {
+      name: t("navigation.profile"),
+      path: "/investor/profile",
+      icon: User,
+      visible: user?.user_type === "investor",
+    },
+    {
+      name: t("navigation.profile"),
+      path: "/profile",
+      icon: User,
+      visible: user?.user_type === "enterprise",
+    },
+  ];
+
+  return (
     <>
       {/* Mobile Overlay */}
       <div

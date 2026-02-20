@@ -66,6 +66,14 @@ class Campaign(models.Model):
     # Use of funds
     use_of_funds = models.JSONField(default=dict, help_text="Breakdown of how funds will be used")
     
+    # Partner targeting - SMEs can target specific funding partners
+    target_partners = models.ManyToManyField(
+        'investors.Investor',
+        blank=True,
+        related_name='targeted_campaigns',
+        help_text="Specific partners this campaign is targeting. If empty, visible to all partners."
+    )
+    
     # Metrics
     views_count = models.PositiveIntegerField(default=0)
     
@@ -173,3 +181,91 @@ class CampaignMessage(models.Model):
     
     class Meta:
         ordering = ['created_at']
+
+
+class CampaignPartnerApplication(models.Model):
+    """SME application to a specific funding partner with partner-specific form responses"""
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('under_review', 'Under Review'),
+        ('approved', 'Approved'),
+        ('conditional', 'Conditionally Approved'),
+        ('declined', 'Declined'),
+        ('withdrawn', 'Withdrawn'),
+    )
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='partner_applications')
+    partner = models.ForeignKey('investors.Investor', on_delete=models.CASCADE, related_name='received_applications')
+    funding_form = models.ForeignKey(
+        'investors.PartnerFundingForm',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='applications',
+        help_text="The partner's funding form used for this application"
+    )
+    
+    # Application status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    # Form responses (JSON structure matching the funding form)
+    form_responses = models.JSONField(
+        default=dict,
+        help_text="Responses to partner-specific form fields. Structure: {section_id: {field_id: value}}"
+    )
+    
+    # Auto-screening results
+    auto_screened = models.BooleanField(default=False)
+    auto_screen_passed = models.BooleanField(default=False)
+    auto_screen_reason = models.TextField(blank=True, null=True, help_text="Reason for auto-rejection if applicable")
+    
+    # Partner review
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_applications'
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_notes = models.TextField(blank=True, null=True)
+    
+    # Conditions (if conditionally approved)
+    approval_conditions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of conditions that must be met for final approval"
+    )
+    conditions_met = models.BooleanField(default=False)
+    
+    # Investment terms (if approved)
+    proposed_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Amount partner is willing to invest"
+    )
+    proposed_terms = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Investment terms proposed by partner"
+    )
+    
+    # Timestamps
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.campaign.title} -> {self.partner.organization_name} ({self.status})"
+    
+    class Meta:
+        unique_together = ['campaign', 'partner']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'partner']),
+            models.Index(fields=['campaign', 'status']),
+        ]

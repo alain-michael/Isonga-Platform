@@ -29,6 +29,8 @@ import AdminEnterpriseDetail from "./components/admin/AdminEnterpriseDetail";
 import AdminQuestionnaires from "./components/admin/AdminQuestionnaires";
 import AdminInvestors from "./components/admin/AdminInvestors";
 import InvestorDetailView from "./components/admin/InvestorDetailView";
+import AdminPartnerForms from "./components/admin/AdminPartnerForms";
+import AdminPartnerFormBuilder from "./components/admin/AdminPartnerFormBuilder";
 import AdminUsers from "./components/admin/AdminUsers";
 import AdminCampaigns from "./components/admin/AdminCampaigns";
 import AdminCampaignDetail from "./components/admin/AdminCampaignDetail";
@@ -44,6 +46,7 @@ import InvestorDashboard from "./components/investor/InvestorDashboard";
 import InvestorMatches from "./components/investor/InvestorMatches";
 import InvestorMatchDetail from "./components/investor/InvestorMatchDetail";
 import InvestorProfile from "./components/investor/InvestorProfile";
+import PartnerCriteriaSettings from "./components/investor/PartnerCriteriaSettings";
 import InvestorOpportunities from "./components/investor/InvestorOpportunities";
 import Messages from "./components/messages/Messages";
 import "./styles.css";
@@ -156,6 +159,10 @@ const AppContent: React.FC = () => {
           element={<InvestorOpportunities />}
         />
         <Route path="/investor/profile" element={<InvestorProfile />} />
+        <Route
+          path="/investor/criteria"
+          element={<PartnerCriteriaSettings />}
+        />
 
         {/* Messages Route */}
         <Route path="/messages" element={<Messages />} />
@@ -171,6 +178,12 @@ const AppContent: React.FC = () => {
         <Route path="/admin/questionnaires" element={<AdminQuestionnaires />} />
         <Route path="/admin/investors" element={<AdminInvestors />} />
         <Route path="/admin/investors/:id" element={<InvestorDetailView />} />
+        <Route path="/admin/partners" element={<AdminInvestors />} />
+        <Route path="/admin/partners/forms" element={<AdminPartnerForms />} />
+        <Route
+          path="/admin/partners/forms/create"
+          element={<AdminPartnerFormBuilder />}
+        />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/enterprises" element={<AdminEnterprises />} />
         <Route

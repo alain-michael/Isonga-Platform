@@ -143,6 +143,45 @@ const AdminCampaignDetail: React.FC = () => {
     );
   };
 
+  const getPartnerStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; label: string }> = {
+      submitted: {
+        color: "bg-blue-100 text-blue-800",
+        label: "Submitted",
+      },
+      under_review: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "Under Review",
+      },
+      approved: {
+        color: "bg-green-100 text-green-800",
+        label: "Approved",
+      },
+      conditional_approved: {
+        color: "bg-orange-100 text-orange-800",
+        label: "Conditional",
+      },
+      declined: {
+        color: "bg-red-100 text-red-800",
+        label: "Declined",
+      },
+      withdrawn: {
+        color: "bg-neutral-100 text-neutral-800",
+        label: "Withdrawn",
+      },
+    };
+
+    const config = statusConfig[status] || statusConfig.submitted;
+
+    return (
+      <span
+        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${config.color}`}
+      >
+        {config.label}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -331,6 +370,7 @@ const AdminCampaignDetail: React.FC = () => {
           <nav className="-mb-px flex space-x-8">
             {[
               { id: "overview", label: "Overview", icon: Eye },
+              { id: "partners", label: "Partners", icon: Target },
               { id: "documents", label: "Documents", icon: FileText },
               { id: "updates", label: "Updates", icon: MessageSquare },
               { id: "interests", label: "Interests", icon: Users },
@@ -348,6 +388,13 @@ const AdminCampaignDetail: React.FC = () => {
                 >
                   <Icon className="h-4 w-4 mr-2" />
                   {tab.label}
+                  {tab.id === "partners" &&
+                    campaign.target_partners_count &&
+                    campaign.target_partners_count > 0 && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                        {campaign.target_partners_count}
+                      </span>
+                    )}
                 </button>
               );
             })}
@@ -435,6 +482,184 @@ const AdminCampaignDetail: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === "partners" && (
+        <div className="space-y-6">
+          {/* Targeted Partners Section */}
+          {campaign.target_partners_data &&
+          campaign.target_partners_data.length > 0 ? (
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
+              <h2 className="text-xl font-bold text-neutral-900 mb-4 flex items-center">
+                <Target className="h-5 w-5 mr-2" />
+                Targeted Partners ({campaign.target_partners_data.length})
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {campaign.target_partners_data.map((partner) => (
+                  <Link
+                    key={partner.id}
+                    to={`/admin/investors/${partner.id}`}
+                    className="px-4 py-2 bg-primary-50 border border-primary-200 text-primary-700 rounded-lg text-sm font-medium hover:bg-primary-100 transition flex items-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    {partner.organization_name}
+                    <span className="text-xs text-primary-600 opacity-75">
+                      ({partner.investor_type})
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
+              <div className="text-center py-8">
+                <Target className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                  No Specific Partners Targeted
+                </h3>
+                <p className="text-neutral-600">
+                  This campaign is visible to all eligible partners
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Partner Applications Section */}
+          {campaign.partner_applications &&
+          campaign.partner_applications.length > 0 ? (
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
+              <h2 className="text-xl font-bold text-neutral-900 mb-6">
+                Partner Application Statuses
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-neutral-200">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Partner
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Auto-Screen
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Reviewed
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Proposed Amount
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-700">
+                        Notes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaign.partner_applications.map((app) => (
+                      <tr
+                        key={app.id}
+                        className="border-b border-neutral-100 hover:bg-neutral-50"
+                      >
+                        <td className="py-4 px-4">
+                          <Link
+                            to={`/admin/investors/${app.partner}`}
+                            className="font-medium text-primary-600 hover:text-primary-700"
+                          >
+                            {app.partner_name}
+                          </Link>
+                          {app.funding_form_name && (
+                            <p className="text-xs text-neutral-500 mt-1">
+                              via {app.funding_form_name}
+                            </p>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          {getPartnerStatusBadge(app.status)}
+                        </td>
+                        <td className="py-4 px-4">
+                          {app.auto_screened ? (
+                            <div>
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                                  app.auto_screen_passed
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {app.auto_screen_passed ? "Passed" : "Failed"}
+                              </span>
+                              {app.auto_screen_reason && (
+                                <p className="text-xs text-neutral-500 mt-1">
+                                  {app.auto_screen_reason}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-neutral-400">
+                              N/A
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          {app.reviewed_at ? (
+                            <p className="text-sm text-neutral-700">
+                              {new Date(app.reviewed_at).toLocaleDateString()}
+                            </p>
+                          ) : (
+                            <span className="text-sm text-neutral-400">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          {app.proposed_amount ? (
+                            <p className="text-sm font-medium text-neutral-900">
+                              {new Intl.NumberFormat("en-RW", {
+                                style: "currency",
+                                currency: "RWF",
+                                notation: "compact",
+                              }).format(app.proposed_amount)}
+                            </p>
+                          ) : (
+                            <span className="text-sm text-neutral-400">
+                              N/A
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          {app.review_notes ? (
+                            <div className="max-w-xs">
+                              <p className="text-sm text-neutral-700 truncate">
+                                {app.review_notes}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-neutral-400">
+                              None
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="glass-effect rounded-xl p-6 border border-neutral-200">
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                  No Partner Applications Yet
+                </h3>
+                <p className="text-neutral-600">
+                  Partners haven't reviewed this campaign yet
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

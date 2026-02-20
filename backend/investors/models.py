@@ -74,8 +74,27 @@ class InvestorCriteria(models.Model):
     # Minimum readiness score
     min_readiness_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     
-    # Required documents
-    required_documents = models.JSONField(default=list, help_text="List of required document types")
+    # Auto-screening rules
+    auto_reject_below_score = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Automatically reject applications below this readiness score"
+    )
+    
+    # Revenue preferences
+    preferred_revenue_range = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text="Preferred revenue range: {min: X, max: Y}"
+    )
+    
+    # Required documents (structured format)
+    required_documents = models.JSONField(
+        default=list, 
+        help_text="Array of document requirements: [{name: 'Financial Statements', type: 'financial_statement', required: True, description: '...'}]"
+    )
     
     # Enterprise size preferences
     preferred_sizes = models.JSONField(default=list, help_text="List of preferred enterprise sizes")
@@ -171,3 +190,121 @@ class MatchInteraction(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class PartnerFundingForm(models.Model):
+    """Partner-specific funding application form template"""
+    FUNDING_TYPES = (
+        ('loan', 'Loan'),
+        ('equity', 'Equity Investment'),
+        ('grant', 'Grant'),
+        ('hybrid', 'Hybrid'),
+    )
+    
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    )
+    
+    partner = models.ForeignKey(Investor, on_delete=models.CASCADE, related_name='funding_forms')
+    name = models.CharField(max_length=255, help_text="e.g., BK SME Loan Application")
+    description = models.TextField(blank=True)
+    funding_type = models.CharField(max_length=20, choices=FUNDING_TYPES)
+    
+    # Scoring override
+    min_readiness_score = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Override partner's default min readiness score for this form"
+    )
+    
+    # Form status and versioning
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    version = models.CharField(max_length=10, default='1.0')
+    
+    # Metadata
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_funding_forms')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['partner', 'name', 'version']
+    
+    def __str__(self):
+        return f"{self.partner.organization_name} - {self.name} v{self.version}"
+
+
+class FormSection(models.Model):
+    """Organize funding form into sections"""
+    form = models.ForeignKey(PartnerFundingForm, on_delete=models.CASCADE, related_name='sections')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.form.name} - {self.title}"
+
+
+class FormField(models.Model):
+    """Individual form fields/questions in a section"""
+    FIELD_TYPES = (
+        ('text', 'Short Text'),
+        ('long_text', 'Long Text / Paragraph'),
+        ('number', 'Number'),
+        ('choice', 'Multiple Choice'),
+        ('file', 'File Upload'),
+        ('auto_fill', 'Auto-filled from Profile/Assessment'),
+    )
+    
+    section = models.ForeignKey(FormSection, on_delete=models.CASCADE, related_name='fields')
+    field_type = models.CharField(max_length=20, choices=FIELD_TYPES)
+    label = models.CharField(max_length=255)
+    help_text = models.TextField(blank=True)
+    is_required = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    
+    # For number fields
+    min_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    max_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    
+    # For choice fields (stored as JSON array)
+    choices = models.JSONField(
+        default=list, 
+        blank=True,
+        help_text="Array of choice objects: [{value: 'x', label: 'X'}]"
+    )
+    
+    # For file uploads
+    accepted_file_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Array of accepted file extensions: ['.pdf', '.docx']"
+    )
+    max_file_size_mb = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Auto-fill configuration
+    auto_fill_source = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Dot notation for data source: 'profile.business_name', 'assessment.readiness_score'"
+    )
+    
+    # Conditional logic (show/hide based on other field values)
+    conditional_rules = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Rules to show/hide field: {show_if: {field: 'loan_amount', operator: '>', value: 10000000}}"
+    )
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.section.form.name} - {self.label}"

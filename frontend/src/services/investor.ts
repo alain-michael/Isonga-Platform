@@ -22,11 +22,25 @@ export interface InvestorProfile {
 
 export interface InvestorCriteria {
   id?: number;
+  investor?: number;
   sectors: string[];
   min_funding_amount: number;
   max_funding_amount: number;
   preferred_sizes: string[];
   min_readiness_score?: number;
+  auto_reject_below_score?: number | null;
+  preferred_revenue_range?: {
+    min: number | null;
+    max: number | null;
+  };
+  required_documents?: Array<{
+    name: string;
+    type: string;
+    required: boolean;
+    description: string;
+  }>;
+  geographic_focus?: string[];
+  is_active?: boolean;
 }
 
 export interface MatchedCampaign {

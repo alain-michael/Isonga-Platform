@@ -4,11 +4,12 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from django.db.models import Q, Avg
-from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage, CampaignPartnerApplication
 from .serializers import (
     CampaignSerializer, CampaignDetailSerializer, CampaignCreateSerializer,
     CampaignDocumentSerializer, CampaignInterestSerializer, CampaignUpdateSerializer,
-    CampaignMessageSerializer
+    CampaignMessageSerializer, CampaignPartnerApplicationSerializer,
+    CampaignPartnerApplicationDetailSerializer, CampaignPartnerApplicationCreateSerializer
 )
 
 
@@ -42,7 +43,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if user.user_type in ['admin', 'superadmin']:
             return Campaign.objects.all()
         
-        # Investors/Partners see only active (partner-visible) campaigns that meet their criteria
+        # Investors/Partners see only campaigns targeted to them
         if hasattr(user, 'investor_profile'):
             investor = user.investor_profile
             
@@ -50,14 +51,28 @@ class CampaignViewSet(viewsets.ModelViewSet):
             criteria = investor.criteria.filter(is_active=True).first()
             min_score = criteria.min_readiness_score if criteria else 0
             
-            # Filter campaigns by readiness score
-            return Campaign.objects.filter(
-                status='active',
+            # Only show campaigns where:
+            # 1. Partner is in target_partners (targeted applications) OR
+            # 2. No target_partners specified (open to all) AND meets criteria
+            # 3. Status is approved/active (admin vetted)
+            # 4. Meets partner's min readiness score
+            targeted_campaigns = Campaign.objects.filter(
+                target_partners=investor,
+                status__in=['approved', 'active'],
                 is_vetted=True,
                 readiness_score_at_submission__gte=min_score
-            ) | Campaign.objects.filter(
-                interests__investor=investor
             )
+            
+            # Campaigns with no specific targets (visible to all partners)
+            open_campaigns = Campaign.objects.filter(
+                target_partners__isnull=True,
+                status__in=['approved', 'active'],
+                is_vetted=True,
+                readiness_score_at_submission__gte=min_score
+            )
+            
+            # Combine both querysets
+            return (targeted_campaigns | open_campaigns).distinct()
         
         # Enterprise users see their own campaigns
         if hasattr(user, 'enterprise'):
@@ -273,6 +288,36 @@ class CampaignViewSet(viewsets.ModelViewSet):
             'eligible_count': len([p for p in eligible_partners if p['eligible']])
         })
     
+    @action(detail=True, methods=['get'], url_path='partner-application')
+    def partner_application(self, request, pk=None):
+        """Get partner-specific application details for the logged-in partner"""
+        campaign = self.get_object()
+        user = request.user
+        
+        # Only partners can access this endpoint
+        if not hasattr(user, 'investor_profile'):
+            return Response({'error': 'Only partners can access partner applications'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
+        partner = user.investor_profile
+        
+        # Get or create the partner application
+        try:
+            application = CampaignPartnerApplication.objects.get(
+                campaign=campaign,
+                partner=partner
+            )
+            serializer = CampaignPartnerApplicationDetailSerializer(application)
+            return Response(serializer.data)
+        except CampaignPartnerApplication.DoesNotExist:
+            # If no application exists yet, return campaign details with empty application
+            campaign_serializer = CampaignDetailSerializer(campaign)
+            return Response({
+                'campaign': campaign_serializer.data,
+                'application': None,
+                'message': 'No application submitted yet'
+            })
+    
     @action(detail=True, methods=['post'])
     def close(self, request, pk=None):
         """Close a campaign"""
@@ -428,3 +473,273 @@ class CampaignMessageViewSet(viewsets.ModelViewSet):
         message.save()
         
         return Response({'message': 'Message marked as read'})
+
+
+class CampaignPartnerApplicationViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing campaign partner applications"""
+    queryset = CampaignPartnerApplication.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CampaignPartnerApplicationCreateSerializer
+        if self.action == 'retrieve':
+            return CampaignPartnerApplicationDetailSerializer
+        return CampaignPartnerApplicationSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Admins see all applications
+        if user.user_type in ['admin', 'superadmin']:
+            return CampaignPartnerApplication.objects.all()
+        
+        # Partners see applications to them
+        if hasattr(user, 'investor_profile'):
+            return CampaignPartnerApplication.objects.filter(
+                partner=user.investor_profile
+            )
+        
+        # Enterprises see applications from their campaigns
+        if hasattr(user, 'enterprise'):
+            return CampaignPartnerApplication.objects.filter(
+                campaign__enterprise=user.enterprise
+            )
+        
+        return CampaignPartnerApplication.objects.none()
+    
+    def perform_create(self, serializer):
+        """Create application - enterprise initiates application to partner"""
+        user = self.request.user
+        
+        # Only enterprises can create applications
+        if not hasattr(user, 'enterprise'):
+            raise PermissionError("Only enterprises can create partner applications")
+        
+        campaign = serializer.validated_data.get('campaign')
+        
+        # Verify enterprise owns the campaign
+        if campaign.enterprise != user.enterprise:
+            raise PermissionError("You can only create applications for your own campaigns")
+        
+        serializer.save()
+    
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        """Submit application for partner review (moves from draft to submitted)"""
+        application = self.get_object()
+        
+        # Only the enterprise that owns the campaign can submit
+        if not (hasattr(request.user, 'enterprise') and 
+                application.campaign.enterprise == request.user.enterprise):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status != 'draft':
+            return Response({'error': 'Only draft applications can be submitted'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate form responses if partner has required form
+        if application.partner_form and not application.form_responses:
+            return Response({'error': 'Form responses required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'submitted'
+        application.submitted_at = timezone.now()
+        application.save()
+        
+        return Response({
+            'message': 'Application submitted to partner',
+            'auto_screened': application.auto_screened,
+            'auto_screen_passed': application.auto_screen_passed,
+            'auto_screen_reason': application.auto_screen_reason
+        })
+    
+    @action(detail=True, methods=['post'])
+    def start_review(self, request, pk=None):
+        """Partner starts reviewing the application"""
+        application = self.get_object()
+        
+        # Only the partner can start review
+        if not (hasattr(request.user, 'investor_profile') and 
+                application.partner == request.user.investor_profile):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status != 'submitted':
+            return Response({'error': 'Only submitted applications can be reviewed'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'under_review'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+        
+        return Response({'message': 'Review started'})
+    
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Partner approves the application"""
+        application = self.get_object()
+        
+        # Only the partner can approve
+        if not (hasattr(request.user, 'investor_profile') and 
+                application.partner == request.user.investor_profile):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status not in ['submitted', 'under_review']:
+            return Response({'error': 'Only submitted/under review applications can be approved'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'approved'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.review_notes = request.data.get('notes', '')
+        application.proposed_amount = request.data.get('proposed_amount')
+        application.proposed_terms = request.data.get('proposed_terms', {})
+        application.save()
+        
+        return Response({'message': 'Application approved'})
+    
+    @action(detail=True, methods=['post'])
+    def conditional_approve(self, request, pk=None):
+        """Partner conditionally approves with conditions to be met"""
+        application = self.get_object()
+        
+        # Only the partner can conditionally approve
+        if not (hasattr(request.user, 'investor_profile') and 
+                application.partner == request.user.investor_profile):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status not in ['submitted', 'under_review']:
+            return Response({'error': 'Only submitted/under review applications can be conditionally approved'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        approval_conditions = request.data.get('approval_conditions', [])
+        if not approval_conditions:
+            return Response({'error': 'Approval conditions are required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'conditional'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.review_notes = request.data.get('notes', '')
+        application.approval_conditions = approval_conditions
+        application.conditions_met = False
+        application.proposed_amount = request.data.get('proposed_amount')
+        application.proposed_terms = request.data.get('proposed_terms', {})
+        application.save()
+        
+        return Response({'message': 'Application conditionally approved', 'conditions': approval_conditions})
+    
+    @action(detail=True, methods=['post'])
+    def decline(self, request, pk=None):
+        """Partner declines the application"""
+        application = self.get_object()
+        
+        # Only the partner can decline
+        if not (hasattr(request.user, 'investor_profile') and 
+                application.partner == request.user.investor_profile):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status not in ['submitted', 'under_review']:
+            return Response({'error': 'Only submitted/under review applications can be declined'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        decline_reason = request.data.get('reason', '')
+        if not decline_reason:
+            return Response({'error': 'Decline reason is required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'declined'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.review_notes = decline_reason
+        application.save()
+        
+        return Response({'message': 'Application declined'})
+    
+    @action(detail=True, methods=['post'])
+    def withdraw(self, request, pk=None):
+        """Enterprise withdraws their application"""
+        application = self.get_object()
+        
+        # Only the enterprise can withdraw
+        if not (hasattr(request.user, 'enterprise') and 
+                application.campaign.enterprise == request.user.enterprise):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status in ['approved', 'declined']:
+            return Response({'error': 'Cannot withdraw approved or declined applications'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'withdrawn'
+        application.save()
+        
+        return Response({'message': 'Application withdrawn'})
+    
+    @action(detail=True, methods=['post'])
+    def update_form_responses(self, request, pk=None):
+        """Update form responses for the application"""
+        application = self.get_object()
+        
+        # Only the enterprise can update form responses
+        if not (hasattr(request.user, 'enterprise') and 
+                application.campaign.enterprise == request.user.enterprise):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if application.status not in ['draft', 'conditional']:
+            return Response({'error': 'Form responses can only be updated for draft or conditional applications'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        form_responses = request.data.get('form_responses', {})
+        application.form_responses = form_responses
+        
+        # If conditional, mark conditions_met based on update
+        if application.status == 'conditional':
+            application.conditions_met = request.data.get('conditions_met', False)
+        
+        application.save()
+        
+        return Response({'message': 'Form responses updated'})
+    
+    @action(detail=False, methods=['get'])
+    def my_applications(self, request):
+        """Get applications for current user's context (enterprise or partner)"""
+        user = request.user
+        
+        if hasattr(user, 'enterprise'):
+            # Enterprise sees their campaign applications
+            applications = CampaignPartnerApplication.objects.filter(
+                campaign__enterprise=user.enterprise
+            )
+        elif hasattr(user, 'investor_profile'):
+            # Partner sees applications to them
+            applications = CampaignPartnerApplication.objects.filter(
+                partner=user.investor_profile
+            )
+        else:
+            applications = CampaignPartnerApplication.objects.none()
+        
+        serializer = self.get_serializer(applications, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_campaign(self, request):
+        """Get all applications for a specific campaign"""
+        campaign_id = request.query_params.get('campaign_id')
+        if not campaign_id:
+            return Response({'error': 'campaign_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify access
+        try:
+            campaign = Campaign.objects.get(id=campaign_id)
+        except Campaign.DoesNotExist:
+            return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Only enterprise owner or admin can see all applications for a campaign
+        if not (hasattr(request.user, 'enterprise') and campaign.enterprise == request.user.enterprise) and \
+           request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        applications = CampaignPartnerApplication.objects.filter(campaign=campaign)
+        serializer = self.get_serializer(applications, many=True)
+        return Response(serializer.data)

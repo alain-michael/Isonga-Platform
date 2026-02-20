@@ -4,11 +4,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from .models import Investor, InvestorCriteria, Match, MatchInteraction
+from .models import Investor, InvestorCriteria, Match, MatchInteraction, PartnerFundingForm, FormSection, FormField
 from .serializers import (
     InvestorSerializer, InvestorCriteriaSerializer, 
     MatchSerializer, MatchDetailSerializer, MatchInteractionSerializer,
-    MatchedCampaignSerializer
+    MatchedCampaignSerializer, PartnerFundingFormSerializer, PartnerFundingFormDetailSerializer,
+    FormSectionSerializer, FormFieldSerializer
 )
 from enterprises.models import Enterprise
 from campaigns.models import Campaign
@@ -41,12 +42,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
     
     def get_queryset(self):
-        user = self.request.user
-        if user.user_type in ['admin', 'superadmin']:
-            return Investor.objects.all()
-        if hasattr(user, 'investor_profile'):
-            return Investor.objects.filter(user=user)
-        return Investor.objects.none()
+        return Investor.objects.all()
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -515,3 +511,188 @@ class InteractWithOpportunityView(APIView):
             return Response({'message': 'Campaign passed', 'match_id': str(match.id)})
             
         return Response({'error': 'Unknown error'}, status=500)
+
+
+class IsAdminOrPartnerOwner(permissions.BasePermission):
+    """Allow admins and partner owners to manage their funding forms"""
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        
+        # Admins can do everything
+        if request.user.user_type in ['admin', 'superadmin']:
+            return True
+        
+        # Partners can create their own forms
+        if request.method == 'POST' and hasattr(request.user, 'investor_profile'):
+            return True
+        
+        # For other methods, check object permissions
+        return hasattr(request.user, 'investor_profile')
+    
+    def has_object_permission(self, request, view, obj):
+        # Admins can do everything
+        if request.user.user_type in ['admin', 'superadmin']:
+            return True
+        
+        # Partners can only manage their own forms
+        if hasattr(request.user, 'investor_profile'):
+            return obj.partner == request.user.investor_profile
+        
+        return False
+
+
+class PartnerFundingFormViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing partner funding forms"""
+    queryset = PartnerFundingForm.objects.all()
+    permission_classes = [IsAdminOrPartnerOwner]
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PartnerFundingFormDetailSerializer
+        return PartnerFundingFormSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        queryset = PartnerFundingForm.objects.all()
+        
+        # Filter by status if provided
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        # Filter by funding type if provided
+        funding_type = self.request.query_params.get('funding_type')
+        if funding_type:
+            queryset = queryset.filter(funding_type=funding_type)
+        
+        # Filter by partner if provided
+        partner_id = self.request.query_params.get('partner')
+        if partner_id:
+            queryset = queryset.filter(partner_id=partner_id)
+        
+        # Non-admins can only see their own forms and active forms from other partners
+        if user.user_type not in ['admin', 'superadmin']:
+            if hasattr(user, 'investor_profile'):
+                queryset = queryset.filter(
+                    Q(partner=user.investor_profile) | Q(status='active')
+                )
+            else:
+                # Enterprises can see active forms
+                queryset = queryset.filter(status='active')
+        
+        return queryset.select_related('partner').prefetch_related('sections__fields')
+    
+    @action(detail=True, methods=['post'])
+    def duplicate(self, request, pk=None):
+        """Duplicate a funding form"""
+        original_form = self.get_object()
+        
+        # Check if user can duplicate (must be admin or form owner)
+        if not (request.user.user_type in ['admin', 'superadmin'] or 
+                (hasattr(request.user, 'investor_profile') and 
+                 original_form.partner == request.user.investor_profile)):
+            return Response({'error': 'Permission denied'}, status=403)
+        
+        # Duplicate the form
+        new_form = PartnerFundingForm.objects.create(
+            partner=original_form.partner,
+            name=f"{original_form.name} (Copy)",
+            description=original_form.description,
+            funding_type=original_form.funding_type,
+            min_readiness_score=original_form.min_readiness_score,
+            status='draft',
+            version=1,
+            created_by=request.user
+        )
+        
+        # Duplicate sections and fields
+        for section in original_form.sections.all():
+            new_section = FormSection.objects.create(
+                form=new_form,
+                title=section.title,
+                description=section.description,
+                order=section.order
+            )
+            
+            for field in section.fields.all():
+                FormField.objects.create(
+                    section=new_section,
+                    field_type=field.field_type,
+                    label=field.label,
+                    help_text=field.help_text,
+                    is_required=field.is_required,
+                    order=field.order,
+                    min_value=field.min_value,
+                    max_value=field.max_value,
+                    choices=field.choices,
+                    accepted_file_types=field.accepted_file_types,
+                    max_file_size_mb=field.max_file_size_mb,
+                    auto_fill_source=field.auto_fill_source,
+                    conditional_rules=field.conditional_rules
+                )
+        
+        serializer = self.get_serializer(new_form)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        """Activate a draft form"""
+        form = self.get_object()
+        
+        if form.status != 'draft':
+            return Response({'error': 'Only draft forms can be activated'}, status=400)
+        
+        form.status = 'active'
+        form.save()
+        
+        serializer = self.get_serializer(form)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """Archive an active form"""
+        form = self.get_object()
+        
+        if form.status == 'archived':
+            return Response({'error': 'Form is already archived'}, status=400)
+        
+        form.status = 'archived'
+        form.save()
+        
+        serializer = self.get_serializer(form)
+        return Response(serializer.data)
+
+
+class FormSectionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing form sections"""
+    queryset = FormSection.objects.all()
+    serializer_class = FormSectionSerializer
+    permission_classes = [IsAdminOrPartnerOwner]
+    
+    def get_queryset(self):
+        queryset = FormSection.objects.all()
+        
+        # Filter by form if provided
+        form_id = self.request.query_params.get('form')
+        if form_id:
+            queryset = queryset.filter(form_id=form_id)
+        
+        return queryset.prefetch_related('fields')
+
+
+class FormFieldViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing form fields"""
+    queryset = FormField.objects.all()
+    serializer_class = FormFieldSerializer
+    permission_classes = [IsAdminOrPartnerOwner]
+    
+    def get_queryset(self):
+        queryset = FormField.objects.all()
+        
+        # Filter by section if provided
+        section_id = self.request.query_params.get('section')
+        if section_id:
+            queryset = queryset.filter(section_id=section_id)
+        
+        return queryset

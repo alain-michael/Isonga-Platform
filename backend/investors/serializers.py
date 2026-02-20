@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Investor, InvestorCriteria, Match, MatchInteraction
+from .models import (
+    Investor, InvestorCriteria, Match, MatchInteraction, 
+    PartnerFundingForm, FormSection, FormField
+)
 from accounts.models import User
 from enterprises.models import Enterprise
 from campaigns.models import Campaign
@@ -139,3 +142,100 @@ class MatchedCampaignSerializer(serializers.ModelSerializer):
         from campaigns.serializers import CampaignDocumentSerializer
         documents = obj.documents.filter(is_public=True)
         return CampaignDocumentSerializer(documents, many=True, context=self.context).data
+
+
+class FormFieldSerializer(serializers.ModelSerializer):
+    """Serializer for individual form fields"""
+    class Meta:
+        model = FormField
+        fields = [
+            'id', 'field_type', 'label', 'help_text', 'is_required', 'order',
+            'min_value', 'max_value', 'choices', 'accepted_file_types', 
+            'max_file_size_mb', 'auto_fill_source', 'conditional_rules'
+        ]
+
+
+class FormSectionSerializer(serializers.ModelSerializer):
+    """Serializer for form sections with nested fields"""
+    fields = FormFieldSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = FormSection
+        fields = ['id', 'title', 'description', 'order', 'fields']
+
+
+class PartnerFundingFormSerializer(serializers.ModelSerializer):
+    """Serializer for partner funding forms with nested sections"""
+    sections = FormSectionSerializer(many=True, read_only=True)
+    partner_name = serializers.CharField(source='partner.organization_name', read_only=True)
+    
+    class Meta:
+        model = PartnerFundingForm
+        fields = [
+            'id', 'partner', 'partner_name', 'name', 'description', 'funding_type',
+            'min_readiness_score', 'status', 'version', 'sections',
+            'created_by', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data['created_by'] = request.user
+        return super().create(validated_data)
+
+
+class PartnerFundingFormDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for creating/updating forms with nested data"""
+    sections = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
+    sections_data = FormSectionSerializer(many=True, read_only=True, source='sections')
+    
+    class Meta:
+        model = PartnerFundingForm
+        fields = [
+            'id', 'partner', 'name', 'description', 'funding_type',
+            'min_readiness_score', 'status', 'version', 'sections', 'sections_data',
+            'created_by', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        sections_data = validated_data.pop('sections', [])
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data['created_by'] = request.user
+        
+        # Create the form
+        form = PartnerFundingForm.objects.create(**validated_data)
+        
+        # Create sections and fields
+        for section_data in sections_data:
+            fields_data = section_data.pop('fields', [])
+            section = FormSection.objects.create(form=form, **section_data)
+            
+            for field_data in fields_data:
+                FormField.objects.create(section=section, **field_data)
+        
+        return form
+    
+    def update(self, instance, validated_data):
+        sections_data = validated_data.pop('sections', None)
+        
+        # Update form fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # If sections data provided, update sections
+        if sections_data is not None:
+            # Delete existing sections and recreate
+            instance.sections.all().delete()
+            
+            for section_data in sections_data:
+                fields_data = section_data.pop('fields', [])
+                section = FormSection.objects.create(form=instance, **section_data)
+                
+                for field_data in fields_data:
+                    FormField.objects.create(section=section, **field_data)
+        
+        return instance

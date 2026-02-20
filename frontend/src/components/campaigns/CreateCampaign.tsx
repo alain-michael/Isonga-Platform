@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,8 +16,10 @@ import {
   Upload,
   X,
   Info,
+  Users,
 } from "lucide-react";
 import { useCreateCampaign } from "../../hooks/useCampaigns";
+import api from "../../services/api";
 
 // Form data interface
 interface CampaignFormData {
@@ -29,6 +32,7 @@ interface CampaignFormData {
   start_date: string;
   end_date: string;
   use_of_funds: string;
+  target_partners?: number[];
 }
 
 // Validation schema
@@ -96,16 +100,27 @@ const STEPS = [
   { id: 1, title: "Application Details", icon: FileText },
   { id: 2, title: "Funding Goals", icon: Target },
   { id: 3, title: "Timeline", icon: Calendar },
-  { id: 4, title: "Documents", icon: Upload },
-  { id: 5, title: "Review", icon: Check },
+  { id: 4, title: "Select Partners", icon: Users },
+  { id: 5, title: "Documents", icon: Upload },
+  { id: 6, title: "Review", icon: Check },
 ];
 
 const CreateCampaign: React.FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [documents, setDocuments] = useState<File[]>([]);
 
   const createCampaignMutation = useCreateCampaign();
+
+  // Fetch available partners
+  const { data: partners = [] } = useQuery({
+    queryKey: ["partners"],
+    queryFn: async () => {
+      const response = await api.get("/investors/profiles/");
+      return response.data.results || response.data;
+    },
+  });
 
   const {
     register,
@@ -133,6 +148,10 @@ const CreateCampaign: React.FC = () => {
       case 3:
         fieldsToValidate = ["start_date", "end_date"];
         break;
+      case 4:
+        // Partner selection is optional, no validation required
+        setCurrentStep(currentStep + 1);
+        return;
     }
 
     const isValid = await trigger(fieldsToValidate);
@@ -150,6 +169,8 @@ const CreateCampaign: React.FC = () => {
       const campaignData = {
         ...data,
         use_of_funds: { description: data.use_of_funds },
+        target_partners:
+          selectedPartners.length > 0 ? selectedPartners : undefined,
       };
 
       await createCampaignMutation.mutateAsync(campaignData as any);
@@ -434,6 +455,120 @@ const CreateCampaign: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-4">
+                <Users className="h-4 w-4 inline mr-2" />
+                Target Specific Partners (Optional)
+              </label>
+              <p className="text-sm text-neutral-500 mb-4">
+                Select specific funding partners to target with this
+                application. If none selected, your application will be visible
+                to all partners.
+              </p>
+
+              <div className="space-y-3">
+                {partners.length === 0 ? (
+                  <div className="text-center py-8 text-neutral-500">
+                    <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No partners available</p>
+                  </div>
+                ) : (
+                  partners.map((partner: any) => (
+                    <label
+                      key={partner.id}
+                      className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition ${
+                        selectedPartners.includes(partner.id)
+                          ? "border-primary-500 bg-primary-50"
+                          : "border-neutral-200 hover:border-neutral-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPartners.includes(partner.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPartners([
+                              ...selectedPartners,
+                              partner.id,
+                            ]);
+                          } else {
+                            setSelectedPartners(
+                              selectedPartners.filter(
+                                (id) => id !== partner.id,
+                              ),
+                            );
+                          }
+                        }}
+                        className="h-5 w-5 text-primary-600 border-neutral-300 rounded mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-neutral-900">
+                            {partner.organization_name}
+                          </span>
+                          <span className="text-xs px-2 py-1 bg-neutral-100 text-neutral-600 rounded capitalize">
+                            {partner.investor_type}
+                          </span>
+                        </div>
+                        {partner.description && (
+                          <p className="text-sm text-neutral-600 line-clamp-2">
+                            {partner.description}
+                          </p>
+                        )}
+                        {partner.criteria && partner.criteria.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {partner.criteria[0].sectors
+                              ?.slice(0, 3)
+                              .map((sector: string) => (
+                                <span
+                                  key={sector}
+                                  className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded"
+                                >
+                                  {sector}
+                                </span>
+                              ))}
+                            {partner.criteria[0].sectors?.length > 3 && (
+                              <span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded">
+                                +{partner.criteria[0].sectors.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+
+              {selectedPartners.length > 0 && (
+                <div className="mt-4 p-3 bg-primary-50 rounded-lg border border-primary-200">
+                  <p className="text-sm text-primary-800">
+                    <strong>{selectedPartners.length}</strong> partner
+                    {selectedPartners.length !== 1 ? "s" : ""} selected
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Partner Targeting</p>
+                  <p>
+                    Targeting specific partners helps focus your application on
+                    those most aligned with your business. Each partner may have
+                    their own requirements and application forms.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Supporting Documents
               </label>
@@ -505,7 +640,7 @@ const CreateCampaign: React.FC = () => {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             {Object.keys(errors).length > 0 && (
@@ -612,6 +747,37 @@ const CreateCampaign: React.FC = () => {
                     </dd>
                   </div>
                 </dl>
+              </div>
+
+              <div className="border border-neutral-200 rounded-xl p-4">
+                <h4 className="font-medium text-neutral-900 mb-3">
+                  Target Partners
+                </h4>
+                <p className="text-sm text-neutral-600">
+                  {selectedPartners.length > 0 ? (
+                    <>
+                      <strong>{selectedPartners.length}</strong> specific
+                      partner
+                      {selectedPartners.length !== 1 ? "s" : ""} selected
+                    </>
+                  ) : (
+                    "Visible to all partners"
+                  )}
+                </p>
+                {selectedPartners.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {partners
+                      .filter((p: any) => selectedPartners.includes(p.id))
+                      .map((partner: any) => (
+                        <span
+                          key={partner.id}
+                          className="text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded"
+                        >
+                          {partner.organization_name}
+                        </span>
+                      ))}
+                  </div>
+                )}
               </div>
 
               <div className="border border-neutral-200 rounded-xl p-4">
