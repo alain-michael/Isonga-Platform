@@ -147,15 +147,23 @@ class BusinessProfileForm(models.Model):
     Replaces the fixed profile fields; the admin decides what fields
     each sector's profile contains.
     """
-    SECTORS = Enterprise.SECTORS   # reuse sector choices from Enterprise
+    # Extends Enterprise.SECTORS with a special sentinel value used by the
+    # default fallback form so it never occupies a real sector slot.
+    SECTORS = Enterprise.SECTORS + (
+        ('_default', 'Default (All Sectors)'),
+    )
 
     sector = models.CharField(
         max_length=50, choices=SECTORS, unique=True,
-        help_text="One form template per sector"
+        help_text="One form template per sector. Use '_default' for the fallback form."
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(
+        default=False,
+        help_text="If True, this form is shown for any sector that has no dedicated form"
+    )
 
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,

@@ -257,12 +257,21 @@ class BusinessProfileFormViewSet(viewsets.ModelViewSet):
         if not sector:
             return Response({'error': 'sector parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
+            # is_default=False ensures the fallback form (sector='_default') is
+            # never returned here — only a true sector-specific form matches.
             form = BusinessProfileForm.objects.prefetch_related('sections__fields').get(
-                sector=sector, is_active=True
+                sector=sector, is_active=True, is_default=False
             )
             serializer = BusinessProfileFormSerializer(form)
             return Response(serializer.data)
         except BusinessProfileForm.DoesNotExist:
+            # Fall back to the designated default form
+            default_form = BusinessProfileForm.objects.prefetch_related('sections__fields').filter(
+                is_default=True, is_active=True
+            ).first()
+            if default_form:
+                serializer = BusinessProfileFormSerializer(default_form)
+                return Response(serializer.data)
             return Response({'detail': 'No active form for this sector'}, status=status.HTTP_404_NOT_FOUND)
 
 
