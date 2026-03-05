@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { enterpriseAPI } from "../../services/api";
+import { enterpriseAPI, applicationDocumentAPI } from "../../services/api";
 import {
   campaignAPI,
   campaignDocumentsAPI,
@@ -184,6 +184,68 @@ const CampaignDetail: React.FC = () => {
 
   const updates = updatesResponse?.data || [];
 
+  // State for partner document uploads
+  const [partnerDocUploading, setPartnerDocUploading] = useState<
+    Record<string, boolean>
+  >({});
+  const [partnerDocErrors, setPartnerDocErrors] = useState<
+    Record<string, string>
+  >({});
+
+  // Query required docs per partner application when on partner_docs tab
+  const { data: partnerApplicationsWithDocs, refetch: refetchPartnerDocs } =
+    useQuery({
+      queryKey: ["partnerApplicationDocs", id],
+      queryFn: async () => {
+        if (
+          !campaign?.partner_applications ||
+          campaign.partner_applications.length === 0
+        )
+          return [];
+        const results = await Promise.all(
+          campaign.partner_applications.map(async (app: any) => {
+            try {
+              const res = await applicationDocumentAPI.getRequiredDocs(app.id);
+              return { ...app, required_docs: res.data.required_docs || [] };
+            } catch {
+              return { ...app, required_docs: [] };
+            }
+          }),
+        );
+        return results;
+      },
+      enabled:
+        activeTab === "partner_docs" &&
+        !!campaign?.partner_applications?.length,
+    });
+
+  const handlePartnerDocUpload = async (
+    applicationId: string,
+    docKey: string,
+    docName: string,
+    file: File,
+  ) => {
+    const key = `${applicationId}_${docKey}`;
+    setPartnerDocUploading((prev) => ({ ...prev, [key]: true }));
+    setPartnerDocErrors((prev) => ({ ...prev, [key]: "" }));
+    try {
+      const formData = new FormData();
+      formData.append("application", applicationId);
+      formData.append("document_key", docKey);
+      formData.append("document_name", docName);
+      formData.append("file", file);
+      await applicationDocumentAPI.upload(formData);
+      refetchPartnerDocs();
+    } catch (err: any) {
+      setPartnerDocErrors((prev) => ({
+        ...prev,
+        [key]: err?.response?.data?.detail || "Upload failed",
+      }));
+    } finally {
+      setPartnerDocUploading((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
   // Set user interest if exists
   React.useEffect(() => {
     if (interestsResponse?.data) {
@@ -363,6 +425,11 @@ const CampaignDetail: React.FC = () => {
     { id: "overview", label: "Overview", icon: Activity },
     ...(!isInvestor
       ? [{ id: "investors", label: "Partners", icon: Users }]
+      : []),
+    ...(!isInvestor &&
+    campaign.partner_applications &&
+    campaign.partner_applications.length > 0
+      ? [{ id: "partner_docs", label: "Partner Documents", icon: Upload }]
       : []),
     { id: "documents", label: "Documents", icon: FileText },
     { id: "updates", label: "Updates", icon: MessageSquare },
@@ -900,6 +967,134 @@ const CampaignDetail: React.FC = () => {
                     appear here.
                   </p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "partner_docs" && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900 mb-1">
+                  Partner Required Documents
+                </h3>
+                <p className="text-sm text-neutral-500 mb-4">
+                  Upload the documents required by each funding partner for your
+                  application.
+                </p>
+              </div>
+              {!partnerApplicationsWithDocs ||
+              partnerApplicationsWithDocs.length === 0 ? (
+                <div className="text-center py-10">
+                  <FileText className="h-12 w-12 text-neutral-300 mx-auto mb-3" />
+                  <p className="text-neutral-500">
+                    No partner applications with required documents found.
+                  </p>
+                </div>
+              ) : (
+                partnerApplicationsWithDocs.map((app: any) => (
+                  <div
+                    key={app.id}
+                    className="border border-neutral-200 rounded-xl overflow-hidden"
+                  >
+                    <div className="bg-neutral-50 px-5 py-3 border-b border-neutral-200">
+                      <h4 className="font-medium text-neutral-900">
+                        {app.partner_name ||
+                          app.investor_name ||
+                          `Partner Application #${app.id}`}
+                      </h4>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${app.status === "approved" ? "bg-green-100 text-green-700" : app.status === "declined" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`}
+                      >
+                        {app.status}
+                      </span>
+                    </div>
+                    {app.required_docs.length === 0 ? (
+                      <div className="px-5 py-4 text-sm text-neutral-500">
+                        No required documents for this partner.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-neutral-100">
+                        {app.required_docs.map((doc: any) => {
+                          const uploadKey = `${app.id}_${doc.key}`;
+                          return (
+                            <div key={doc.key} className="px-5 py-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-neutral-900 text-sm">
+                                      {doc.name}
+                                    </p>
+                                    {doc.required && (
+                                      <span className="text-xs px-1.5 py-0.5 bg-red-100 text-red-700 rounded">
+                                        Required
+                                      </span>
+                                    )}
+                                    {doc.source === "criteria" && (
+                                      <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                        Criteria
+                                      </span>
+                                    )}
+                                    {doc.source === "form" && (
+                                      <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                        Form
+                                      </span>
+                                    )}
+                                  </div>
+                                  {doc.description && (
+                                    <p className="text-xs text-neutral-500 mt-0.5">
+                                      {doc.description}
+                                    </p>
+                                  )}
+                                  {doc.uploaded_url && (
+                                    <a
+                                      href={doc.uploaded_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 mt-1 text-xs text-green-600 hover:underline"
+                                    >
+                                      <CheckCircle className="h-3 w-3" />{" "}
+                                      Uploaded — view file
+                                    </a>
+                                  )}
+                                  {partnerDocErrors[uploadKey] && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                      {partnerDocErrors[uploadKey]}
+                                    </p>
+                                  )}
+                                </div>
+                                <label
+                                  className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm cursor-pointer transition ${doc.uploaded_url ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100" : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"}`}
+                                >
+                                  {partnerDocUploading[uploadKey] ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-neutral-300 border-t-primary-600"></div>
+                                  ) : (
+                                    <Upload className="h-4 w-4" />
+                                  )}
+                                  {doc.uploaded_url ? "Replace" : "Upload"}
+                                  <input
+                                    type="file"
+                                    className="sr-only"
+                                    disabled={partnerDocUploading[uploadKey]}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file)
+                                        handlePartnerDocUpload(
+                                          String(app.id),
+                                          doc.key,
+                                          doc.name,
+                                          file,
+                                        );
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
             </div>
           )}

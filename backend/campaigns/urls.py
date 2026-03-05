@@ -1,8 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    CampaignViewSet, CampaignDocumentViewSet, CampaignInterestViewSet, 
-    CampaignUpdateViewSet, CampaignMessageViewSet, CampaignPartnerApplicationViewSet
+    CampaignViewSet, CampaignDocumentViewSet, CampaignInterestViewSet,
+    CampaignUpdateViewSet, CampaignMessageViewSet, CampaignPartnerApplicationViewSet,
+    PartnerApplicationDocumentViewSet,
 )
 
 router = DefaultRouter()
@@ -12,6 +13,7 @@ router.register(r'interests', CampaignInterestViewSet)
 router.register(r'updates', CampaignUpdateViewSet)
 router.register(r'messages', CampaignMessageViewSet)
 router.register(r'partner-applications', CampaignPartnerApplicationViewSet)
+router.register(r'application-documents', PartnerApplicationDocumentViewSet, basename='application-documents')
 
 urlpatterns = [
     path('api/', include(router.urls)),

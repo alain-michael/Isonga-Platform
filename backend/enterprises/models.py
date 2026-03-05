@@ -137,3 +137,122 @@ class EnterpriseDocument(models.Model):
     
     class Meta:
         ordering = ['-uploaded_at']
+
+
+# ─── Business Profile Forms ────────────────────────────────────────────────────
+
+class BusinessProfileForm(models.Model):
+    """
+    Admin-created form template for a specific sector.
+    Replaces the fixed profile fields; the admin decides what fields
+    each sector's profile contains.
+    """
+    SECTORS = Enterprise.SECTORS   # reuse sector choices from Enterprise
+
+    sector = models.CharField(
+        max_length=50, choices=SECTORS, unique=True,
+        help_text="One form template per sector"
+    )
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='created_profile_forms'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile Form – {self.get_sector_display()}"
+
+    class Meta:
+        ordering = ['sector']
+
+
+class BusinessProfileSection(models.Model):
+    """Section grouping within a BusinessProfileForm."""
+    form = models.ForeignKey(BusinessProfileForm, on_delete=models.CASCADE, related_name='sections')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.form} – {self.title}"
+
+
+class BusinessProfileField(models.Model):
+    """Individual field inside a BusinessProfileSection."""
+    FIELD_TYPES = (
+        ('text', 'Short Text'),
+        ('long_text', 'Long Text / Paragraph'),
+        ('number', 'Number'),
+        ('choice', 'Multiple Choice (single)'),
+        ('multi_choice', 'Multiple Choice (multi)'),
+        ('date', 'Date'),
+        ('file', 'File Upload'),
+        # Special type: value is auto-populated from the Enterprise model field
+        ('auto_fill', 'Auto-fill from Profile'),
+    )
+
+    section = models.ForeignKey(BusinessProfileSection, on_delete=models.CASCADE, related_name='fields')
+    field_type = models.CharField(max_length=20, choices=FIELD_TYPES)
+    label = models.CharField(max_length=255)
+    help_text = models.TextField(blank=True)
+    placeholder = models.CharField(max_length=255, blank=True)
+    is_required = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    # For number fields
+    min_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    max_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+
+    # For choice / multi_choice fields
+    choices = models.JSONField(
+        default=list, blank=True,
+        help_text="[{value: 'x', label: 'X'}, ...]"
+    )
+
+    # For file fields
+    accepted_file_types = models.JSONField(
+        default=list, blank=True,
+        help_text="['.pdf', '.docx', ...]"
+    )
+    max_file_size_mb = models.PositiveIntegerField(null=True, blank=True)
+
+    # For auto_fill fields – dot-notation path on the Enterprise model
+    # e.g. 'business_name', 'tin_number', 'sector', 'province'
+    auto_fill_source = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.section.form} – {self.label}"
+
+
+class EnterpriseProfileFormResponse(models.Model):
+    """
+    Stores an enterprise's answers to its sector's BusinessProfileForm.
+    The `responses` JSON maps field IDs to submitted values.
+    File-type answers store paths (handled via separate upload endpoint).
+    """
+    enterprise = models.OneToOneField(
+        Enterprise, on_delete=models.CASCADE,
+        related_name='profile_form_response'
+    )
+    form = models.ForeignKey(
+        BusinessProfileForm, on_delete=models.SET_NULL, null=True,
+        related_name='enterprise_responses'
+    )
+    # { "<field_id>": <value> }
+    responses = models.JSONField(default=dict)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile response – {self.enterprise.business_name}"

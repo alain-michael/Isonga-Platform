@@ -490,7 +490,80 @@ const PartnerApplicationDetail: React.FC = () => {
               {/* Application Form Tab */}
               {activeTab === "application" && (
                 <div className="space-y-4">
-                  {application && application.form_responses ? (
+                  {application &&
+                  application.structured_responses &&
+                  application.structured_responses.length > 0 ? (
+                    <div>
+                      <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                        Application Responses
+                      </h3>
+                      {application.structured_responses.map(
+                        (section: any, si: number) => (
+                          <div key={si} className="mb-6">
+                            <h4 className="font-medium text-neutral-800 text-sm uppercase tracking-wide mb-3 pb-2 border-b border-neutral-200">
+                              {section.section_title}
+                            </h4>
+                            <div className="space-y-3">
+                              {section.fields.map((field: any) => (
+                                <div
+                                  key={field.field_id}
+                                  className="flex flex-col gap-1"
+                                >
+                                  <span className="text-sm font-medium text-neutral-600">
+                                    {field.label}
+                                  </span>
+                                  {field.field_type === "file" ? (
+                                    field.value ? (
+                                      <a
+                                        href={field.value}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                                      >
+                                        <Download className="h-4 w-4" />
+                                        View File
+                                      </a>
+                                    ) : (
+                                      <span className="text-sm text-neutral-400 italic">
+                                        No file uploaded
+                                      </span>
+                                    )
+                                  ) : Array.isArray(field.value) ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {field.value.map(
+                                        (v: string, vi: number) => (
+                                          <span
+                                            key={vi}
+                                            className="px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded text-xs"
+                                          >
+                                            {v}
+                                          </span>
+                                        ),
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-neutral-900">
+                                      {field.value !== undefined &&
+                                      field.value !== null &&
+                                      field.value !== "" ? (
+                                        String(field.value)
+                                      ) : (
+                                        <span className="text-neutral-400 italic">
+                                          —
+                                        </span>
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  ) : application &&
+                    application.form_responses &&
+                    Object.keys(application.form_responses).length > 0 ? (
                     <div>
                       <h3 className="text-lg font-semibold text-neutral-900 mb-4">
                         Form Responses
@@ -531,49 +604,94 @@ const PartnerApplicationDetail: React.FC = () => {
 
               {/* Documents Tab */}
               {activeTab === "documents" && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-                    Supporting Documents
-                  </h3>
-                  {campaign.documents && campaign.documents.length > 0 ? (
-                    <div className="space-y-2">
-                      {campaign.documents.map((doc: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition"
-                        >
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-neutral-400" />
-                            <div>
-                              <p className="text-sm font-medium text-neutral-900">
-                                {doc.document_type ||
-                                  doc.name ||
-                                  `Document ${index + 1}`}
-                              </p>
-                              {doc.uploaded_at && (
-                                <p className="text-xs text-neutral-500">
-                                  Uploaded {formatDate(doc.uploaded_at)}
-                                </p>
+                <div className="space-y-6">
+                  {/* Uploaded application documents */}
+                  {application?.uploaded_documents &&
+                    application.uploaded_documents.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-neutral-900 mb-3">
+                          Submitted Application Documents
+                        </h3>
+                        <div className="space-y-2">
+                          {application.uploaded_documents.map((doc: any) => (
+                            <div
+                              key={doc.id}
+                              className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
+                            >
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-blue-500" />
+                                <div>
+                                  <p className="text-sm font-medium text-neutral-900">
+                                    {doc.document_name}
+                                  </p>
+                                  {doc.uploaded_at && (
+                                    <p className="text-xs text-neutral-500">
+                                      Uploaded {formatDate(doc.uploaded_at)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              {doc.file_url && (
+                                <a
+                                  href={doc.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 hover:bg-blue-200 rounded-lg transition"
+                                >
+                                  <Download className="h-4 w-4 text-blue-700" />
+                                </a>
                               )}
                             </div>
-                          </div>
-                          <button className="p-2 hover:bg-neutral-200 rounded-lg transition">
-                            <Download className="h-4 w-4 text-neutral-600" />
-                          </button>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-3" />
-                      <h4 className="font-medium text-neutral-900 mb-1">
-                        No Documents
-                      </h4>
-                      <p className="text-sm text-neutral-600">
-                        No documents have been uploaded yet.
-                      </p>
-                    </div>
-                  )}
+                      </div>
+                    )}
+
+                  {/* Campaign supporting documents */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-neutral-900 mb-3">
+                      Campaign Supporting Documents
+                    </h3>
+                    {campaign.documents && campaign.documents.length > 0 ? (
+                      <div className="space-y-2">
+                        {campaign.documents.map((doc: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition"
+                          >
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-neutral-400" />
+                              <div>
+                                <p className="text-sm font-medium text-neutral-900">
+                                  {doc.document_type ||
+                                    doc.name ||
+                                    `Document ${index + 1}`}
+                                </p>
+                                {doc.uploaded_at && (
+                                  <p className="text-xs text-neutral-500">
+                                    Uploaded {formatDate(doc.uploaded_at)}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <button className="p-2 hover:bg-neutral-200 rounded-lg transition">
+                              <Download className="h-4 w-4 text-neutral-600" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-3" />
+                        <h4 className="font-medium text-neutral-900 mb-1">
+                          No Documents
+                        </h4>
+                        <p className="text-sm text-neutral-600">
+                          No documents have been uploaded yet.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

@@ -59,9 +59,10 @@ export interface MatchedCampaign {
 
 export const investorAPI = {
   getProfile: async () => {
-    const response = await api.get<InvestorProfile[]>('/investors/profiles/');
+    const response = await api.get<{ results: InvestorProfile[] }>('/investors/profiles/');
     // Assuming the user has only one profile, return the first one
-    return response.data[0];
+    console.log(response.data.results[0])
+    return response.data?.results[0];
   },
   
   updateProfile: async (id: number, data: Partial<InvestorProfile>) => {

@@ -13,8 +13,14 @@ class QuestionOptionSerializer(serializers.ModelSerializer):
         model = QuestionOption
         fields = '__all__'
 
+class QuestionRecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionRecommendation
+        fields = ['id', 'min_score', 'max_score', 'recommendation_text', 'translations']
+
 class QuestionSerializer(serializers.ModelSerializer):
     options = QuestionOptionSerializer(many=True, read_only=True)
+    conditional_recommendations = QuestionRecommendationSerializer(many=True, read_only=True)
     
     class Meta:
         model = Question

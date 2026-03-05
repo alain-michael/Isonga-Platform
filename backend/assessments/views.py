@@ -356,9 +356,40 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     
     def _generate_recommendations(self, assessment):
         """Generate basic recommendations based on assessment scores (fallback)"""
+        # First, collect question-level conditional recommendations
+        responses = assessment.responses.select_related('question').all()
+        question_recommendations = []
+        
+        for response in responses:
+            # Check if this question has conditional recommendations
+            conditional_recs = response.question.conditional_recommendations.filter(
+                min_score__lte=response.score,
+                max_score__gte=response.score
+            )
+            
+            for rec in conditional_recs:
+                # Get the question's category for proper categorization
+                category = response.question.category if response.question.category else None
+                if category:
+                    question_recommendations.append({
+                        'category': category,
+                        'title': f"Improve: {response.question.text[:50]}...",
+                        'description': rec.get_text(assessment.enterprise.user.language if hasattr(assessment.enterprise.user, 'language') else 'en'),
+                        'priority': 'high' if response.score < 50 else 'medium',
+                        'suggested_actions': rec.recommendation_text,
+                        'source': 'question'
+                    })
+        
+        # Then add category-level recommendations
         category_scores = assessment.category_scores.all()
         
         for category_score in category_scores:
+            # Skip if we already have question-level recommendations for this category
+            has_question_recs = any(
+                rec['category'].id == category_score.category.id 
+                for rec in question_recommendations
+            )
+            
             if category_score.percentage < 50:  # Low score threshold
                 priority = 'high'
                 title = f"Improve {category_score.category.name}"
@@ -370,18 +401,33 @@ class AssessmentViewSet(viewsets.ModelViewSet):
                 description = f"Your score in {category_score.category.name} is {category_score.percentage:.1f}%, which has room for improvement."
                 actions = f"Consider implementing best practices in {category_score.category.name.lower()}."
             else:
-                priority = 'low'
-                title = f"Maintain {category_score.category.name} Excellence"
-                description = f"Your score in {category_score.category.name} is excellent at {category_score.percentage:.1f}%."
-                actions = f"Continue current practices in {category_score.category.name.lower()}."
+                # Only add "maintain excellence" if no question-level recommendations exist
+                if not has_question_recs:
+                    priority = 'low'
+                    title = f"Maintain {category_score.category.name} Excellence"
+                    description = f"Your score in {category_score.category.name} is excellent at {category_score.percentage:.1f}%."
+                    actions = f"Continue current practices in {category_score.category.name.lower()}."
+                else:
+                    continue  # Skip this category if we have specific question recommendations
             
+            question_recommendations.append({
+                'category': category_score.category,
+                'title': title,
+                'description': description,
+                'priority': priority,
+                'suggested_actions': actions,
+                'source': 'category'
+            })
+        
+        # Create Recommendation objects from collected data
+        for rec_data in question_recommendations:
             Recommendation.objects.create(
                 assessment=assessment,
-                category=category_score.category,
-                title=title,
-                description=description,
-                priority=priority,
-                suggested_actions=actions
+                category=rec_data['category'],
+                title=rec_data['title'],
+                description=rec_data['description'],
+                priority=rec_data['priority'],
+                suggested_actions=rec_data['suggested_actions']
             )
 
 class AssessmentResponseViewSet(viewsets.ModelViewSet):

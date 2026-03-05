@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage, CampaignPartnerApplication
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage, CampaignPartnerApplication, PartnerApplicationDocument
 from enterprises.models import Enterprise
 
 
@@ -102,9 +102,10 @@ class CampaignCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Campaign
-        fields = ['title', 'description', 'campaign_type', 'target_amount', 
+        fields = ['id', 'title', 'description', 'campaign_type', 'target_amount', 
                   'min_investment', 'max_investment', 'start_date', 'end_date',
                   'use_of_funds', 'target_partners']
+        read_only_fields = ['id']
     
     def create(self, validated_data):
         user = self.context['request'].user
@@ -157,23 +158,69 @@ class CampaignPartnerApplicationSerializer(serializers.ModelSerializer):
 
 
 class CampaignPartnerApplicationDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer with nested data"""
+    """Detailed serializer with nested data and structured form responses."""
     campaign_data = CampaignSerializer(source='campaign', read_only=True)
     partner_data = serializers.SerializerMethodField()
     funding_form_data = serializers.SerializerMethodField()
-    
+    structured_responses = serializers.SerializerMethodField()
+    uploaded_documents = serializers.SerializerMethodField()
+
     class Meta:
         model = CampaignPartnerApplication
         fields = '__all__'
-    
+
     def get_partner_data(self, obj):
         from investors.serializers import InvestorSerializer
         return InvestorSerializer(obj.partner).data
-    
+
     def get_funding_form_data(self, obj):
         if obj.funding_form:
             from investors.serializers import PartnerFundingFormSerializer
             return PartnerFundingFormSerializer(obj.funding_form).data
+        return None
+
+    def get_structured_responses(self, obj):
+        """
+        Returns form responses with each answer annotated with its field label,
+        type, and the containing section. Format:
+        [{"section": "...", "fields": [{"label": "...", "value": ..., "field_type": "..."}]}]
+        """
+        if not obj.funding_form or not obj.form_responses:
+            return []
+        result = []
+        for section in obj.funding_form.sections.prefetch_related('fields').order_by('order'):
+            section_data = {'section_title': section.title, 'fields': []}
+            for field in section.fields.order_by('order'):
+                value = obj.form_responses.get(str(field.id))
+                section_data['fields'].append({
+                    'field_id': field.id,
+                    'label': field.label,
+                    'field_type': field.field_type,
+                    'value': value,
+                })
+            result.append(section_data)
+        return result
+
+    def get_uploaded_documents(self, obj):
+        docs = obj.uploaded_documents.all()
+        return PartnerApplicationDocumentSerializer(
+            docs, many=True, context=self.context
+        ).data
+
+
+class PartnerApplicationDocumentSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PartnerApplicationDocument
+        fields = ['id', 'application', 'document_key', 'document_name', 'file', 'file_url', 'uploaded_at']
+        read_only_fields = ['uploaded_at']
+
+    def get_file_url(self, obj):
+        if obj.file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.file.url)
         return None
 
 
@@ -182,7 +229,8 @@ class CampaignPartnerApplicationCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CampaignPartnerApplication
-        fields = ['campaign', 'partner', 'funding_form', 'form_responses']
+        fields = ['id', 'campaign', 'partner', 'funding_form', 'form_responses', 'status']
+        read_only_fields = ['id', 'status']
     
     def validate(self, data):
         # Ensure the partner is in the campaign's target_partners

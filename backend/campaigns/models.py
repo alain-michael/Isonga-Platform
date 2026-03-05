@@ -269,3 +269,29 @@ class CampaignPartnerApplication(models.Model):
             models.Index(fields=['status', 'partner']),
             models.Index(fields=['campaign', 'status']),
         ]
+
+
+class PartnerApplicationDocument(models.Model):
+    """
+    Required documents uploaded by an SME as part of a partner application.
+    Documents required by InvestorCriteria (global) or PartnerFundingForm fields
+    (per-form file fields) are both stored here.
+    """
+    application = models.ForeignKey(
+        CampaignPartnerApplication, on_delete=models.CASCADE,
+        related_name='uploaded_documents'
+    )
+    # The key that identifies *which* required document this is.
+    # For criteria-level docs it matches the `type` field in required_documents JSON.
+    # For form-field docs it matches the FormField id (stored as string).
+    document_key = models.CharField(max_length=255)
+    document_name = models.CharField(max_length=255)
+    file = models.FileField(upload_to='application_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        app = self.application
+        return f"{app.campaign.title} → {app.partner.organization_name}: {self.document_name}"
+
+    class Meta:
+        ordering = ['-uploaded_at']

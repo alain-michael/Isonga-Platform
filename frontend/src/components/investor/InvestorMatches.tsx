@@ -24,7 +24,7 @@ const InvestorMatches: React.FC = () => {
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["targetedCampaigns"],
     queryFn: async () => {
-      const response = await api.get("/api/campaigns/");
+      const response = await api.get("/campaigns/api/campaigns/");
       return response.data.results || response.data;
     },
   });
@@ -189,7 +189,7 @@ const InvestorMatches: React.FC = () => {
         {filteredCampaigns.map((campaign: any) => (
           <div
             key={campaign.id}
-            onClick={() => navigate(`/investor/applications/${campaign.id}`)}
+            onClick={() => navigate(`/investor/matches/${campaign.id}`)}
             className="glass-effect rounded-2xl p-6 card-hover glass-effect cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
           >
             <div className="flex justify-between items-start mb-4">
@@ -266,7 +266,7 @@ const InvestorMatches: React.FC = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/investor/applications/${campaign.id}`);
+                  navigate(`/investor/matches/${campaign.id}`);
                 }}
                 className="flex-1 btn-primary flex items-center justify-center gap-2"
               >

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { campaignAPI } from "../../services/campaignsService";
+import { campaignDocumentsAPI } from "../../services/campaignsService";
+import api from "../../services/api";
 import {
   ArrowLeft,
   Building2,
@@ -21,6 +23,9 @@ import {
   ThumbsDown,
   FileEdit,
   Target,
+  ChevronDown,
+  ChevronUp,
+  Download,
 } from "lucide-react";
 
 const AdminCampaignDetail: React.FC = () => {
@@ -32,6 +37,9 @@ const AdminCampaignDetail: React.FC = () => {
     "approve" | "revision" | "reject" | null
   >(null);
   const [vetNotes, setVetNotes] = useState("");
+  const [expandedApplicationId, setExpandedApplicationId] = useState<
+    number | null
+  >(null);
 
   const {
     data: campaign,
@@ -82,6 +90,49 @@ const AdminCampaignDetail: React.FC = () => {
     if (!vetAction) return;
     vetMutation.mutate({ action: vetAction, notes: vetNotes });
   };
+
+  // Query detailed application data when one is expanded
+  const { data: expandedAppData, isLoading: expandedAppLoading } = useQuery({
+    queryKey: ["partnerApplicationDetail", expandedApplicationId],
+    queryFn: async () => {
+      const res = await api.get(
+        `/campaigns/api/partner-applications/${expandedApplicationId}/`,
+      );
+      return res.data;
+    },
+    enabled: !!expandedApplicationId,
+  });
+
+  // Separately fetch campaign documents (in case they're not in the nested response)
+  const { data: campaignDocumentsResponse } = useQuery({
+    queryKey: ["adminCampaignDocuments", id],
+    queryFn: () => campaignDocumentsAPI.getAll(id!),
+    enabled: !!id && activeTab === "documents",
+  });
+  const campaignDocuments =
+    (campaign as any)?.documents?.length > 0
+      ? (campaign as any).documents
+      : campaignDocumentsResponse?.data?.results ||
+        campaignDocumentsResponse?.data ||
+        [];
+
+  // Separately fetch partner applications (in case nested response is empty)
+  const { data: partnerApplicationsResponse } = useQuery({
+    queryKey: ["adminPartnerApplications", id],
+    queryFn: async () => {
+      const res = await api.get(
+        `/campaigns/api/partner-applications/by_campaign/?campaign_id=${id}`,
+      );
+      return res.data;
+    },
+    enabled: !!id && activeTab === "partners",
+  });
+  const partnerApplications =
+    (campaign as any)?.partner_applications?.length > 0
+      ? (campaign as any).partner_applications
+      : Array.isArray(partnerApplicationsResponse)
+        ? partnerApplicationsResponse
+        : partnerApplicationsResponse?.results || [];
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
@@ -496,7 +547,7 @@ const AdminCampaignDetail: React.FC = () => {
                 Targeted Partners ({campaign.target_partners_data.length})
               </h2>
               <div className="flex flex-wrap gap-3">
-                {campaign.target_partners_data.map((partner) => (
+                {campaign.target_partners_data.map((partner: any) => (
                   <Link
                     key={partner.id}
                     to={`/admin/investors/${partner.id}`}
@@ -526,8 +577,7 @@ const AdminCampaignDetail: React.FC = () => {
           )}
 
           {/* Partner Applications Section */}
-          {campaign.partner_applications &&
-          campaign.partner_applications.length > 0 ? (
+          {partnerApplications && partnerApplications.length > 0 ? (
             <div className="glass-effect rounded-xl p-6 border border-neutral-200">
               <h2 className="text-xl font-bold text-neutral-900 mb-6">
                 Partner Application Statuses
@@ -557,91 +607,259 @@ const AdminCampaignDetail: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {campaign.partner_applications.map((app) => (
-                      <tr
-                        key={app.id}
-                        className="border-b border-neutral-100 hover:bg-neutral-50"
-                      >
-                        <td className="py-4 px-4">
-                          <Link
-                            to={`/admin/investors/${app.partner}`}
-                            className="font-medium text-primary-600 hover:text-primary-700"
-                          >
-                            {app.partner_name}
-                          </Link>
-                          {app.funding_form_name && (
-                            <p className="text-xs text-neutral-500 mt-1">
-                              via {app.funding_form_name}
-                            </p>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          {getPartnerStatusBadge(app.status)}
-                        </td>
-                        <td className="py-4 px-4">
-                          {app.auto_screened ? (
-                            <div>
-                              <span
-                                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                                  app.auto_screen_passed
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {app.auto_screen_passed ? "Passed" : "Failed"}
-                              </span>
-                              {app.auto_screen_reason && (
-                                <p className="text-xs text-neutral-500 mt-1">
-                                  {app.auto_screen_reason}
-                                </p>
+                    {partnerApplications.map((app: any) => (
+                      <React.Fragment key={app.id}>
+                        <tr
+                          className="border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer"
+                          onClick={() =>
+                            setExpandedApplicationId(
+                              expandedApplicationId === app.id ? null : app.id,
+                            )
+                          }
+                        >
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              {expandedApplicationId === app.id ? (
+                                <ChevronUp className="h-4 w-4 text-neutral-400" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-neutral-400" />
                               )}
+                              <Link
+                                to={`/admin/investors/${app.partner}`}
+                                className="font-medium text-primary-600 hover:text-primary-700"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {app.partner_name}
+                              </Link>
                             </div>
-                          ) : (
-                            <span className="text-sm text-neutral-400">
-                              N/A
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          {app.reviewed_at ? (
-                            <p className="text-sm text-neutral-700">
-                              {new Date(app.reviewed_at).toLocaleDateString()}
-                            </p>
-                          ) : (
-                            <span className="text-sm text-neutral-400">
-                              Pending
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          {app.proposed_amount ? (
-                            <p className="text-sm font-medium text-neutral-900">
-                              {new Intl.NumberFormat("en-RW", {
-                                style: "currency",
-                                currency: "RWF",
-                                notation: "compact",
-                              }).format(app.proposed_amount)}
-                            </p>
-                          ) : (
-                            <span className="text-sm text-neutral-400">
-                              N/A
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          {app.review_notes ? (
-                            <div className="max-w-xs">
-                              <p className="text-sm text-neutral-700 truncate">
-                                {app.review_notes}
+                            {app.funding_form_name && (
+                              <p className="text-xs text-neutral-500 mt-1 ml-6">
+                                via {app.funding_form_name}
                               </p>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-neutral-400">
-                              None
-                            </span>
-                          )}
-                        </td>
-                      </tr>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            {getPartnerStatusBadge(app.status)}
+                          </td>
+                          <td className="py-4 px-4">
+                            {app.auto_screened ? (
+                              <div>
+                                <span
+                                  className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                                    app.auto_screen_passed
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {app.auto_screen_passed ? "Passed" : "Failed"}
+                                </span>
+                                {app.auto_screen_reason && (
+                                  <p className="text-xs text-neutral-500 mt-1">
+                                    {app.auto_screen_reason}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-neutral-400">
+                                N/A
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            {app.reviewed_at ? (
+                              <p className="text-sm text-neutral-700">
+                                {new Date(app.reviewed_at).toLocaleDateString()}
+                              </p>
+                            ) : (
+                              <span className="text-sm text-neutral-400">
+                                Pending
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            {app.proposed_amount ? (
+                              <p className="text-sm font-medium text-neutral-900">
+                                {new Intl.NumberFormat("en-RW", {
+                                  style: "currency",
+                                  currency: "RWF",
+                                  notation: "compact",
+                                }).format(app.proposed_amount)}
+                              </p>
+                            ) : (
+                              <span className="text-sm text-neutral-400">
+                                N/A
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            {app.review_notes ? (
+                              <div className="max-w-xs">
+                                <p className="text-sm text-neutral-700 truncate">
+                                  {app.review_notes}
+                                </p>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-neutral-400">
+                                None
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+
+                        {/* Expanded row: structured responses + uploaded documents */}
+                        {expandedApplicationId === app.id && (
+                          <tr className="bg-neutral-50">
+                            <td colSpan={6} className="py-4 px-6">
+                              {expandedAppLoading ? (
+                                <div className="flex items-center gap-2 text-sm text-neutral-500 py-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-neutral-300 border-t-primary-600"></div>
+                                  Loading application details...
+                                </div>
+                              ) : expandedAppData ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  {/* Structured form responses */}
+                                  <div>
+                                    <h5 className="font-semibold text-neutral-800 text-sm mb-3 flex items-center gap-2">
+                                      <FileText className="h-4 w-4 text-primary-600" />
+                                      Form Responses
+                                    </h5>
+                                    {expandedAppData.structured_responses &&
+                                    expandedAppData.structured_responses
+                                      .length > 0 ? (
+                                      <div className="space-y-4">
+                                        {expandedAppData.structured_responses.map(
+                                          (section: any, si: number) => (
+                                            <div key={si}>
+                                              <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 mb-2 pb-1 border-b border-neutral-200">
+                                                {section.section_title}
+                                              </p>
+                                              <div className="space-y-2">
+                                                {section.fields.map(
+                                                  (field: any) => (
+                                                    <div
+                                                      key={field.field_id}
+                                                      className="flex flex-col"
+                                                    >
+                                                      <span className="text-xs text-neutral-500">
+                                                        {field.label}
+                                                      </span>
+                                                      {field.field_type ===
+                                                      "file" ? (
+                                                        field.value ? (
+                                                          <a
+                                                            href={field.value}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-primary-600 hover:underline flex items-center gap-1"
+                                                          >
+                                                            <Download className="h-3 w-3" />{" "}
+                                                            View file
+                                                          </a>
+                                                        ) : (
+                                                          <span className="text-xs text-neutral-400 italic">
+                                                            —
+                                                          </span>
+                                                        )
+                                                      ) : Array.isArray(
+                                                          field.value,
+                                                        ) ? (
+                                                        <span className="text-sm text-neutral-900">
+                                                          {field.value.join(
+                                                            ", ",
+                                                          ) || "—"}
+                                                        </span>
+                                                      ) : (
+                                                        <span className="text-sm text-neutral-900">
+                                                          {field.value ?? "—"}
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                  ),
+                                                )}
+                                              </div>
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    ) : expandedAppData.form_responses &&
+                                      Object.keys(
+                                        expandedAppData.form_responses,
+                                      ).length > 0 ? (
+                                      <div className="space-y-2">
+                                        {Object.entries(
+                                          expandedAppData.form_responses,
+                                        ).map(([k, v]: [string, any]) => (
+                                          <div key={k}>
+                                            <span className="text-xs text-neutral-500">
+                                              {k}
+                                            </span>
+                                            <p className="text-sm text-neutral-900">
+                                              {typeof v === "object"
+                                                ? JSON.stringify(v)
+                                                : String(v)}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-neutral-400 italic">
+                                        No form responses submitted
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Uploaded documents */}
+                                  <div>
+                                    <h5 className="font-semibold text-neutral-800 text-sm mb-3 flex items-center gap-2">
+                                      <Download className="h-4 w-4 text-indigo-600" />
+                                      Uploaded Documents
+                                    </h5>
+                                    {expandedAppData.uploaded_documents &&
+                                    expandedAppData.uploaded_documents.length >
+                                      0 ? (
+                                      <div className="space-y-2">
+                                        {expandedAppData.uploaded_documents.map(
+                                          (doc: any) => (
+                                            <div
+                                              key={doc.id}
+                                              className="flex items-center justify-between p-2 bg-white border border-neutral-200 rounded-lg"
+                                            >
+                                              <div>
+                                                <p className="text-sm font-medium text-neutral-900">
+                                                  {doc.document_name}
+                                                </p>
+                                                <p className="text-xs text-neutral-400">
+                                                  {new Date(
+                                                    doc.uploaded_at,
+                                                  ).toLocaleDateString()}
+                                                </p>
+                                              </div>
+                                              {doc.file_url && (
+                                                <a
+                                                  href={doc.file_url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="p-1.5 hover:bg-neutral-100 rounded transition"
+                                                >
+                                                  <Download className="h-4 w-4 text-neutral-600" />
+                                                </a>
+                                              )}
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-neutral-400 italic">
+                                        No documents uploaded
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -668,9 +886,9 @@ const AdminCampaignDetail: React.FC = () => {
           <h2 className="text-xl font-bold text-neutral-900 mb-6">
             Campaign Documents
           </h2>
-          {(campaign as any).documents?.length > 0 ? (
+          {campaignDocuments.length > 0 ? (
             <div className="space-y-3">
-              {(campaign as any).documents.map((doc: any) => (
+              {campaignDocuments.map((doc: any) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition"
@@ -690,7 +908,7 @@ const AdminCampaignDetail: React.FC = () => {
                     </div>
                   </div>
                   <a
-                    href={doc.file}
+                    href={doc.file_url || doc.file}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-secondary text-sm"

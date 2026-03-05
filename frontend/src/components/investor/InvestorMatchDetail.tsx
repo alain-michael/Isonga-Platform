@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { investorAPI } from "../../services/investor";
 import { campaignDocumentsAPI } from "../../services/campaignsService";
+import api from "../../services/api";
 import {
   Building2,
   MapPin,
@@ -15,6 +16,8 @@ import {
   MessageSquare,
   DollarSign,
   X,
+  ClipboardList,
+  AlertCircle,
 } from "lucide-react";
 
 const InvestorMatchDetail: React.FC = () => {
@@ -25,13 +28,47 @@ const InvestorMatchDetail: React.FC = () => {
   const [pledgeAmount, setPledgeAmount] = useState("");
   const [userMatch, setUserMatch] = useState<any>(null);
 
-  // Fetch match details
-  const { data: matches = [], isLoading } = useQuery({
-    queryKey: ["investorMatches"],
-    queryFn: investorAPI.getMatchesNoExcluding,
+  // Fetch campaign details directly (not from opportunities scoring endpoint)
+  const { data: campaign, isLoading } = useQuery({
+    queryKey: ["campaignDetail", id],
+    queryFn: async () => {
+      const response = await api.get(`/campaigns/api/campaigns/${id}/`);
+      return response.data;
+    },
+    enabled: !!id,
   });
-  console.log("Matches fetched:", matches, id);
-  const match = matches.find((m) => m.id === id);
+
+  // Build a match-like object from campaign data for compatibility
+  const match = campaign
+    ? {
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        target_amount: parseFloat(campaign.target_amount) || 0,
+        amount_raised: parseFloat(campaign.amount_raised) || 0,
+        min_investment: parseFloat(campaign.min_investment) || 0,
+        max_investment: campaign.max_investment
+          ? parseFloat(campaign.max_investment)
+          : null,
+        campaign_type: campaign.campaign_type,
+        enterprise_name: campaign.enterprise_name || "Enterprise",
+        enterprise_sector: campaign.enterprise_sector || "",
+        enterprise_location: campaign.enterprise_location || "",
+        status: campaign.status,
+      }
+    : null;
+
+  // Documents from the campaign detail (nested) + fallback direct query
+  const { data: documentsResponse } = useQuery({
+    queryKey: ["campaignDocuments", id],
+    queryFn: () => campaignDocumentsAPI.getAll(id!),
+    enabled: !!id,
+  });
+
+  const documents =
+    campaign?.documents?.length > 0
+      ? campaign.documents
+      : documentsResponse?.data?.results || [];
 
   // Fetch user's match for this campaign
   const { data: matchResponse } = useQuery({
@@ -43,19 +80,9 @@ const InvestorMatchDetail: React.FC = () => {
   // Set user match if exists
   React.useEffect(() => {
     if (matchResponse) {
-      console.log("User match response:", matchResponse);
       setUserMatch(matchResponse);
     }
   }, [matchResponse]);
-
-  // Fetch campaign documents
-  const { data: documentsResponse } = useQuery({
-    queryKey: ["campaignDocuments", id],
-    queryFn: () => campaignDocumentsAPI.getAll(id!),
-    enabled: !!id,
-  });
-
-  const documents = documentsResponse?.data?.results || [];
 
   // Express interest mutation (creates/approves match)
   const expressInterestMutation = useMutation({
@@ -102,6 +129,31 @@ const InvestorMatchDetail: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["investorStats"] });
       navigate("/investor/matches");
     },
+  });
+
+  // Fetch partner application (SME's application to this investor for this campaign)
+  const { data: partnerApplicationDetailData } = useQuery({
+    queryKey: ["myPartnerApplicationDetail", id],
+    queryFn: async () => {
+      // First check if the campaign detail already has partner_applications
+      if (campaign?.partner_applications?.length > 0) {
+        const app = campaign.partner_applications[0];
+        const detail = await api.get(
+          `/campaigns/api/partner-applications/${app.id}/`,
+        );
+        return detail.data;
+      }
+      // Fallback: fetch all my applications and find the one for this campaign
+      const res = await api.get("/campaigns/api/partner-applications/");
+      const apps: any[] = res.data.results || res.data || [];
+      const app = apps.find((a: any) => String(a.campaign) === String(id));
+      if (!app) return null;
+      const detail = await api.get(
+        `/campaigns/api/partner-applications/${app.id}/`,
+      );
+      return detail.data;
+    },
+    enabled: !!id && !!campaign,
   });
 
   if (isLoading) {
@@ -151,9 +203,9 @@ const InvestorMatchDetail: React.FC = () => {
                   <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-sm font-bold rounded-full">
                     {match.campaign_type}
                   </span>
-                  <span className="px-3 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 text-sm font-bold rounded-full">
+                  {/* <span className="px-3 py-1 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 text-sm font-bold rounded-full">
                     {match.match_score}% Match
-                  </span>
+                  </span> */}
                 </div>
                 <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
                   {match.title}
@@ -234,7 +286,7 @@ const InvestorMatchDetail: React.FC = () => {
                       </div>
                     </div>
                     <a
-                      href={doc.file_url}
+                      href={doc.file_url || doc.file}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 text-neutral-400 hover:text-primary-600 transition-colors"
@@ -250,6 +302,192 @@ const InvestorMatchDetail: React.FC = () => {
               </p>
             )}
           </div>
+
+          {/* Partner Application (form responses + required docs submitted by SME) */}
+          {partnerApplicationDetailData && (
+            <div className="glass-effect rounded-2xl p-8 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+              <div className="flex items-center gap-3 mb-6">
+                <ClipboardList className="h-5 w-5 text-primary-600" />
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  Application Submission
+                </h2>
+                <span
+                  className={`ml-auto px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    partnerApplicationDetailData.status === "approved"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                      : partnerApplicationDetailData.status === "declined"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                        : partnerApplicationDetailData.status === "under_review"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                  }`}
+                >
+                  {partnerApplicationDetailData.status?.replace(/_/g, " ")}
+                </span>
+              </div>
+
+              {/* Structured form responses */}
+              {partnerApplicationDetailData.structured_responses &&
+              partnerApplicationDetailData.structured_responses.length > 0 ? (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide mb-3">
+                    Form Responses
+                  </h3>
+                  <div className="space-y-4">
+                    {partnerApplicationDetailData.structured_responses.map(
+                      (section: any, si: number) => (
+                        <div key={si}>
+                          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2 pb-1 border-b border-neutral-200 dark:border-neutral-700">
+                            {section.section_title}
+                          </p>
+                          <div className="space-y-2">
+                            {section.fields.map((field: any) => (
+                              <div
+                                key={field.field_id}
+                                className="flex flex-col"
+                              >
+                                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                  {field.label}
+                                </span>
+                                {field.field_type === "file" ? (
+                                  field.value ? (
+                                    <a
+                                      href={field.value}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-primary-600 hover:underline flex items-center gap-1"
+                                    >
+                                      <Download className="h-3 w-3" /> View file
+                                    </a>
+                                  ) : (
+                                    <span className="text-sm text-neutral-400 dark:text-neutral-500 italic">
+                                      Not provided
+                                    </span>
+                                  )
+                                ) : Array.isArray(field.value) ? (
+                                  <span className="text-sm text-neutral-900 dark:text-neutral-100">
+                                    {field.value.join(", ") || "—"}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-neutral-900 dark:text-neutral-100">
+                                    {field.value ?? "—"}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : (
+                partnerApplicationDetailData.form_responses &&
+                Object.keys(partnerApplicationDetailData.form_responses)
+                  .length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide mb-3">
+                      Form Responses
+                    </h3>
+                    <div className="space-y-2">
+                      {Object.entries(
+                        partnerApplicationDetailData.form_responses,
+                      ).map(([k, v]: [string, any]) => (
+                        <div key={k}>
+                          <span className="text-xs text-neutral-500">{k}</span>
+                          <p className="text-sm text-neutral-900 dark:text-neutral-100">
+                            {typeof v === "object"
+                              ? JSON.stringify(v)
+                              : String(v)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+
+              {/* Auto-screen result */}
+              {partnerApplicationDetailData.auto_screened && (
+                <div
+                  className={`flex items-start gap-3 p-3 rounded-xl mb-4 ${
+                    partnerApplicationDetailData.auto_screen_passed
+                      ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                      : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                  }`}
+                >
+                  {partnerApplicationDetailData.auto_screen_passed ? (
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  )}
+                  <div>
+                    <p
+                      className={`text-sm font-medium ${
+                        partnerApplicationDetailData.auto_screen_passed
+                          ? "text-green-800 dark:text-green-300"
+                          : "text-red-800 dark:text-red-300"
+                      }`}
+                    >
+                      Auto-Screening:{" "}
+                      {partnerApplicationDetailData.auto_screen_passed
+                        ? "Passed"
+                        : "Failed"}
+                    </p>
+                    {partnerApplicationDetailData.auto_screen_reason && (
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                        {partnerApplicationDetailData.auto_screen_reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Uploaded documents */}
+              {partnerApplicationDetailData.uploaded_documents &&
+                partnerApplicationDetailData.uploaded_documents.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wide mb-3">
+                      Submitted Documents
+                    </h3>
+                    <div className="space-y-2">
+                      {partnerApplicationDetailData.uploaded_documents.map(
+                        (doc: any) => (
+                          <div
+                            key={doc.id}
+                            className="flex items-center justify-between p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-700"
+                          >
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-indigo-500" />
+                              <div>
+                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                                  {doc.document_name}
+                                </p>
+                                <p className="text-xs text-neutral-400">
+                                  {new Date(
+                                    doc.uploaded_at,
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            {doc.file_url && (
+                              <a
+                                href={doc.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition"
+                              >
+                                <Download className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                              </a>
+                            )}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar Actions */}
@@ -283,7 +521,7 @@ const InvestorMatchDetail: React.FC = () => {
                     className="w-full btn-secondary flex items-center justify-center gap-2 py-3 text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800"
                   >
                     <XCircle className="h-5 w-5" />
-                    Pass
+                    Reject
                   </button>
                 </div>
               </>

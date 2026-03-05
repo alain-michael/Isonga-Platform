@@ -401,4 +401,55 @@ export const deletionRequestAPI = {
     api.post(`/core/api/deletion-requests/${id}/cancel/`),
 };
 
+// Business Profile Form API (admin-managed sector forms)
+export const profileFormAPI = {
+  // Form templates
+  getAll: (params?: any) =>
+    api.get('/enterprises/api/profile-forms/', { params }),
+
+  getById: (id: string) =>
+    api.get(`/enterprises/api/profile-forms/${id}/`),
+
+  getBySector: (sector: string) =>
+    api.get('/enterprises/api/profile-forms/by-sector/', { params: { sector } }),
+
+  create: (data: any) =>
+    api.post('/enterprises/api/profile-forms/', data),
+
+  update: (id: string, data: any) =>
+    api.put(`/enterprises/api/profile-forms/${id}/`, data),
+
+  delete: (id: string) =>
+    api.delete(`/enterprises/api/profile-forms/${id}/`),
+
+  // Enterprise responses
+  getMyResponse: () =>
+    api.get('/enterprises/api/profile-responses/mine/'),
+
+  submitResponse: (data: { form: string; responses: Record<string, any> }) =>
+    api.post('/enterprises/api/profile-responses/', data),
+
+  updateResponse: (id: string, data: { responses: Record<string, any> }) =>
+    api.patch(`/enterprises/api/profile-responses/${id}/`, data),
+};
+
+// Partner Application Document API
+export const applicationDocumentAPI = {
+  list: (applicationId: string) =>
+    api.get('/campaigns/api/application-documents/', {
+      params: { application_id: applicationId },
+    }),
+
+  upload: (data: FormData) =>
+    api.post('/campaigns/api/application-documents/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  delete: (id: string) =>
+    api.delete(`/campaigns/api/application-documents/${id}/`),
+
+  getRequiredDocs: (applicationId: string) =>
+    api.get(`/campaigns/api/partner-applications/${applicationId}/required-docs/`),
+};
+
 export default api;

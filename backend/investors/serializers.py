@@ -67,7 +67,7 @@ class EnterpriseMatchSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Enterprise
-        fields = ['id', 'business_name', 'sector', 'enterprise_size', 'district', 
+        fields = ['id', 'business_name', 'sector', 'management_structure', 'district', 
                   'number_of_employees', 'annual_revenue', 'verification_status', 'user_id']
 
 
@@ -123,7 +123,7 @@ class MatchDetailSerializer(serializers.ModelSerializer):
 class MatchedCampaignSerializer(serializers.ModelSerializer):
     enterprise_name = serializers.CharField(source='enterprise.business_name')
     enterprise_sector = serializers.CharField(source='enterprise.sector')
-    enterprise_location = serializers.CharField(source='enterprise.city')
+    enterprise_location = serializers.SerializerMethodField()
     match_score = serializers.IntegerField(read_only=True)
     interested_at = serializers.DateTimeField(read_only=True, required=False)
     documents = serializers.SerializerMethodField()
@@ -137,6 +137,12 @@ class MatchedCampaignSerializer(serializers.ModelSerializer):
             'enterprise_sector', 'enterprise_location', 'match_score', 'interested_at',
             'documents'
         ]
+    
+    def get_enterprise_location(self, obj):
+        """Get enterprise location from province and district."""
+        if obj.enterprise.district:
+            return f"{obj.enterprise.district}, {obj.enterprise.get_province_display()}"
+        return obj.enterprise.get_province_display()
     
     def get_documents(self, obj):
         from campaigns.serializers import CampaignDocumentSerializer

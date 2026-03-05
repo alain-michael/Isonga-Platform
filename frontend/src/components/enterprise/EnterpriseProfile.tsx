@@ -25,10 +25,12 @@ import {
   Trash2,
   Download,
   Eye,
+  ClipboardList,
 } from "lucide-react";
 import { useMyEnterprise } from "../../hooks/useEnterprises";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { enterpriseAPI } from "../../services/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { enterpriseAPI, profileFormAPI } from "../../services/api";
+import DynamicProfileFormRenderer from "./DynamicProfileFormRenderer";
 
 // Validation schemas
 const businessInfoSchema = yup.object({
@@ -70,6 +72,7 @@ type TabId =
   | "contact"
   | "legal"
   // | "management"
+  | "profile_form"
   | "documents"
   | "assessments";
 
@@ -84,6 +87,7 @@ const tabs: Tab[] = [
   { id: "contact", label: "Contact", icon: MapPin },
   { id: "legal", label: "Legal", icon: Scale },
   // { id: "management", label: "Management", icon: Users },
+  { id: "profile_form", label: "Profile Form", icon: ClipboardList },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "assessments", label: "Assessments", icon: Briefcase },
 ];
@@ -159,9 +163,70 @@ const EnterpriseProfile: React.FC = () => {
     fiscal_year: new Date().getFullYear().toString(),
     file: null as File | null,
   });
+  const [profileFormSaving, setProfileFormSaving] = useState(false);
+  const [profileFormSuccess, setProfileFormSuccess] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: enterprise, isLoading, error } = useMyEnterprise();
+
+  // Fetch sector-specific profile form when enterprise data is available
+  const { data: sectorProfileForm } = useQuery({
+    queryKey: ["profile-form-by-sector", enterprise?.sector],
+    queryFn: async () => {
+      const res = await profileFormAPI.getBySector(enterprise!.sector);
+      return res.data;
+    },
+    enabled: !!enterprise?.sector,
+  });
+
+  // Fetch existing profile form response
+  const { data: profileFormResponse, refetch: refetchProfileResponse } =
+    useQuery({
+      queryKey: ["profile-form-response"],
+      queryFn: async () => {
+        try {
+          const res = await profileFormAPI.getMyResponse();
+          return res.data;
+        } catch {
+          return null;
+        }
+      },
+      enabled: !!enterprise,
+    });
+
+  const handleProfileFormSubmit = async (
+    responses: Record<string, any>,
+    enterpriseFields: Record<string, any>,
+  ) => {
+    try {
+      setProfileFormSaving(true);
+
+      // Also update enterprise fields from auto_fill values
+      if (Object.keys(enterpriseFields).length > 0) {
+        await enterpriseAPI.update(String(enterprise!.id), enterpriseFields);
+      }
+
+      if (profileFormResponse) {
+        await profileFormAPI.updateResponse(String(profileFormResponse.id), {
+          responses,
+        });
+      } else if (sectorProfileForm) {
+        await profileFormAPI.submitResponse({
+          form: String(sectorProfileForm.id),
+          responses,
+        });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["my-enterprise"] });
+      await refetchProfileResponse();
+      setProfileFormSuccess(true);
+      setTimeout(() => setProfileFormSuccess(false), 3000);
+    } catch (e) {
+      console.error("Failed to save profile form", e);
+    } finally {
+      setProfileFormSaving(false);
+    }
+  };
 
   // Update enterprise mutation
   const updateMutation = useMutation({
@@ -467,7 +532,7 @@ const EnterpriseProfile: React.FC = () => {
           ) : (
             <p className="text-neutral-900">
               {ENTERPRISE_TYPES.find(
-                (t) => t.value === enterprise.enterprise_type
+                (t) => t.value === enterprise.enterprise_type,
               )?.label || enterprise.enterprise_type}
             </p>
           )}
@@ -492,7 +557,7 @@ const EnterpriseProfile: React.FC = () => {
           ) : (
             <p className="text-neutral-900">
               {ENTERPRISE_SIZES.find(
-                (s) => s.value === enterprise.enterprise_size
+                (s) => s.value === enterprise.enterprise_size,
               )?.label || enterprise.enterprise_size}
             </p>
           )}
@@ -951,7 +1016,7 @@ const EnterpriseProfile: React.FC = () => {
                     <p className="text-sm text-neutral-500">
                       {assessment.completed_at
                         ? `Completed ${new Date(
-                            assessment.completed_at
+                            assessment.completed_at,
                           ).toLocaleDateString()}`
                         : `Status: ${assessment.status}`}
                     </p>
@@ -995,6 +1060,8 @@ const EnterpriseProfile: React.FC = () => {
         return renderLegalInfo();
       // case "management":
       //   return renderManagement();
+      case "profile_form":
+        return renderProfileForm();
       case "documents":
         return renderDocuments();
       case "assessments":
@@ -1002,6 +1069,44 @@ const EnterpriseProfile: React.FC = () => {
       default:
         return null;
     }
+  };
+
+  const renderProfileForm = () => {
+    if (!sectorProfileForm) {
+      return (
+        <div className="text-center py-12">
+          <ClipboardList className="h-12 w-12 text-neutral-300 mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-1">
+            No Sector Form Available
+          </h3>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            The admin hasn't created a profile form for the{" "}
+            <strong>
+              {SECTORS.find((s) => s.value === enterprise?.sector)?.label}
+            </strong>{" "}
+            sector yet. Check back later.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        {profileFormSuccess && (
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-400 text-sm">
+            <CheckCircle className="h-4 w-4" />
+            Profile form saved successfully!
+          </div>
+        )}
+        <DynamicProfileFormRenderer
+          form={sectorProfileForm}
+          existingResponses={profileFormResponse?.responses ?? {}}
+          enterpriseData={enterprise as any}
+          onSubmit={handleProfileFormSubmit}
+          isSaving={profileFormSaving}
+        />
+      </div>
+    );
   };
 
   return (
@@ -1018,7 +1123,7 @@ const EnterpriseProfile: React.FC = () => {
               {SECTORS.find((s) => s.value === enterprise.sector)?.label} •{" "}
               {
                 ENTERPRISE_SIZES.find(
-                  (s) => s.value === enterprise.enterprise_size
+                  (s) => s.value === enterprise.enterprise_size,
                 )?.label
               }
             </p>

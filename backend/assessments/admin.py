@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     AssessmentCategory, Questionnaire, Question, QuestionOption,
-    Assessment, AssessmentResponse, CategoryScore, Recommendation
+    Assessment, AssessmentResponse, CategoryScore, Recommendation,
+    QuestionRecommendation
 )
 
 @admin.register(AssessmentCategory)
@@ -14,12 +15,19 @@ class QuestionOptionInline(admin.TabularInline):
     model = QuestionOption
     extra = 1
 
+class QuestionRecommendationInline(admin.TabularInline):
+    model = QuestionRecommendation
+    extra = 1
+    fields = ['min_score', 'max_score', 'recommendation_text']
+    verbose_name = "Conditional Recommendation"
+    verbose_name_plural = "Conditional Recommendations (shown based on score range)"
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['questionnaire', 'category', 'text', 'question_type', 'order', 'max_score']
     list_filter = ['questionnaire', 'category', 'question_type']
     search_fields = ['text']
-    inlines = [QuestionOptionInline]
+    inlines = [QuestionOptionInline, QuestionRecommendationInline]
 
 @admin.register(Questionnaire)
 class QuestionnaireAdmin(admin.ModelAdmin):
@@ -48,3 +56,14 @@ class CategoryScoreAdmin(admin.ModelAdmin):
 class RecommendationAdmin(admin.ModelAdmin):
     list_display = ['assessment', 'category', 'title', 'priority']
     list_filter = ['priority', 'category']
+
+@admin.register(QuestionRecommendation)
+class QuestionRecommendationAdmin(admin.ModelAdmin):
+    list_display = ['question', 'min_score', 'max_score', 'recommendation_preview']
+    list_filter = ['question__questionnaire', 'question__category']
+    search_fields = ['question__text', 'recommendation_text']
+    
+    def recommendation_preview(self, obj):
+        """Show first 50 chars of recommendation"""
+        return obj.recommendation_text[:50] + '...' if len(obj.recommendation_text) > 50 else obj.recommendation_text
+    recommendation_preview.short_description = 'Recommendation'

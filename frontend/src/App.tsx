@@ -48,9 +48,13 @@ import InvestorMatchDetail from "./components/investor/InvestorMatchDetail";
 import InvestorProfile from "./components/investor/InvestorProfile";
 import PartnerCriteriaSettings from "./components/investor/PartnerCriteriaSettings";
 import InvestorOpportunities from "./components/investor/InvestorOpportunities";
+import PartnerForms from "./components/investor/PartnerForms";
+import PartnerFormBuilder from "./components/investor/PartnerFormBuilder";
 import Messages from "./components/messages/Messages";
 import "./styles.css";
 import AdminAssessments from "./components/admin/AdminAssessments";
+import AdminBusinessProfileForms from "./components/admin/AdminBusinessProfileForms";
+import AdminBusinessProfileFormEditor from "./components/admin/AdminBusinessProfileFormEditor";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -163,6 +167,12 @@ const AppContent: React.FC = () => {
           path="/investor/criteria"
           element={<PartnerCriteriaSettings />}
         />
+        <Route path="/investor/forms" element={<PartnerForms />} />
+        <Route path="/investor/forms/create" element={<PartnerFormBuilder />} />
+        <Route
+          path="/investor/forms/:id/edit"
+          element={<PartnerFormBuilder />}
+        />
 
         {/* Messages Route */}
         <Route path="/messages" element={<Messages />} />
@@ -192,6 +202,18 @@ const AppContent: React.FC = () => {
         />
         <Route path="/admin/campaigns" element={<AdminCampaigns />} />
         <Route path="/admin/campaigns/:id" element={<AdminCampaignDetail />} />
+        <Route
+          path="/admin/profile-forms"
+          element={<AdminBusinessProfileForms />}
+        />
+        <Route
+          path="/admin/profile-forms/new"
+          element={<AdminBusinessProfileFormEditor />}
+        />
+        <Route
+          path="/admin/profile-forms/:id/edit"
+          element={<AdminBusinessProfileFormEditor />}
+        />
       </Route>
 
       {/* Welcome page - landing */}

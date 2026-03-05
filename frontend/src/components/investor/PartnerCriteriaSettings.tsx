@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { investorAPI } from "../../services/investor";
 import {
   Save,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Settings as SettingsIcon,
+  ArrowRight,
 } from "lucide-react";
 
 interface CriteriaFormData {
@@ -690,6 +692,34 @@ export default function PartnerCriteriaSettings() {
           </button>
         </div>
       </form>
+
+      {/* Info Box - Application Forms */}
+      <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Create Custom Application Forms
+            </h3>
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
+              Your investment criteria filters which SMEs see your
+              opportunities. To collect additional information from applicants,
+              create custom application forms with specific fields tailored to
+              your requirements.
+            </p>
+            <Link
+              to="/investor/forms"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Manage Application Forms</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

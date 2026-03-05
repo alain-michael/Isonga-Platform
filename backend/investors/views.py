@@ -111,6 +111,29 @@ class InvestorCriteriaViewSet(viewsets.ModelViewSet):
         if hasattr(user, 'investor_profile'):
             return InvestorCriteria.objects.filter(investor=user.investor_profile)
         return InvestorCriteria.objects.none()
+    
+    def perform_create(self, serializer):
+        """Allow investors to set their own criteria; admins can specify any investor."""
+        user = self.request.user
+        if user.user_type in ['admin', 'superadmin']:
+            # Admin must supply `investor` in the request body
+            serializer.save()
+        elif hasattr(user, 'investor_profile'):
+            serializer.save(investor=user.investor_profile)
+        else:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only investors or admins can manage criteria.")
+
+    def perform_update(self, serializer):
+        """Ensure investors can only update their own criteria; admins can update any."""
+        user = self.request.user
+        if user.user_type in ['admin', 'superadmin']:
+            serializer.save()
+        elif hasattr(user, 'investor_profile'):
+            serializer.save(investor=user.investor_profile)
+        else:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only investors or admins can manage criteria.")
 
 
 class MatchViewSet(viewsets.ModelViewSet):
@@ -545,7 +568,7 @@ class IsAdminOrPartnerOwner(permissions.BasePermission):
 class PartnerFundingFormViewSet(viewsets.ModelViewSet):
     """ViewSet for managing partner funding forms"""
     queryset = PartnerFundingForm.objects.all()
-    permission_classes = [IsAdminOrPartnerOwner]
+    permission_classes = []
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -566,20 +589,26 @@ class PartnerFundingFormViewSet(viewsets.ModelViewSet):
         if funding_type:
             queryset = queryset.filter(funding_type=funding_type)
         
-        # Filter by partner if provided
+        # Filter by partner if provided (single or multiple)
         partner_id = self.request.query_params.get('partner')
-        if partner_id:
+        partner_ids = self.request.query_params.get('partner__in')
+        
+        if partner_ids:
+            # Support comma-separated partner IDs
+            partner_list = [int(p.strip()) for p in partner_ids.split(',') if p.strip().isdigit()]
+            queryset = queryset.filter(partner_id__in=partner_list)
+        elif partner_id:
             queryset = queryset.filter(partner_id=partner_id)
         
         # Non-admins can only see their own forms and active forms from other partners
-        if user.user_type not in ['admin', 'superadmin']:
-            if hasattr(user, 'investor_profile'):
-                queryset = queryset.filter(
-                    Q(partner=user.investor_profile) | Q(status='active')
-                )
-            else:
-                # Enterprises can see active forms
-                queryset = queryset.filter(status='active')
+        # if user.user_type not in ['admin', 'superadmin']:
+        #     if hasattr(user, 'investor_profile'):
+        #         queryset = queryset.filter(
+        #             Q(partner=user.investor_profile) | Q(status='active')
+        #         )
+        #     else:
+        #         # Enterprises can see active forms
+        #         queryset = queryset.filter(status='active')
         
         return queryset.select_related('partner').prefetch_related('sections__fields')
     

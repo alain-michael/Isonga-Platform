@@ -38,7 +38,7 @@ export default function AdminPartnerForms() {
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ["funding-forms", statusFilter, fundingTypeFilter],
     queryFn: async () => {
-      let url = "/api/investors/funding-forms/";
+      let url = "/investors/funding-forms/";
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (fundingTypeFilter !== "all")
@@ -53,7 +53,7 @@ export default function AdminPartnerForms() {
   const activateMutation = useMutation({
     mutationFn: async (formId: string) => {
       const response = await api.post(
-        `/api/investors/funding-forms/${formId}/activate/`,
+        `/investors/funding-forms/${formId}/activate/`,
       );
       return response.data;
     },
@@ -65,7 +65,7 @@ export default function AdminPartnerForms() {
   const archiveMutation = useMutation({
     mutationFn: async (formId: string) => {
       const response = await api.post(
-        `/api/investors/funding-forms/${formId}/archive/`,
+        `/investors/funding-forms/${formId}/archive/`,
       );
       return response.data;
     },
@@ -77,7 +77,7 @@ export default function AdminPartnerForms() {
   const duplicateMutation = useMutation({
     mutationFn: async (formId: string) => {
       const response = await api.post(
-        `/api/investors/funding-forms/${formId}/duplicate/`,
+        `/investors/funding-forms/${formId}/duplicate/`,
       );
       return response.data;
     },

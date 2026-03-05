@@ -3,12 +3,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import Enterprise, EnterpriseDocument
+from .models import (
+    Enterprise, EnterpriseDocument,
+    BusinessProfileForm, BusinessProfileSection, BusinessProfileField,
+    EnterpriseProfileFormResponse,
+)
 from .serializers import (
-    EnterpriseSerializer, 
-    EnterpriseListSerializer, 
+    EnterpriseSerializer,
+    EnterpriseListSerializer,
     EnterpriseDetailSerializer,
-    EnterpriseDocumentSerializer
+    EnterpriseDocumentSerializer,
+    BusinessProfileFormSerializer,
+    BusinessProfileFormDetailSerializer,
+    EnterpriseProfileFormResponseSerializer,
 )
 
 class EnterpriseViewSet(viewsets.ModelViewSet):
@@ -204,3 +211,111 @@ class EnterpriseDocumentViewSet(viewsets.ModelViewSet):
             'message': 'Document rejected',
             'is_verified': document.is_verified
         })
+
+
+# ─── Business Profile Form views ──────────────────────────────────────────────
+
+class IsAdminUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.user_type in ['admin', 'superadmin']
+
+
+class BusinessProfileFormViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for sector-based business profile form templates.
+    Admin only for write operations; authenticated users can read.
+    """
+    queryset = BusinessProfileForm.objects.prefetch_related('sections__fields').order_by('sector')
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return BusinessProfileFormDetailSerializer
+        return BusinessProfileFormSerializer
+
+    def perform_create(self, serializer):
+        if self.request.user.user_type not in ['admin', 'superadmin']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can create profile forms.")
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        if self.request.user.user_type not in ['admin', 'superadmin']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can edit profile forms.")
+        serializer.save()
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'], url_path='by-sector')
+    def by_sector(self, request):
+        """GET /api/profile-forms/by-sector/?sector=agriculture"""
+        sector = request.query_params.get('sector')
+        if not sector:
+            return Response({'error': 'sector parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            form = BusinessProfileForm.objects.prefetch_related('sections__fields').get(
+                sector=sector, is_active=True
+            )
+            serializer = BusinessProfileFormSerializer(form)
+            return Response(serializer.data)
+        except BusinessProfileForm.DoesNotExist:
+            return Response({'detail': 'No active form for this sector'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class EnterpriseProfileFormResponseViewSet(viewsets.ModelViewSet):
+    """
+    Stores an enterprise's answers to its sector profile form.
+    - GET  /api/profile-responses/         → enterprise sees their own; admin sees all
+    - POST /api/profile-responses/         → enterprise submits/creates response
+    - PUT  /api/profile-responses/{id}/    → enterprise updates response
+    - GET  /api/profile-responses/mine/    → shortcut for current enterprise
+    """
+    serializer_class = EnterpriseProfileFormResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.user_type in ['admin', 'superadmin']:
+            return EnterpriseProfileFormResponse.objects.select_related('enterprise', 'form').all()
+        if user.user_type == 'enterprise' and hasattr(user, 'enterprise'):
+            return EnterpriseProfileFormResponse.objects.filter(enterprise=user.enterprise)
+        return EnterpriseProfileFormResponse.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not hasattr(user, 'enterprise'):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only enterprise users can submit profile responses.")
+        from django.utils import timezone as tz
+        serializer.save(enterprise=user.enterprise, submitted_at=tz.now())
+
+    def perform_update(self, serializer):
+        from django.utils import timezone as tz
+        serializer.save(submitted_at=tz.now())
+
+    @action(detail=False, methods=['get', 'put', 'patch'], url_path='mine')
+    def mine(self, request):
+        """GET or update the current enterprise's profile form response."""
+        user = request.user
+        if not hasattr(user, 'enterprise'):
+            return Response({'error': 'Not an enterprise user'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            obj = EnterpriseProfileFormResponse.objects.select_related('form').get(enterprise=user.enterprise)
+        except EnterpriseProfileFormResponse.DoesNotExist:
+            return Response({'detail': 'No profile form response found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data)
+
+        # PUT / PATCH
+        partial = request.method == 'PATCH'
+        serializer = self.get_serializer(obj, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        from django.utils import timezone as tz
+        serializer.save(submitted_at=tz.now())
+        return Response(serializer.data)

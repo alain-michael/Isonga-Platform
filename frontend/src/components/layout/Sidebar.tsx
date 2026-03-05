@@ -74,6 +74,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: Settings,
       visible: user?.user_type === "investor",
     },
+    {
+      name: "Application Forms",
+      path: "/investor/forms",
+      icon: FileText,
+      visible: user?.user_type === "investor",
+    },
     // Partner-specific navigation
     {
       name: "Opportunities",
@@ -143,6 +149,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: "Funding Partners",
       path: "/admin/investors",
       icon: TrendingUp,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    {
+      name: "Profile Forms",
+      path: "/admin/profile-forms",
+      icon: FileText,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },
     // Profile - Personal information

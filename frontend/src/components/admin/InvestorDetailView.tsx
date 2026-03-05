@@ -19,7 +19,11 @@ import {
   MapPin,
   Settings as SettingsIcon,
   Save,
+  Plus,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { investorAPI, matchesAPI } from "../../services/api";
 import StatsCard from "../common/StatsCard";
 
@@ -60,9 +64,88 @@ interface Match {
   enterprise_accepted: boolean;
 }
 
+const SECTORS_LIST = [
+  { value: "agriculture", label: "Agriculture" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "services", label: "Services" },
+  { value: "technology", label: "Technology" },
+  { value: "retail", label: "Retail" },
+  { value: "construction", label: "Construction" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "education", label: "Education" },
+  { value: "finance", label: "Finance" },
+  { value: "other", label: "Other" },
+];
+
+const ENTERPRISE_SIZES_LIST = [
+  { value: "micro", label: "Micro (1-9 employees)" },
+  { value: "small", label: "Small (10-49 employees)" },
+  { value: "medium", label: "Medium (50-249 employees)" },
+  { value: "large", label: "Large (250+ employees)" },
+];
+
+const DISTRICTS_LIST = [
+  "Gasabo",
+  "Kicukiro",
+  "Nyarugenge",
+  "Bugesera",
+  "Gatsibo",
+  "Kayonza",
+  "Kirehe",
+  "Ngoma",
+  "Nyagatare",
+  "Rwamagana",
+  "Kamonyi",
+  "Muhanga",
+  "Nyanza",
+  "Ruhango",
+  "Gisagara",
+  "Huye",
+  "Karongi",
+  "Ngororero",
+  "Nyabihu",
+  "Nyamasheke",
+  "Rubavu",
+  "Rusizi",
+  "Rutsiro",
+  "Gakenke",
+  "Burera",
+  "Gicumbi",
+  "Musanze",
+  "Rulindo",
+];
+
+const DOCUMENT_TYPES_LIST = [
+  { value: "pdf", label: "PDF Document" },
+  { value: "financial", label: "Financial Statement" },
+  { value: "legal", label: "Legal Document" },
+  { value: "business_plan", label: "Business Plan" },
+  { value: "other", label: "Other" },
+];
+
+interface RequiredDocument {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+}
+
+interface CriteriaFormData {
+  sectors: string[];
+  min_funding_amount: number;
+  max_funding_amount: number;
+  min_readiness_score: number;
+  auto_reject_below_score: number | null;
+  preferred_revenue_range: { min: number | null; max: number | null };
+  required_documents: RequiredDocument[];
+  preferred_sizes: string[];
+  geographic_focus: string[];
+}
+
 const InvestorDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [investor, setInvestor] = useState<InvestorDetail | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +154,20 @@ const InvestorDetailView: React.FC = () => {
     "overview" | "matches" | "criteria"
   >("overview");
   const [editingCriteria, setEditingCriteria] = useState(false);
-  const [criteriaOverride, setCriteriaOverride] = useState<any>(null);
+  const [criteriaFormData, setCriteriaFormData] = useState<CriteriaFormData>({
+    sectors: [],
+    min_funding_amount: 0,
+    max_funding_amount: 0,
+    min_readiness_score: 0,
+    auto_reject_below_score: null,
+    preferred_revenue_range: { min: null, max: null },
+    required_documents: [],
+    preferred_sizes: [],
+    geographic_focus: [],
+  });
+  const [criteriaSaving, setCriteriaSaving] = useState(false);
+  const [criteriaSuccess, setCriteriaSuccess] = useState(false);
+  const [criteriaError, setCriteriaError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvestorDetails();
@@ -99,6 +195,112 @@ const InvestorDetailView: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const openCriteriaEditor = () => {
+    const existing =
+      investor?.criteria && investor.criteria.length > 0
+        ? investor.criteria[0]
+        : null;
+    setCriteriaFormData({
+      sectors: existing?.sectors || [],
+      min_funding_amount: existing?.min_funding_amount || 0,
+      max_funding_amount: existing?.max_funding_amount || 0,
+      min_readiness_score: existing?.min_readiness_score || 0,
+      auto_reject_below_score: existing?.auto_reject_below_score || null,
+      preferred_revenue_range: existing?.preferred_revenue_range || {
+        min: null,
+        max: null,
+      },
+      required_documents: existing?.required_documents || [],
+      preferred_sizes: existing?.preferred_sizes || [],
+      geographic_focus: existing?.geographic_focus || [],
+    });
+    setCriteriaError(null);
+    setEditingCriteria(true);
+  };
+
+  const saveCriteria = async () => {
+    if (!investor) return;
+    setCriteriaSaving(true);
+    setCriteriaError(null);
+    try {
+      const payload = {
+        investor: investor.id,
+        ...criteriaFormData,
+        is_active: true,
+      };
+      const existing =
+        investor.criteria && investor.criteria.length > 0
+          ? investor.criteria[0]
+          : null;
+      if (existing) {
+        await investorAPI.updateCriteria(existing.id, payload);
+      } else {
+        await investorAPI.createCriteria(payload);
+      }
+      // Refresh investor data
+      const res = await investorAPI.getById(id!);
+      setInvestor(res.data);
+      setEditingCriteria(false);
+      setCriteriaSuccess(true);
+      setTimeout(() => setCriteriaSuccess(false), 3000);
+    } catch (err: any) {
+      setCriteriaError(
+        err?.response?.data?.detail ||
+          JSON.stringify(err?.response?.data) ||
+          "Failed to save criteria",
+      );
+    } finally {
+      setCriteriaSaving(false);
+    }
+  };
+
+  const toggleSector = (s: string) =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      sectors: prev.sectors.includes(s)
+        ? prev.sectors.filter((x) => x !== s)
+        : [...prev.sectors, s],
+    }));
+
+  const toggleSize = (s: string) =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      preferred_sizes: prev.preferred_sizes.includes(s)
+        ? prev.preferred_sizes.filter((x) => x !== s)
+        : [...prev.preferred_sizes, s],
+    }));
+
+  const toggleDistrict = (d: string) =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      geographic_focus: prev.geographic_focus.includes(d)
+        ? prev.geographic_focus.filter((x) => x !== d)
+        : [...prev.geographic_focus, d],
+    }));
+
+  const addReqDoc = () =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      required_documents: [
+        ...prev.required_documents,
+        { name: "", type: "pdf", required: true, description: "" },
+      ],
+    }));
+
+  const removeReqDoc = (i: number) =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      required_documents: prev.required_documents.filter((_, idx) => idx !== i),
+    }));
+
+  const updateReqDoc = (i: number, field: keyof RequiredDocument, value: any) =>
+    setCriteriaFormData((prev) => ({
+      ...prev,
+      required_documents: prev.required_documents.map((doc, idx) =>
+        idx === i ? { ...doc, [field]: value } : doc,
+      ),
+    }));
 
   const formatCurrency = (amount: number) => {
     if (!amount) return "N/A";
@@ -447,33 +649,36 @@ const InvestorDetailView: React.FC = () => {
 
           {activeTab === "criteria" && (
             <div>
+              {/* Success banner */}
+              {criteriaSuccess && (
+                <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="text-green-800 dark:text-green-200 font-medium">
+                    Investment criteria updated successfully!
+                  </span>
+                </div>
+              )}
               {/* Admin Actions */}
               <div className="mb-6 flex items-center justify-between p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl">
                 <div className="flex items-center gap-3">
                   <SettingsIcon className="h-5 w-5 text-primary-600" />
                   <div>
                     <h4 className="font-semibold text-neutral-900 dark:text-neutral-100">
-                      Admin Configuration Review
+                      Admin Configuration
                     </h4>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                      Review and adjust partner criteria to ensure fairness
+                      Set or adjust partner criteria on behalf of this partner
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    if (investor.criteria && investor.criteria.length > 0) {
-                      setCriteriaOverride(investor.criteria[0]);
-                      setEditingCriteria(true);
-                    }
-                  }}
+                  onClick={openCriteriaEditor}
                   className="btn-primary flex items-center gap-2"
-                  disabled={
-                    !investor.criteria || investor.criteria.length === 0
-                  }
                 >
                   <Edit className="h-4 w-4" />
-                  Edit Criteria
+                  {investor.criteria && investor.criteria.length > 0
+                    ? "Edit Criteria"
+                    : "Set Criteria"}
                 </button>
               </div>
 
@@ -699,153 +904,354 @@ const InvestorDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Admin Edit Criteria Modal */}
-      {editingCriteria && criteriaOverride && (
+      {/* Full Criteria Editor Modal */}
+      {editingCriteria && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-effect rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-              Admin: Edit Partner Criteria
-            </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-              Adjust partner criteria to ensure fairness and platform integrity.
-              Changes will be logged for audit purposes.
-            </p>
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                {investor?.criteria && investor.criteria.length > 0
+                  ? "Edit"
+                  : "Set"}{" "}
+                Investment Criteria
+              </h3>
+              <span className="text-sm text-neutral-500">
+                Admin action on behalf of partner
+              </span>
+            </div>
 
-            <div className="space-y-6">
-              {/* Auto-Reject Score */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Auto-Reject Below Score (%)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={criteriaOverride.auto_reject_below_score || ""}
-                  onChange={(e) =>
-                    setCriteriaOverride({
-                      ...criteriaOverride,
-                      auto_reject_below_score: parseInt(e.target.value) || null,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  placeholder="e.g. 50"
-                />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  SMEs with readiness scores below this threshold will be
-                  automatically declined
-                </p>
-                {criteriaOverride.auto_reject_below_score && (
-                  <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded text-xs text-orange-800 dark:text-orange-300">
-                    ⚠️ Setting this too high (above 70%) may be unreasonable and
-                    limit partner opportunities
-                  </div>
-                )}
-              </div>
-
-              {/* Min Readiness Score */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Minimum Readiness Score (%)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={criteriaOverride.min_readiness_score || ""}
-                  onChange={(e) =>
-                    setCriteriaOverride({
-                      ...criteriaOverride,
-                      min_readiness_score: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Soft minimum - campaigns below this will still be shown but
-                  flagged
-                </p>
-              </div>
+            <div className="p-6 space-y-8">
+              {criteriaError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {criteriaError}
+                </div>
+              )}
 
               {/* Funding Range */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Min Funding Amount (RWF)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={criteriaOverride.min_funding_amount || ""}
-                    onChange={(e) =>
-                      setCriteriaOverride({
-                        ...criteriaOverride,
-                        min_funding_amount: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Max Funding Amount (RWF)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={criteriaOverride.max_funding_amount || ""}
-                    onChange={(e) =>
-                      setCriteriaOverride({
-                        ...criteriaOverride,
-                        max_funding_amount: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  />
+              <div>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary-600" /> Funding
+                  Range (RWF)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Minimum
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={criteriaFormData.min_funding_amount}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          min_funding_amount: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Maximum
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={criteriaFormData.max_funding_amount}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          max_funding_amount: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Admin Notes */}
+              {/* Readiness Scores */}
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Admin Adjustment Notes (Required)
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Explain why these adjustments were necessary..."
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  This note will be logged for audit purposes and shared with
-                  the partner
-                </p>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" /> Readiness
+                  Score Requirements
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Minimum Score (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={criteriaFormData.min_readiness_score}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          min_readiness_score: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Auto-Reject Below (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={criteriaFormData.auto_reject_below_score ?? ""}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          auto_reject_below_score: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                      placeholder="Leave blank to disable"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred Revenue Range */}
+              <div>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+                  Revenue Range (RWF, optional)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Min Revenue
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={criteriaFormData.preferred_revenue_range.min ?? ""}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          preferred_revenue_range: {
+                            ...p.preferred_revenue_range,
+                            min: e.target.value ? Number(e.target.value) : null,
+                          },
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                      Max Revenue
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={criteriaFormData.preferred_revenue_range.max ?? ""}
+                      onChange={(e) =>
+                        setCriteriaFormData((p) => ({
+                          ...p,
+                          preferred_revenue_range: {
+                            ...p.preferred_revenue_range,
+                            max: e.target.value ? Number(e.target.value) : null,
+                          },
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sectors */}
+              <div>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Sector Focus
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {SECTORS_LIST.map((s) => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => toggleSector(s.value)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        criteriaFormData.sectors.includes(s.value)
+                          ? "bg-primary-100 dark:bg-primary-900/40 border-primary-400 text-primary-800 dark:text-primary-300"
+                          : "bg-white dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Enterprise Sizes */}
+              <div>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Preferred Enterprise Sizes
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {ENTERPRISE_SIZES_LIST.map((s) => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => toggleSize(s.value)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        criteriaFormData.preferred_sizes.includes(s.value)
+                          ? "bg-purple-100 dark:bg-purple-900/40 border-purple-400 text-purple-800 dark:text-purple-300"
+                          : "bg-white dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Geographic Focus */}
+              <div>
+                <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Geographic Focus (Districts)
+                </h4>
+                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
+                  {DISTRICTS_LIST.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => toggleDistrict(d)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        criteriaFormData.geographic_focus.includes(d)
+                          ? "bg-teal-100 dark:bg-teal-900/40 border-teal-400 text-teal-800 dark:text-teal-300"
+                          : "bg-white dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Required Documents */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-indigo-600" /> Required
+                    Documents
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addReqDoc}
+                    className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    <Plus className="h-4 w-4" /> Add Document
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {criteriaFormData.required_documents.map((doc, i) => (
+                    <div
+                      key={i}
+                      className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-900/30 space-y-3"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                            Document Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={doc.name}
+                            onChange={(e) =>
+                              updateReqDoc(i, "name", e.target.value)
+                            }
+                            placeholder="e.g. Business Plan"
+                            className="w-full px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                            Type
+                          </label>
+                          <select
+                            value={doc.type}
+                            onChange={(e) =>
+                              updateReqDoc(i, "type", e.target.value)
+                            }
+                            className="w-full px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                          >
+                            {DOCUMENT_TYPES_LIST.map((t) => (
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={doc.description}
+                        onChange={(e) =>
+                          updateReqDoc(i, "description", e.target.value)
+                        }
+                        placeholder="Description (optional)"
+                        className="w-full px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500"
+                      />
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={doc.required}
+                            onChange={(e) =>
+                              updateReqDoc(i, "required", e.target.checked)
+                            }
+                            className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          Required document
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeReqDoc(i)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {criteriaFormData.required_documents.length === 0 && (
+                    <p className="text-sm text-neutral-400 italic text-center py-4">
+                      No required documents set
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex gap-3">
               <button
-                onClick={() => {
-                  setEditingCriteria(false);
-                  setCriteriaOverride(null);
-                }}
+                type="button"
+                onClick={() => setEditingCriteria(false)}
                 className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // TODO: Implement API call to update criteria with admin override
-                  // This should include audit logging
-                  alert(
-                    "Admin criteria update functionality will be implemented with proper audit logging",
-                  );
-                  setEditingCriteria(false);
-                  setCriteriaOverride(null);
-                }}
-                className="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center gap-2"
+                type="button"
+                onClick={saveCriteria}
+                disabled={criteriaSaving}
+                className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                Save Changes (Admin Override)
+                {criteriaSaving ? "Saving..." : "Save Criteria"}
               </button>
             </div>
           </div>

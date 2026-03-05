@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from django.db.models import Q, Avg
-from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage, CampaignPartnerApplication
+from .models import Campaign, CampaignDocument, CampaignInterest, CampaignUpdate, CampaignMessage, CampaignPartnerApplication, PartnerApplicationDocument
 from .serializers import (
     CampaignSerializer, CampaignDetailSerializer, CampaignCreateSerializer,
     CampaignDocumentSerializer, CampaignInterestSerializer, CampaignUpdateSerializer,
     CampaignMessageSerializer, CampaignPartnerApplicationSerializer,
-    CampaignPartnerApplicationDetailSerializer, CampaignPartnerApplicationCreateSerializer
+    CampaignPartnerApplicationDetailSerializer, CampaignPartnerApplicationCreateSerializer,
+    PartnerApplicationDocumentSerializer,
 )
 
 
@@ -534,12 +535,21 @@ class CampaignPartnerApplicationViewSet(viewsets.ModelViewSet):
                 application.campaign.enterprise == request.user.enterprise):
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
-        if application.status != 'draft':
+        if application.status not in ['draft', 'submitted']:
             return Response({'error': 'Only draft applications can be submitted'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
+        # If already submitted, just return success
+        if application.status == 'submitted':
+            return Response({
+                'message': 'Application already submitted to partner',
+                'auto_screened': application.auto_screened,
+                'auto_screen_passed': application.auto_screen_passed,
+                'auto_screen_reason': application.auto_screen_reason
+            })
+        
         # Validate form responses if partner has required form
-        if application.partner_form and not application.form_responses:
+        if application.funding_form and not application.form_responses:
             return Response({'error': 'Form responses required'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
@@ -743,3 +753,85 @@ class CampaignPartnerApplicationViewSet(viewsets.ModelViewSet):
         applications = CampaignPartnerApplication.objects.filter(campaign=campaign)
         serializer = self.get_serializer(applications, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='required-docs')
+    def required_docs(self, request, pk=None):
+        """
+        Return the merged list of required documents for this application:
+        - criteria-level required documents (from InvestorCriteria.required_documents)
+        - form-level file fields (from the PartnerFundingForm FormField with field_type='file')
+        Each item: {key, name, description, source: 'criteria'|'form', required, field_id?}
+        """
+        application = self.get_object()
+        partner = application.partner
+
+        docs = []
+
+        # 1. Criteria-level required docs
+        criteria = partner.criteria.filter(is_active=True).first()
+        if criteria and criteria.required_documents:
+            for d in criteria.required_documents:
+                docs.append({
+                    'key': d.get('type', d.get('name', '')),
+                    'name': d.get('name', ''),
+                    'description': d.get('description', ''),
+                    'required': d.get('required', True),
+                    'source': 'criteria',
+                    'field_id': None,
+                })
+
+        # 2. Form-level file fields
+        if application.funding_form:
+            for section in application.funding_form.sections.prefetch_related('fields').order_by('order'):
+                for field in section.fields.filter(field_type='file').order_by('order'):
+                    docs.append({
+                        'key': str(field.id),
+                        'name': field.label,
+                        'description': field.help_text,
+                        'required': field.is_required,
+                        'source': 'form',
+                        'field_id': field.id,
+                    })
+
+        # Attach already-uploaded docs
+        uploaded = {d.document_key: d.file.url if d.file else None
+                    for d in application.uploaded_documents.all()}
+        for doc in docs:
+            doc['uploaded_url'] = uploaded.get(doc['key'])
+
+        return Response({'required_docs': docs})
+
+
+class PartnerApplicationDocumentViewSet(viewsets.ModelViewSet):
+    """Upload / list / delete documents for a partner application."""
+    serializer_class = PartnerApplicationDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        application_id = self.request.query_params.get('application_id')
+
+        qs = PartnerApplicationDocument.objects.select_related(
+            'application__campaign__enterprise', 'application__partner'
+        )
+        if application_id:
+            qs = qs.filter(application_id=application_id)
+
+        if user.user_type in ['admin', 'superadmin']:
+            return qs
+        if hasattr(user, 'enterprise'):
+            return qs.filter(application__campaign__enterprise=user.enterprise)
+        if hasattr(user, 'investor_profile'):
+            return qs.filter(application__partner=user.investor_profile)
+        return qs.none()
+
+    def perform_create(self, serializer):
+        # Verify the user has access to the application
+        application = serializer.validated_data.get('application')
+        user = self.request.user
+        if (user.user_type not in ['admin', 'superadmin'] and
+                not (hasattr(user, 'enterprise') and application.campaign.enterprise == user.enterprise)):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You don't have permission to upload documents for this application.")
+        serializer.save()

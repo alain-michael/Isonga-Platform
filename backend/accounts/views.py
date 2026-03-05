@@ -13,12 +13,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'phone_number'
     
     def validate(self, attrs):
-        # Use phone_number for authentication
-        phone_number = attrs.get('phone_number')
+        # The field is called phone_number but the user may type an email
+        identifier = attrs.get('phone_number')
         password = attrs.get('password')
         
-        # Authenticate with phone_number
-        user = authenticate(username=phone_number, password=password)
+        # Try phone_number authentication first
+        user = authenticate(username=identifier, password=password)
+        
+        # If that failed, try looking up by email
+        if not user and identifier:
+            try:
+                user_obj = User.objects.get(email=identifier)
+                user = authenticate(username=user_obj.phone_number, password=password)
+            except User.DoesNotExist:
+                pass
         
         if not user:
             raise serializers.ValidationError('No active account found with the given credentials')

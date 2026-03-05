@@ -169,7 +169,7 @@ export default function AdminPartnerFormBuilder() {
 
   const createFormMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await api.post("/api/investors/funding-forms/", data);
+      const response = await api.post("/investors/funding-forms/", data);
       return response.data;
     },
     onSuccess: () => {
