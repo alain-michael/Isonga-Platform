@@ -130,7 +130,7 @@ class BusinessProfileFormSerializer(serializers.ModelSerializer):
         model = BusinessProfileForm
         fields = [
             'id', 'sector', 'sector_display', 'name', 'description',
-            'is_active', 'sections', 'created_by', 'created_by_name',
+            'is_active', 'is_default', 'sections', 'created_by', 'created_by_name',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
@@ -153,7 +153,7 @@ class BusinessProfileFormDetailSerializer(serializers.ModelSerializer):
         model = BusinessProfileForm
         fields = [
             'id', 'sector', 'sector_display', 'name', 'description',
-            'is_active', 'sections', 'sections_data',
+            'is_active', 'is_default', 'sections', 'sections_data',
             'created_by', 'created_at', 'updated_at',
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
