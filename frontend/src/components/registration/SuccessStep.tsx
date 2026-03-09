@@ -37,6 +37,21 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
         </p>
       </div>
 
+      {/* Call to Action */}
+      <div className="space-y-4">
+        <button
+          onClick={onComplete}
+          className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-md hover:from-primary-600 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
+        >
+          Enter Dashboard
+        </button>
+
+        <p className="text-sm text-neutral-500">
+          You can always access your dashboard and update your business profile
+          from the navigation menu.
+        </p>
+      </div>
+
       {/* Registration Summary */}
       <div className="bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200 rounded-lg p-6 mb-8">
         <h3 className="text-xl font-semibold text-neutral-900 mb-4">
@@ -243,21 +258,6 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Call to Action */}
-      <div className="space-y-4">
-        <button
-          onClick={onComplete}
-          className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-md hover:from-primary-600 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
-        >
-          Enter Dashboard
-        </button>
-
-        <p className="text-sm text-neutral-500">
-          You can always access your dashboard and update your business profile
-          from the navigation menu.
-        </p>
       </div>
 
       {/* Support Information */}
