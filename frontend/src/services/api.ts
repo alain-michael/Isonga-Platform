@@ -109,6 +109,22 @@ export const assessmentAPI = {
   getCategories: () =>
     api.get('/assessments/api/categories/'),
   
+  // Services
+  getServices: (params?: any) =>
+    api.get('/assessments/api/services/', { params }),
+  
+  getService: (id: string | number) =>
+    api.get(`/assessments/api/services/${id}/`),
+  
+  createService: (data: any) =>
+    api.post('/assessments/api/services/', data),
+  
+  updateService: (id: string | number, data: any) =>
+    api.patch(`/assessments/api/services/${id}/`, data),
+  
+  deleteService: (id: string | number) =>
+    api.delete(`/assessments/api/services/${id}/`),
+  
   getQuestionnaires: () =>
     api.get('/assessments/api/questionnaires/'),
 

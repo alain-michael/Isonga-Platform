@@ -55,6 +55,7 @@ import "./styles.css";
 import AdminAssessments from "./components/admin/AdminAssessments";
 import AdminBusinessProfileForms from "./components/admin/AdminBusinessProfileForms";
 import AdminBusinessProfileFormEditor from "./components/admin/AdminBusinessProfileFormEditor";
+import AdminServices from "./components/admin/AdminServices";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -214,6 +215,7 @@ const AppContent: React.FC = () => {
           path="/admin/profile-forms/:id/edit"
           element={<AdminBusinessProfileFormEditor />}
         />
+        <Route path="/admin/services" element={<AdminServices />} />
       </Route>
 
       {/* Welcome page - landing */}

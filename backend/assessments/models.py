@@ -4,6 +4,25 @@ from enterprises.models import Enterprise
 
 User = get_user_model()
 
+
+class Service(models.Model):
+    """Services offered by the platform that can be attached to recommendations."""
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    price = models.CharField(max_length=255, blank=True, help_text="e.g. RWF 50,000 or Free")
+    contact = models.CharField(max_length=255, blank=True, help_text="Contact person or phone/email")
+    link = models.URLField(blank=True, help_text="External URL for more information")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
 class AssessmentCategory(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -147,6 +166,12 @@ class QuestionRecommendation(models.Model):
     max_score = models.PositiveIntegerField(help_text="Maximum score (inclusive) for this recommendation to apply")
     recommendation_text = models.TextField(help_text="Recommendation text to show when score is in this range")
     translations = models.JSONField(default=dict, blank=True, help_text="Translations: {'en': 'text', 'fr': 'texte', ...}")
+    recommended_services = models.ManyToManyField(
+        Service,
+        blank=True,
+        related_name='question_recommendations',
+        help_text="Services to recommend alongside this recommendation",
+    )
     
     def get_text(self, language=None):
         """Get recommendation text in specified language, fallback to default"""
@@ -234,6 +259,12 @@ class Recommendation(models.Model):
     description = models.TextField()
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS)
     suggested_actions = models.TextField()
+    recommended_services = models.ManyToManyField(
+        Service,
+        blank=True,
+        related_name='assessment_recommendations',
+        help_text="Services recommended alongside this suggestion",
+    )
     
     def __str__(self):
         return f"{self.assessment} - {self.title}"

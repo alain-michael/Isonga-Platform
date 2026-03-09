@@ -17,6 +17,10 @@ import {
   TrendingDown,
   Target,
   Lightbulb,
+  Briefcase,
+  Phone,
+  Link as LinkIcon,
+  DollarSign,
 } from "lucide-react";
 import { assessmentAPI, adminAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
@@ -88,6 +92,15 @@ interface CategoryScore {
   percentage: number;
 }
 
+interface RecommendedService {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  contact: string;
+  link: string;
+}
+
 interface Recommendation {
   id: number;
   category: number;
@@ -96,6 +109,7 @@ interface Recommendation {
   description: string;
   priority: string;
   suggested_actions: string;
+  recommended_services: RecommendedService[];
 }
 
 interface AdminUser {
@@ -618,40 +632,41 @@ const AssessmentDetailView: React.FC = () => {
                         rec.max_score >= response.score,
                     ) || [];
 
-                  return questionRecommendations.length > 0 && (
-                    <div
-                      key={response.id}
-                      className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl border border-neutral-200 dark:border-neutral-600"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-
-                          {/* Question-Specific Recommendations */}
-                          {questionRecommendations.length > 0 && (
-                            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                              <div className="flex items-start gap-2 mb-2">
-                                <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                <div className="flex-1">
-                                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                                    Recommendation:
-                                  </p>
-                                  {questionRecommendations.map(
-                                    (rec: any, idx: number) => (
-                                      <div
-                                        key={idx}
-                                        className="text-sm text-blue-800 dark:text-blue-300 mb-2 last:mb-0"
-                                      >
-                                        {rec.recommendation_text}
-                                      </div>
-                                    ),
-                                  )}
+                  return (
+                    questionRecommendations.length > 0 && (
+                      <div
+                        key={response.id}
+                        className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl border border-neutral-200 dark:border-neutral-600"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            {/* Question-Specific Recommendations */}
+                            {questionRecommendations.length > 0 && (
+                              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                                <div className="flex items-start gap-2 mb-2">
+                                  <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                                      Recommendation:
+                                    </p>
+                                    {questionRecommendations.map(
+                                      (rec: any, idx: number) => (
+                                        <div
+                                          key={idx}
+                                          className="text-sm text-blue-800 dark:text-blue-300 mb-2 last:mb-0"
+                                        >
+                                          {rec.recommendation_text}
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )
                   );
                 })
               )}
@@ -866,6 +881,64 @@ const AssessmentDetailView: React.FC = () => {
                                       {rec.suggested_actions}
                                     </p>
                                   </div>
+
+                                  {/* Recommended Services */}
+                                  {rec.recommended_services &&
+                                    rec.recommended_services.length > 0 && (
+                                      <div className="mt-3">
+                                        <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-2 flex items-center gap-1.5">
+                                          <Briefcase className="w-3.5 h-3.5" />
+                                          Recommended Services
+                                        </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                          {rec.recommended_services.map(
+                                            (service) => (
+                                              <div
+                                                key={service.id}
+                                                className="rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-800/60 p-3 flex flex-col gap-1"
+                                              >
+                                                <div className="flex items-center gap-1.5">
+                                                  <Briefcase className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
+                                                  <span className="font-semibold text-sm text-neutral-900 dark:text-white">
+                                                    {service.name}
+                                                  </span>
+                                                </div>
+                                                {service.description && (
+                                                  <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2">
+                                                    {service.description}
+                                                  </p>
+                                                )}
+                                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                                                  {service.price && (
+                                                    <span className="flex items-center gap-1">
+                                                      <DollarSign className="w-3 h-3" />
+                                                      {service.price}
+                                                    </span>
+                                                  )}
+                                                  {service.contact && (
+                                                    <span className="flex items-center gap-1">
+                                                      <Phone className="w-3 h-3" />
+                                                      {service.contact}
+                                                    </span>
+                                                  )}
+                                                  {service.link && (
+                                                    <a
+                                                      href={service.link}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline"
+                                                    >
+                                                      <LinkIcon className="w-3 h-3" />
+                                                      Learn more
+                                                    </a>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            ),
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             </div>

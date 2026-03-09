@@ -13,6 +13,24 @@ class AssessmentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AssessmentCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
+class ServiceViewSet(viewsets.ModelViewSet):
+    """CRUD for platform services. Admins can manage; authenticated users can read active ones."""
+    serializer_class = ServiceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.user_type in ['admin', 'superadmin']:
+            return Service.objects.all()
+        return Service.objects.filter(is_active=True)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAdminUser()]
+        return super().get_permissions()
+
+
 class QuestionnaireViewSet(viewsets.ModelViewSet):
     queryset = Questionnaire.objects.all()
     serializer_class = QuestionnaireSerializer
@@ -25,10 +43,74 @@ class QuestionnaireViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         questionnaire = serializer.save(created_by=self.request.user)
-        # Calculate estimated time after creation if questions exist
-        if questionnaire.questions.exists():
+        questions_data = self.request.data.get('questions', [])
+        if questions_data:
+            self._save_questions(questionnaire, questions_data)
             questionnaire.calculate_estimated_time()
     
+    def perform_update(self, serializer):
+        questionnaire = serializer.save()
+        questions_data = self.request.data.get('questions', [])
+        if questions_data is not None:
+            # Remove questions no longer present
+            questionnaire.questions.all().delete()
+            self._save_questions(questionnaire, questions_data)
+            questionnaire.calculate_estimated_time()
+
+    def _save_questions(self, questionnaire, questions_data):
+        """Create Question, QuestionOption, and QuestionRecommendation objects from payload."""
+        # Determine the default category for questions (use questionnaire's category)
+        default_category = questionnaire.category
+        for order_idx, q_data in enumerate(questions_data):
+            category_id = q_data.get('category', None)
+            if category_id:
+                try:
+                    category = AssessmentCategory.objects.get(pk=category_id)
+                except AssessmentCategory.DoesNotExist:
+                    category = default_category
+            else:
+                category = default_category
+
+            if not category:
+                # Fall back to first available category
+                category = AssessmentCategory.objects.first()
+
+            question = Question.objects.create(
+                questionnaire=questionnaire,
+                category=category,
+                text=q_data.get('text', ''),
+                translations=q_data.get('translations', {}),
+                question_type=q_data.get('question_type', 'single_choice'),
+                is_required=q_data.get('is_required', True),
+                max_score=q_data.get('max_score', 10),
+                order=q_data.get('order', order_idx),
+            )
+
+            # Save options
+            for opt_idx, opt_data in enumerate(q_data.get('options', [])):
+                QuestionOption.objects.create(
+                    question=question,
+                    text=opt_data.get('text', ''),
+                    translations=opt_data.get('translations', {}),
+                    score=opt_data.get('score', 0),
+                    order=opt_idx,
+                )
+
+            # Save conditional recommendations (with services)
+            for rec_data in q_data.get('conditional_recommendations', []):
+                service_ids = rec_data.get('recommended_service_ids', [])
+                rec = QuestionRecommendation.objects.create(
+                    question=question,
+                    min_score=rec_data.get('min_score', 0),
+                    max_score=rec_data.get('max_score', 10),
+                    recommendation_text=rec_data.get('recommendation_text', ''),
+                    translations=rec_data.get('translations', {}),
+                )
+                if service_ids:
+                    rec.recommended_services.set(
+                        Service.objects.filter(pk__in=service_ids, is_active=True)
+                    )
+
     def get_queryset(self):
         user = self.request.user
         queryset = Questionnaire.objects.all() if user.user_type in ['admin', 'superadmin'] else Questionnaire.objects.filter(is_active=True)
@@ -365,7 +447,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             conditional_recs = response.question.conditional_recommendations.filter(
                 min_score__lte=response.score,
                 max_score__gte=response.score
-            )
+            ).prefetch_related('recommended_services')
             
             for rec in conditional_recs:
                 # Get the question's category for proper categorization
@@ -377,7 +459,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
                         'description': rec.get_text(assessment.enterprise.user.language if hasattr(assessment.enterprise.user, 'language') else 'en'),
                         'priority': 'high' if response.score < 50 else 'medium',
                         'suggested_actions': rec.recommendation_text,
-                        'source': 'question'
+                        'source': 'question',
+                        'services': list(rec.recommended_services.filter(is_active=True)),
                     })
         
         # Then add category-level recommendations
@@ -416,12 +499,13 @@ class AssessmentViewSet(viewsets.ModelViewSet):
                 'description': description,
                 'priority': priority,
                 'suggested_actions': actions,
-                'source': 'category'
+                'source': 'category',
+                'services': [],
             })
         
         # Create Recommendation objects from collected data
         for rec_data in question_recommendations:
-            Recommendation.objects.create(
+            rec_obj = Recommendation.objects.create(
                 assessment=assessment,
                 category=rec_data['category'],
                 title=rec_data['title'],
@@ -429,6 +513,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
                 priority=rec_data['priority'],
                 suggested_actions=rec_data['suggested_actions']
             )
+            # Link recommended services
+            if rec_data.get('services'):
+                rec_obj.recommended_services.set(rec_data['services'])
 
 class AssessmentResponseViewSet(viewsets.ModelViewSet):
     queryset = AssessmentResponse.objects.all()

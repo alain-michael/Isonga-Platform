@@ -98,7 +98,7 @@ class InvestorCriteria(models.Model):
     
     # Enterprise size preferences
     preferred_sizes = models.JSONField(default=list, help_text="List of preferred enterprise sizes")
-    
+
     # Additional preferences
     min_years_operation = models.PositiveIntegerField(default=0)
     min_employees = models.PositiveIntegerField(default=0)

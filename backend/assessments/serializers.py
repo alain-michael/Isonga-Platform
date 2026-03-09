@@ -8,15 +8,42 @@ class AssessmentCategorySerializer(serializers.ModelSerializer):
         model = AssessmentCategory
         fields = '__all__'
 
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = '__all__'
+
 class QuestionOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionOption
         fields = '__all__'
 
 class QuestionRecommendationSerializer(serializers.ModelSerializer):
+    recommended_services = ServiceSerializer(many=True, read_only=True)
+    recommended_service_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.filter(is_active=True),
+        many=True,
+        write_only=True,
+        source='recommended_services',
+        required=False,
+    )
+
     class Meta:
         model = QuestionRecommendation
-        fields = ['id', 'min_score', 'max_score', 'recommendation_text', 'translations']
+        fields = ['id', 'min_score', 'max_score', 'recommendation_text', 'translations', 'recommended_services', 'recommended_service_ids']
+
+    def create(self, validated_data):
+        services = validated_data.pop('recommended_services', [])
+        instance = super().create(validated_data)
+        instance.recommended_services.set(services)
+        return instance
+
+    def update(self, instance, validated_data):
+        services = validated_data.pop('recommended_services', None)
+        instance = super().update(instance, validated_data)
+        if services is not None:
+            instance.recommended_services.set(services)
+        return instance
 
 class QuestionSerializer(serializers.ModelSerializer):
     options = QuestionOptionSerializer(many=True, read_only=True)
@@ -61,6 +88,7 @@ class CategoryScoreSerializer(serializers.ModelSerializer):
 
 class RecommendationSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
+    recommended_services = ServiceSerializer(many=True, read_only=True)
     
     class Meta:
         model = Recommendation

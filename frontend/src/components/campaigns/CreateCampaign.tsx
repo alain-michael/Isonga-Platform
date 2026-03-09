@@ -133,6 +133,15 @@ const CreateCampaign: React.FC = () => {
 
   const createCampaignMutation = useCreateCampaign();
 
+  // Map campaign_type → PartnerFundingForm funding_type
+  // (Campaign uses 'debt'; PartnerFundingForm uses 'loan' for the same concept)
+  const CAMPAIGN_TO_FORM_TYPE: Record<string, string> = {
+    equity: "equity",
+    debt: "loan",
+    grant: "grant",
+    hybrid: "hybrid",
+  };
+
   // Fetch available partners
   const { data: partners = [] } = useQuery({
     queryKey: ["partners"],
@@ -141,20 +150,18 @@ const CreateCampaign: React.FC = () => {
       return response.data.results || response.data;
     },
   });
-  // Fetch partner forms for selected partners
-  const partnerFormsQuery = useQuery({
-    queryKey: ["partnerForms", selectedPartners],
+
+  // Pre-fetch ALL active funding forms so we can filter partners by type in step 3
+  const { data: allActiveForms = [] } = useQuery({
+    queryKey: ["activeFundingForms"],
     queryFn: async () => {
-      if (selectedPartners.length === 0) return [];
       const response = await api.get("/investors/funding-forms/", {
-        params: { partner__in: selectedPartners.join(",") },
+        params: { status: "active" },
       });
       return response.data.results || response.data;
     },
-    enabled: selectedPartners.length > 0,
   });
 
-  const partnerForms = partnerFormsQuery.data || [];
   const {
     register,
     handleSubmit,
@@ -168,53 +175,130 @@ const CreateCampaign: React.FC = () => {
 
   const watchedValues = watch();
 
-  // Check criteria against selected partners
-  const checkCriteria = () => {
-    const checks: CriteriaCheck[] = [];
+  // Fetch the SME's own enterprise so we can match against partner criteria
+  const { data: myEnterprise } = useQuery({
+    queryKey: ["myEnterprise"],
+    queryFn: async () => {
+      const response = await api.get(
+        "/enterprises/api/enterprises/my-enterprise/",
+      );
+      return response.data;
+    },
+  });
 
-    selectedPartners.forEach((partnerId) => {
-      const partner = partners.find((p: any) => p.id === partnerId);
-      if (!partner || !partner.criteria || partner.criteria.length === 0) {
-        checks.push({
-          partnerId,
-          partnerName: partner?.organization_name || "Unknown Partner",
-          passed: true,
-          issues: [],
-        });
-        return;
-      }
+  // Derive which partner IDs have at least one active form for the chosen campaign type
+  const campaignFormType =
+    CAMPAIGN_TO_FORM_TYPE[watchedValues.campaign_type || ""] || null;
+  const partnersWithMatchingForms: Set<number> = React.useMemo(() => {
+    if (!campaignFormType)
+      return new Set(allActiveForms.map((f: any) => f.partner));
+    return new Set(
+      allActiveForms
+        .filter((f: any) => f.funding_type === campaignFormType)
+        .map((f: any) => f.partner),
+    );
+  }, [allActiveForms, campaignFormType]);
 
-      const criteria = partner.criteria[0];
+  /**
+   * Returns a list of human-readable issues with a partner's investment criteria
+   * vs the SME's enterprise profile and campaign goals. Empty array = fully eligible.
+   */
+  const getPartnerCriteriaIssues = React.useCallback(
+    (partner: any): string[] => {
+      if (!partner.criteria || partner.criteria.length === 0) return [];
+      const c = partner.criteria[0];
       const issues: string[] = [];
 
-      // Check funding amount
-      if (watchedValues.target_amount) {
-        if (
-          criteria.min_funding_amount &&
-          watchedValues.target_amount < criteria.min_funding_amount
-        ) {
+      // Sector check
+      if (myEnterprise && c.sectors && c.sectors.length > 0) {
+        if (!c.sectors.includes(myEnterprise.sector)) {
           issues.push(
-            `Your target amount (${formatCurrency(watchedValues.target_amount)}) is below their minimum (${formatCurrency(criteria.min_funding_amount)})`,
-          );
-        }
-        if (
-          criteria.max_funding_amount &&
-          watchedValues.target_amount > criteria.max_funding_amount
-        ) {
-          issues.push(
-            `Your target amount (${formatCurrency(watchedValues.target_amount)}) exceeds their maximum (${formatCurrency(criteria.max_funding_amount)})`,
+            `Your sector (${myEnterprise.sector}) is not in their focus areas`,
           );
         }
       }
 
-      checks.push({
+      // Funding amount check
+      const targetAmount = Number(watchedValues.target_amount);
+      if (targetAmount) {
+        if (
+          c.min_funding_amount &&
+          targetAmount < Number(c.min_funding_amount)
+        ) {
+          issues.push(
+            `Your target is below their minimum (${Number(c.min_funding_amount).toLocaleString()} RWF)`,
+          );
+        }
+        if (
+          c.max_funding_amount &&
+          Number(c.max_funding_amount) > 0 &&
+          targetAmount > Number(c.max_funding_amount)
+        ) {
+          issues.push(
+            `Your target exceeds their maximum (${Number(c.max_funding_amount).toLocaleString()} RWF)`,
+          );
+        }
+      }
+
+      // Employee count check
+      if (myEnterprise && c.min_employees && Number(c.min_employees) > 0) {
+        if (myEnterprise.number_of_employees < Number(c.min_employees)) {
+          issues.push(
+            `You need at least ${c.min_employees} employees (you have ${myEnterprise.number_of_employees})`,
+          );
+        }
+      }
+
+      // Years of operation check
+      if (
+        myEnterprise &&
+        c.min_years_operation &&
+        Number(c.min_years_operation) > 0
+      ) {
+        const yearsOp =
+          new Date().getFullYear() - myEnterprise.year_established;
+        if (yearsOp < Number(c.min_years_operation)) {
+          issues.push(
+            `You need ${c.min_years_operation}+ years of operation (you have ${yearsOp})`,
+          );
+        }
+      }
+
+      return issues;
+    },
+    [myEnterprise, watchedValues.target_amount],
+  );
+
+  // Fetch partner forms for selected partners, filtered by funding type
+  const partnerFormsQuery = useQuery({
+    queryKey: ["partnerForms", selectedPartners, campaignFormType],
+    queryFn: async () => {
+      if (selectedPartners.length === 0) return [];
+      const params: Record<string, string> = {
+        partner__in: selectedPartners.join(","),
+        status: "active",
+      };
+      if (campaignFormType) params.funding_type = campaignFormType;
+      const response = await api.get("/investors/funding-forms/", { params });
+      return response.data.results || response.data;
+    },
+    enabled: selectedPartners.length > 0,
+  });
+
+  const partnerForms = partnerFormsQuery.data || [];
+
+  // Check criteria against selected partners
+  const checkCriteria = () => {
+    const checks: CriteriaCheck[] = selectedPartners.map((partnerId) => {
+      const partner = partners.find((p: any) => p.id === partnerId);
+      const issues = partner ? getPartnerCriteriaIssues(partner) : [];
+      return {
         partnerId,
-        partnerName: partner.organization_name,
+        partnerName: partner?.organization_name || "Unknown Partner",
         passed: issues.length === 0,
         issues,
-      });
+      };
     });
-
     setCriteriaChecks(checks);
   };
 
@@ -675,70 +759,153 @@ const CreateCampaign: React.FC = () => {
                     <p>No partners available</p>
                   </div>
                 ) : (
-                  partners.map((partner: any) => (
-                    <label
-                      key={partner.id}
-                      className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition ${
-                        selectedPartners.includes(partner.id)
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-neutral-200 hover:border-neutral-300"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedPartners.includes(partner.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedPartners([
-                              ...selectedPartners,
-                              partner.id,
-                            ]);
-                          } else {
-                            setSelectedPartners(
-                              selectedPartners.filter(
-                                (id) => id !== partner.id,
-                              ),
-                            );
-                          }
-                        }}
-                        className="h-5 w-5 text-primary-600 border-neutral-300 rounded mt-0.5"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-neutral-900">
-                            {partner.organization_name}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-neutral-100 text-neutral-600 rounded capitalize">
-                            {partner.investor_type}
-                          </span>
-                        </div>
-                        {partner.description && (
-                          <p className="text-sm text-neutral-600 line-clamp-2">
-                            {partner.description}
-                          </p>
-                        )}
-                        {partner.criteria && partner.criteria.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {partner.criteria[0].sectors
-                              ?.slice(0, 3)
-                              .map((sector: string) => (
+                  partners.map((partner: any) => {
+                    const hasMatchingForm = partnersWithMatchingForms.has(
+                      partner.id,
+                    );
+                    const criteriaIssues = getPartnerCriteriaIssues(partner);
+                    const isEligible =
+                      hasMatchingForm && criteriaIssues.length === 0;
+                    const partnerFormTypes: string[] = Array.from(
+                      new Set<string>(
+                        allActiveForms
+                          .filter((f: any) => f.partner === partner.id)
+                          .map((f: any) => f.funding_type as string),
+                      ),
+                    );
+                    const FORM_TYPE_LABEL: Record<string, string> = {
+                      equity: "Equity",
+                      loan: "Loan / Debt",
+                      grant: "Grant",
+                      hybrid: "Hybrid",
+                    };
+                    return (
+                      <label
+                        key={partner.id}
+                        className={`flex items-start gap-4 p-4 border-2 rounded-xl transition ${
+                          !isEligible
+                            ? "border-neutral-200 bg-neutral-50 opacity-50 cursor-not-allowed"
+                            : selectedPartners.includes(partner.id)
+                              ? "border-primary-500 bg-primary-50 cursor-pointer"
+                              : "border-neutral-200 hover:border-neutral-300 cursor-pointer"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          disabled={!isEligible}
+                          checked={selectedPartners.includes(partner.id)}
+                          onChange={(e) => {
+                            if (!isEligible) return;
+                            if (e.target.checked) {
+                              setSelectedPartners([
+                                ...selectedPartners,
+                                partner.id,
+                              ]);
+                            } else {
+                              setSelectedPartners(
+                                selectedPartners.filter(
+                                  (id) => id !== partner.id,
+                                ),
+                              );
+                            }
+                          }}
+                          className="h-5 w-5 text-primary-600 border-neutral-300 rounded mt-0.5"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-neutral-900">
+                              {partner.organization_name}
+                            </span>
+                            <span className="text-xs px-2 py-1 bg-neutral-100 text-neutral-600 rounded capitalize">
+                              {partner.investor_type}
+                            </span>
+                          </div>
+                          {partner.description && (
+                            <p className="text-sm text-neutral-600 line-clamp-2">
+                              {partner.description}
+                            </p>
+                          )}
+                          {/* Funding type badges */}
+                          {partnerFormTypes.length > 0 ? (
+                            <div className="mt-2 flex flex-wrap gap-1 items-center">
+                              <span className="text-xs text-neutral-500 mr-1">
+                                Offers:
+                              </span>
+                              {partnerFormTypes.map((ft) => (
                                 <span
-                                  key={sector}
-                                  className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded"
+                                  key={ft}
+                                  className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                    ft === campaignFormType
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-neutral-100 text-neutral-500"
+                                  }`}
                                 >
-                                  {sector}
+                                  {FORM_TYPE_LABEL[ft] ?? ft}
                                 </span>
                               ))}
-                            {partner.criteria[0].sectors?.length > 3 && (
-                              <span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded">
-                                +{partner.criteria[0].sectors.length - 3} more
-                              </span>
+                            </div>
+                          ) : (
+                            <p className="mt-2 text-xs text-neutral-400 italic">
+                              No active funding forms
+                            </p>
+                          )}
+                          {/* Warning: no matching form for this campaign type */}
+                          {campaignFormType && !hasMatchingForm && (
+                            <p className="mt-1 text-xs text-amber-600">
+                              No active{" "}
+                              {FORM_TYPE_LABEL[campaignFormType] ??
+                                campaignFormType}{" "}
+                              form — cannot be selected
+                            </p>
+                          )}
+                          {/* Criteria mismatch warnings */}
+                          {criteriaIssues.length > 0 && (
+                            <ul className="mt-1 space-y-0.5">
+                              {criteriaIssues.map((issue, i) => (
+                                <li
+                                  key={i}
+                                  className="text-xs text-amber-600 flex items-start gap-1"
+                                >
+                                  <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                                  {issue}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {/* Sector focus tags */}
+                          {partner.criteria &&
+                            partner.criteria.length > 0 &&
+                            partner.criteria[0].sectors?.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                <span className="text-xs text-neutral-500 mr-1">
+                                  Sectors:
+                                </span>
+                                {partner.criteria[0].sectors
+                                  .slice(0, 3)
+                                  .map((sector: string) => (
+                                    <span
+                                      key={sector}
+                                      className={`text-xs px-2 py-0.5 rounded ${
+                                        myEnterprise?.sector === sector
+                                          ? "bg-green-100 text-green-700"
+                                          : "bg-blue-100 text-blue-700"
+                                      }`}
+                                    >
+                                      {sector}
+                                    </span>
+                                  ))}
+                                {partner.criteria[0].sectors.length > 3 && (
+                                  <span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded">
+                                    +{partner.criteria[0].sectors.length - 3}{" "}
+                                    more
+                                  </span>
+                                )}
+                              </div>
                             )}
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                  ))
+                        </div>
+                      </label>
+                    );
+                  })
                 )}
               </div>
 

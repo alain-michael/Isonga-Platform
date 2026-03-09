@@ -2,8 +2,14 @@ from django.contrib import admin
 from .models import (
     AssessmentCategory, Questionnaire, Question, QuestionOption,
     Assessment, AssessmentResponse, CategoryScore, Recommendation,
-    QuestionRecommendation
+    QuestionRecommendation, Service
 )
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'contact', 'is_active', 'created_at']
+    list_filter = ['is_active']
+    search_fields = ['name', 'description']
 
 @admin.register(AssessmentCategory)
 class AssessmentCategoryAdmin(admin.ModelAdmin):

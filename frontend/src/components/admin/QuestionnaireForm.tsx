@@ -11,6 +11,7 @@ import {
   FileText,
   GripVertical,
   CheckCircle2,
+  Briefcase,
 } from "lucide-react";
 import {
   useAssessmentCategories,
@@ -18,6 +19,17 @@ import {
   useUpdateQuestionnaire,
   useQuestionnaire,
 } from "../../hooks";
+import { assessmentAPI } from "../../services/api";
+
+interface Service {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  contact: string;
+  link: string;
+  is_active: boolean;
+}
 
 // Validation schema
 const questionnaireSchema = yup.object({
@@ -55,6 +67,7 @@ const questionnaireSchema = yup.object({
           recommendation_text: yup
             .string()
             .required("Recommendation text is required"),
+          recommended_service_ids: yup.array().of(yup.number()),
         }),
       ),
     }),
@@ -107,6 +120,18 @@ const QuestionnaireForm: React.FC = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    assessmentAPI
+      .getServices({ is_active: true })
+      .then((res) => {
+        setAvailableServices(res.data.results ?? res.data);
+      })
+      .catch(() => {
+        /* services optional */
+      });
+  }, []);
 
   const { data: categories = [] } = useAssessmentCategories();
   const { data: existingQuestionnaire } = useQuestionnaire(
@@ -204,7 +229,7 @@ const QuestionnaireForm: React.FC = () => {
         { text: "", score: 10 },
         { text: "", score: 0 },
       ],
-      conditional_recommendations: [],
+      conditional_recommendations: [] as any[],
     });
   };
 
@@ -715,6 +740,7 @@ const QuestionnaireForm: React.FC = () => {
                                     min_score: 0,
                                     max_score: 5,
                                     recommendation_text: "",
+                                    recommended_service_ids: [],
                                   },
                                 ],
                               );
@@ -781,6 +807,76 @@ const QuestionnaireForm: React.FC = () => {
                                       placeholder="e.g., Consider improving your documentation processes..."
                                     />
                                   </div>
+
+                                  {/* Recommended Services selector */}
+                                  {availableServices.length > 0 && (
+                                    <div>
+                                      <label className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 flex items-center gap-1.5">
+                                        <Briefcase className="w-3 h-3" />
+                                        Recommended Services
+                                        <span className="text-neutral-400 font-normal">
+                                          (optional)
+                                        </span>
+                                      </label>
+                                      <div className="flex flex-wrap gap-2">
+                                        {availableServices.map((service) => {
+                                          const currentIds: number[] = (
+                                            (watch(
+                                              `questions.${index}.conditional_recommendations.${recIndex}.recommended_service_ids`,
+                                            ) || []) as (number | undefined)[]
+                                          ).filter(
+                                            (id): id is number =>
+                                              id !== undefined,
+                                          );
+                                          const isSelected =
+                                            currentIds.includes(service.id);
+                                          return (
+                                            <button
+                                              key={service.id}
+                                              type="button"
+                                              onClick={() => {
+                                                const ids: number[] = (
+                                                  (watch(
+                                                    `questions.${index}.conditional_recommendations.${recIndex}.recommended_service_ids`,
+                                                  ) || []) as (
+                                                    | number
+                                                    | undefined
+                                                  )[]
+                                                ).filter(
+                                                  (id): id is number =>
+                                                    id !== undefined,
+                                                );
+                                                setValue(
+                                                  `questions.${index}.conditional_recommendations.${recIndex}.recommended_service_ids`,
+                                                  isSelected
+                                                    ? ids.filter(
+                                                        (id) =>
+                                                          id !== service.id,
+                                                      )
+                                                    : [...ids, service.id],
+                                                );
+                                              }}
+                                              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                                isSelected
+                                                  ? "bg-primary-100 border-primary-400 text-primary-700 dark:bg-primary-900/40 dark:border-primary-500 dark:text-primary-300"
+                                                  : "border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 dark:hover:border-primary-500"
+                                              }`}
+                                              title={
+                                                service.description ||
+                                                service.name
+                                              }
+                                            >
+                                              {isSelected ? "✓ " : ""}
+                                              {service.name}
+                                              {service.price
+                                                ? ` · ${service.price}`
+                                                : ""}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                                 <button
                                   type="button"

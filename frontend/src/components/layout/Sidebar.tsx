@@ -17,6 +17,7 @@ import {
   Heart,
   MessageSquare,
   Settings,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import ThemeToggle from "../ui/ThemeToggle";
@@ -155,6 +156,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: "Profile Forms",
       path: "/admin/profile-forms",
       icon: FileText,
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+    },
+    {
+      name: "Services",
+      path: "/admin/services",
+      icon: Briefcase,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },
     // Profile - Personal information
