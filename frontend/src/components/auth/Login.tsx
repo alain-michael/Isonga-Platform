@@ -57,7 +57,7 @@ const Login: React.FC = () => {
       navigate("/dashboard");
     } catch (err: any) {
       setError(
-        err.response?.data?.error ||
+        err.response?.data?.non_field_errors?.[0] ||
           err.response?.data?.detail ||
           err.message ||
           "Login failed. Please check your credentials.",
