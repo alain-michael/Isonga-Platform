@@ -57,20 +57,23 @@ class CampaignViewSet(viewsets.ModelViewSet):
             # 2. No target_partners specified (open to all) AND meets criteria
             # 3. Status is approved/active (admin vetted)
             # 4. Meets partner's min readiness score
+            score_filter = (
+                Q(readiness_score_at_submission__isnull=True) |
+                Q(readiness_score_at_submission__gte=min_score)
+            )
+
             targeted_campaigns = Campaign.objects.filter(
                 target_partners=investor,
                 status__in=['approved', 'active'],
                 is_vetted=True,
-                readiness_score_at_submission__gte=min_score
-            )
-            
+            ).filter(score_filter)
+
             # Campaigns with no specific targets (visible to all partners)
             open_campaigns = Campaign.objects.filter(
                 target_partners__isnull=True,
                 status__in=['approved', 'active'],
                 is_vetted=True,
-                readiness_score_at_submission__gte=min_score
-            )
+            ).filter(score_filter)
             
             # Combine both querysets
             return (targeted_campaigns | open_campaigns).distinct()

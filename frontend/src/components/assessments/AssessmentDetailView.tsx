@@ -228,6 +228,83 @@ const AssessmentDetailView: React.FC = () => {
     }
   };
 
+  const handleDownloadReport = () => {
+    const doc = window.open("", "_blank");
+    if (!doc) return;
+
+    const pct = assessment!.percentage_score;
+    const scoreColor = pct >= 75 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
+    const performanceLabel = pct >= 75 ? "Excellent" : pct >= 50 ? "Good" : "Needs Improvement";
+
+    const responsesHTML = assessment!.responses
+      .map((response, index) => {
+        const question = assessment!.questionnaire_detail?.questions?.find(
+          (q: any) => q.id === response.question,
+        );
+        if (!question) return "";
+        const recs =
+          question.conditional_recommendations?.filter(
+            (rec: any) =>
+              rec.min_score <= response.score &&
+              rec.max_score >= response.score,
+          ) || [];
+        const selectedLabels =
+          response.selected_options
+            ?.map((optId: number) => {
+              const opt = question.options?.find((o: any) => o.id === optId);
+              return opt?.text || opt?.label || String(optId);
+            })
+            .filter(Boolean) || [];
+        let answerHTML = "";
+        if (selectedLabels.length > 0) {
+          answerHTML = `<ul style="margin:4px 0 0 16px;padding:0;">${selectedLabels.map((l: string) => `<li>${l}</li>`).join("")}</ul>`;
+        } else if (response.text_response) {
+          answerHTML = `<p style="margin:4px 0 0;font-style:italic;">${response.text_response}</p>`;
+        } else if (response.number_response !== null && response.number_response !== undefined) {
+          answerHTML = `<p style="margin:4px 0 0;font-weight:bold;">${response.number_response}</p>`;
+        } else {
+          answerHTML = `<p style="margin:4px 0 0;color:#9ca3af;">No answer provided</p>`;
+        }
+        const recHTML =
+          recs.length > 0
+            ? `<div style="margin-top:8px;padding:8px 12px;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:4px;"><p style="font-size:11px;font-weight:600;color:#1d4ed8;margin:0 0 4px;">Recommendation</p>${recs.map((rec: any) => `<p style="font-size:12px;color:#1e40af;margin:0;">${rec.recommendation_text}</p>`).join("")}</div>`
+            : "";
+        const scoreBadgeBg = response.score > 0 ? "#dcfce7" : "#f3f4f6";
+        const scoreBadgeColor = response.score > 0 ? "#166534" : "#6b7280";
+        return `<div style="margin-bottom:14px;padding:12px 16px;border:1px solid #e5e7eb;border-radius:8px;page-break-inside:avoid;"><div style="display:flex;align-items:flex-start;gap:10px;"><span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;">${index + 1}</span><div style="flex:1;"><p style="font-weight:600;margin:0 0 6px;font-size:13px;color:#111827;">${question.text}</p><div style="font-size:13px;color:#374151;">${answerHTML}</div><span style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:${scoreBadgeBg};color:${scoreBadgeColor};">Score: ${response.score} pts</span>${recHTML}</div></div></div>`;
+      })
+      .join("");
+
+    const scoresHTML = assessment!.category_scores
+      .map((cs) => {
+        const p = parseFloat(cs.percentage as any).toFixed(1);
+        const c = parseFloat(cs.percentage as any) >= 75 ? "#16a34a" : parseFloat(cs.percentage as any) >= 50 ? "#d97706" : "#dc2626";
+        return `<div style="margin-bottom:12px;page-break-inside:avoid;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:600;color:#111827;">${cs.category_name}</span><span style="font-size:13px;font-weight:700;color:${c};">${p}%</span></div><div style="background:#e5e7eb;border-radius:9999px;height:8px;"><div style="background:${c};width:${p}%;height:8px;border-radius:9999px;"></div></div><p style="font-size:11px;color:#6b7280;margin:4px 0 0;">${parseFloat(cs.score as any).toFixed(1)} / ${parseFloat(cs.max_score as any).toFixed(1)} points</p></div>`;
+      })
+      .join("");
+
+    const recsHTML = (assessment!.recommendations || [])
+      .sort((a, b) => {
+        const o = { high: 0, medium: 1, low: 2 };
+        return (o[a.priority as keyof typeof o] || 3) - (o[b.priority as keyof typeof o] || 3);
+      })
+      .map((rec, i) => {
+        const borderColor = rec.priority === "high" ? "#fca5a5" : rec.priority === "medium" ? "#fdba74" : "#93c5fd";
+        const badgeBg = rec.priority === "high" ? "#fef2f2" : rec.priority === "medium" ? "#fff7ed" : "#eff6ff";
+        const badgeColor = rec.priority === "high" ? "#991b1b" : rec.priority === "medium" ? "#9a3412" : "#1e40af";
+        const servicesHTML =
+          rec.recommended_services?.length > 0
+            ? `<div style="margin-top:10px;"><p style="font-size:11px;font-weight:600;color:#6b7280;margin:0 0 6px;">Recommended Services</p>${rec.recommended_services.map((s) => `<div style="padding:8px;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:6px;"><p style="font-weight:600;font-size:12px;margin:0 0 2px;color:#111827;">${s.name}</p>${s.description ? `<p style="font-size:11px;color:#6b7280;margin:0 0 4px;">${s.description}</p>` : ""}${s.price ? `<p style="font-size:11px;color:#374151;margin:0;">Price: ${s.price}</p>` : ""}${s.contact ? `<p style="font-size:11px;color:#374151;margin:0;">Contact: ${s.contact}</p>` : ""}</div>`).join("")}</div>`
+            : "";
+        return `<div style="margin-bottom:12px;padding:14px;border:2px solid ${borderColor};border-radius:10px;page-break-inside:avoid;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="width:28px;height:28px;border-radius:50%;background:${badgeColor};color:white;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;">${i + 1}</span><strong style="font-size:14px;color:#111827;flex:1;">${rec.title}</strong><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:${badgeBg};color:${badgeColor};">${rec.priority.toUpperCase()}</span></div><p style="font-size:13px;color:#374151;margin:0 0 8px;">${rec.description}</p><div style="background:#f9fafb;border-radius:6px;padding:10px;"><p style="font-size:11px;font-weight:600;color:#6b7280;margin:0 0 4px;">Suggested Actions</p><p style="font-size:13px;color:#374151;margin:0;">${rec.suggested_actions}</p></div>${servicesHTML}</div>`;
+      })
+      .join("");
+
+    doc.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Assessment Report – ${assessment!.enterprise.business_name}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#111827;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.no-print{display:none;}}</style></head><body style="padding:40px;max-width:900px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid #e5e7eb;"><div><h1 style="font-size:24px;font-weight:700;color:#111827;margin-bottom:4px;">Assessment Report</h1><p style="color:#6b7280;font-size:14px;">${assessment!.questionnaire.title}</p><p style="color:#6b7280;font-size:13px;margin-top:4px;">Fiscal Year ${assessment!.fiscal_year} • #${assessment!.id}</p></div><div style="text-align:right;"><div style="font-size:40px;font-weight:700;color:${scoreColor};">${Math.round(pct)}%</div><div style="font-size:12px;color:#6b7280;">${assessment!.total_score} / ${assessment!.max_possible_score} pts</div><div style="font-size:13px;font-weight:600;color:${scoreColor};margin-top:2px;">${performanceLabel}</div></div></div><div style="margin-bottom:28px;padding:16px;background:#f9fafb;border-radius:10px;"><h2 style="font-size:15px;font-weight:700;color:#374151;margin-bottom:12px;">Business Information</h2><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;"><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">Business Name</p><p style="font-weight:600;font-size:13px;">${assessment!.enterprise.business_name}</p></div><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">Sector</p><p style="font-weight:600;font-size:13px;">${assessment!.enterprise.sector}</p></div><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">District</p><p style="font-weight:600;font-size:13px;">${assessment!.enterprise.district}</p></div><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">Email</p><p style="font-weight:600;font-size:13px;">${assessment!.enterprise.email}</p></div><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">Phone</p><p style="font-weight:600;font-size:13px;">${assessment!.enterprise.phone_number}</p></div><div><p style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">Status</p><p style="font-weight:600;font-size:13px;text-transform:capitalize;">${assessment!.status.replace("_", " ")}</p></div></div></div>${assessment!.category_scores.length > 0 ? `<div style="margin-bottom:28px;"><h2 style="font-size:16px;font-weight:700;color:#374151;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">Category Scores</h2>${scoresHTML}</div>` : ""}${assessment!.responses.length > 0 ? `<div style="margin-bottom:28px;"><h2 style="font-size:16px;font-weight:700;color:#374151;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">Responses &amp; Answers</h2>${responsesHTML}</div>` : ""}${assessment!.recommendations?.length > 0 ? `<div style="margin-bottom:28px;"><h2 style="font-size:16px;font-weight:700;color:#374151;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">Recommended Actions</h2>${recsHTML}</div>` : ""}<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;"><p style="font-size:11px;color:#9ca3af;">Generated on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p><p style="font-size:11px;color:#9ca3af;">Isonga Platform • Confidential</p></div><div class="no-print" style="margin-top:24px;text-align:center;"><button onclick="window.print()" style="padding:10px 24px;background:#2563eb;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Print / Save as PDF</button></div></body></html>`);
+    doc.document.close();
+    doc.focus();
+  };
+
   const handleAssignReviewer = async () => {
     if (!selectedReviewer) {
       alert("Please select a reviewer");
@@ -616,15 +693,13 @@ const AssessmentDetailView: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                assessment.responses.map((response) => {
-                  // Find the corresponding question from questionnaire_detail
+                assessment.responses.map((response, index) => {
                   const question =
                     assessment.questionnaire_detail?.questions?.find(
                       (q: any) => q.id === response.question,
                     );
                   if (!question) return null;
 
-                  // Find recommendations for this question based on score
                   const questionRecommendations =
                     question.conditional_recommendations?.filter(
                       (rec: any) =>
@@ -632,41 +707,111 @@ const AssessmentDetailView: React.FC = () => {
                         rec.max_score >= response.score,
                     ) || [];
 
+                  const selectedOptionLabels =
+                    response.selected_options
+                      ?.map((optId: number) => {
+                        const opt = question.options?.find(
+                          (o: any) => o.id === optId,
+                        );
+                        return opt?.text || opt?.label || String(optId);
+                      })
+                      .filter(Boolean) || [];
+
                   return (
-                    questionRecommendations.length > 0 && (
-                      <div
-                        key={response.id}
-                        className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl border border-neutral-200 dark:border-neutral-600"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            {/* Question-Specific Recommendations */}
-                            {questionRecommendations.length > 0 && (
-                              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                                <div className="flex items-start gap-2 mb-2">
-                                  <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                  <div className="flex-1">
-                                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                                      Recommendation:
-                                    </p>
-                                    {questionRecommendations.map(
-                                      (rec: any, idx: number) => (
-                                        <div
-                                          key={idx}
-                                          className="text-sm text-blue-800 dark:text-blue-300 mb-2 last:mb-0"
-                                        >
-                                          {rec.recommendation_text}
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
+                    <div
+                      key={response.id}
+                      className="p-5 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl border border-neutral-200 dark:border-neutral-600"
+                    >
+                      {/* Question */}
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-bold flex items-center justify-center">
+                          {index + 1}
+                        </span>
+                        <p className="font-medium text-neutral-900 dark:text-neutral-100 leading-snug">
+                          {question.text}
+                        </p>
+                      </div>
+
+                      {/* Answer */}
+                      <div className="ml-10 mb-3">
+                        {selectedOptionLabels.length > 0 ? (
+                          <div className="space-y-1">
+                            {selectedOptionLabels.map(
+                              (label: string, i: number) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-2"
+                                >
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <span className="text-sm text-neutral-800 dark:text-neutral-200">
+                                    {label}
+                                  </span>
                                 </div>
-                              </div>
+                              ),
                             )}
                           </div>
-                        </div>
+                        ) : response.text_response ? (
+                          <p className="text-sm text-neutral-800 dark:text-neutral-200 bg-white dark:bg-neutral-800 rounded-lg p-3 border border-neutral-200 dark:border-neutral-600">
+                            {response.text_response}
+                          </p>
+                        ) : response.number_response !== null &&
+                          response.number_response !== undefined ? (
+                          <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                            {response.number_response}
+                          </p>
+                        ) : response.file_response ? (
+                          <a
+                            href={response.file_response}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary-600 dark:text-primary-400 underline"
+                          >
+                            View uploaded file
+                          </a>
+                        ) : (
+                          <p className="text-sm text-neutral-400 italic">
+                            No answer provided
+                          </p>
+                        )}
                       </div>
-                    )
+
+                      {/* Score */}
+                      <div className="ml-10 mb-2">
+                        <span
+                          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            response.score > 0
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                              : "bg-neutral-100 text-neutral-600 dark:bg-neutral-600 dark:text-neutral-400"
+                          }`}
+                        >
+                          Score: {response.score} pts
+                        </span>
+                      </div>
+
+                      {/* Recommendation */}
+                      {questionRecommendations.length > 0 && (
+                        <div className="ml-10 mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1">
+                                Recommendation
+                              </p>
+                              {questionRecommendations.map(
+                                (rec: any, idx: number) => (
+                                  <p
+                                    key={idx}
+                                    className="text-xs text-blue-800 dark:text-blue-300"
+                                  >
+                                    {rec.recommendation_text}
+                                  </p>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })
               )}
@@ -799,9 +944,7 @@ const AssessmentDetailView: React.FC = () => {
                         </h3>
                       </div>
                       <button
-                        onClick={() => {
-                          window.print();
-                        }}
+                        onClick={handleDownloadReport}
                         className="btn-secondary flex items-center gap-2"
                       >
                         <FileText className="h-4 w-4" />
