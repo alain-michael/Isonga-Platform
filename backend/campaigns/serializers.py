@@ -39,6 +39,7 @@ class CampaignInterestSerializer(serializers.ModelSerializer):
 
 class CampaignSerializer(serializers.ModelSerializer):
     enterprise_name = serializers.CharField(source='enterprise.business_name', read_only=True)
+    enterprise_sector = serializers.CharField(source='enterprise.sector', read_only=True)
     documents_count = serializers.SerializerMethodField()
     interests_count = serializers.SerializerMethodField()
     progress_percentage = serializers.SerializerMethodField()

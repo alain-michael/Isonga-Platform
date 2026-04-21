@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../contexts/AuthContext";
 import { investorAPI } from "../../services/investor";
+import api from "../../services/api";
 import {
   TrendingUp,
   Users,
@@ -31,11 +32,14 @@ const InvestorDashboard: React.FC = () => {
   });
 
   const { data: recentMatches = [] } = useQuery({
-    queryKey: ["investorMatches"],
-    queryFn: investorAPI.getMatches,
+    queryKey: ["targetedCampaigns"],
+    queryFn: async () => {
+      const response = await api.get("/campaigns/api/campaigns/");
+      return response.data.results || response.data;
+    },
   });
 
-  // Take only top 3 matches for dashboard
+  // Take only top 3 for dashboard preview
   const topMatches = recentMatches.slice(0, 3);
 
   return (
@@ -142,7 +146,7 @@ const InvestorDashboard: React.FC = () => {
 
         <div className="p-6">
           <div className="grid gap-6 md:grid-cols-3">
-            {topMatches.map((match) => (
+            {topMatches.map((match: any) => (
               <div
                 key={match.id}
                 className="border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 hover:border-primary-300 dark:hover:border-primary-700 transition-colors bg-neutral-50 dark:bg-neutral-900/50"
@@ -151,8 +155,8 @@ const InvestorDashboard: React.FC = () => {
                   <div className="h-10 w-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold">
                     {match.enterprise_name.charAt(0)}
                   </div>
-                  <span className="px-2 py-1 bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 text-xs font-bold rounded-full">
-                    {match.match_score}% Match
+                  <span className="px-2 py-1 bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 text-xs font-bold rounded-full capitalize">
+                    {match.campaign_type}
                   </span>
                 </div>
                 <h3 className="font-bold text-lg text-neutral-900 dark:text-neutral-100 mb-1">

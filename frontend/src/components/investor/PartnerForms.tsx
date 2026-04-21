@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import api from "../../services/api";
+import { investorAPI } from "../../services/investor";
 
 interface PartnerForm {
   id: number;
@@ -31,6 +32,11 @@ const PartnerForms: React.FC = () => {
   const [filter, setFilter] = useState<"all" | "draft" | "active" | "archived">(
     "all",
   );
+
+  const { data: investorProfile } = useQuery({
+    queryKey: ["investorProfile"],
+    queryFn: investorAPI.getProfile,
+  });
 
   // Fetch partner forms
   const { data: forms = [], isLoading } = useQuery<PartnerForm[]>({
@@ -142,8 +148,9 @@ const PartnerForms: React.FC = () => {
     );
   }
 
-  const filteredForms =
-    filter === "all" ? forms : forms.filter((f) => f.status === filter);
+  const filteredForms = forms
+    .filter((f) => !investorProfile || f.partner === investorProfile.id)
+    .filter((f) => filter === "all" || f.status === filter);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
