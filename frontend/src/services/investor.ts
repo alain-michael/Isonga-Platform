@@ -41,6 +41,8 @@ export interface InvestorCriteria {
   }>;
   geographic_focus?: string[];
   is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MatchedCampaign {
@@ -59,10 +61,8 @@ export interface MatchedCampaign {
 
 export const investorAPI = {
   getProfile: async () => {
-    const response = await api.get<{ results: InvestorProfile[] }>('/investors/profiles/');
-    // Assuming the user has only one profile, return the first one
-    console.log(response.data.results[0])
-    return response.data?.results[0];
+    const response = await api.get<InvestorProfile>('/investors/profiles/my-profile/');
+    return response.data;
   },
   
   updateProfile: async (id: number, data: Partial<InvestorProfile>) => {

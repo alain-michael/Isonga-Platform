@@ -8,15 +8,24 @@ import {
   Star,
   Target,
   FileText,
+  MessageSquare,
+  DollarSign,
+  CheckCircle,
 } from "lucide-react";
 import { investorAPI } from "../../services/investor";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { campaignInterestsAPI } from "../../services/campaignsService";
+import CampaignMessageThread from "../campaigns/CampaignMessageThread";
 
 const InvestorMatches: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [pledgingCampaignId, setPledgingCampaignId] = useState<string | null>(null);
+  const [pledgeAmount, setPledgeAmount] = useState("");
+  const [pledgeNotes, setPledgeNotes] = useState("");
+  const [openMessageCampaignId, setOpenMessageCampaignId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -56,6 +65,43 @@ const InvestorMatches: React.FC = () => {
     },
     onError: (error: any) => {
       alert(error?.response?.data?.error || "Failed to process action");
+    },
+  });
+
+  // Fetch all interests for this investor (filtered by backend)
+  const { data: myInterestsResponse } = useQuery({
+    queryKey: ["myInvestorInterests"],
+    queryFn: () => campaignInterestsAPI.getAll(),
+    refetchInterval: 15000,
+  });
+  const myInterests: any[] = (() => {
+    const d = myInterestsResponse?.data;
+    if (!d) return [];
+    return Array.isArray(d) ? d : (d as any).results || [];
+  })();
+  // Map: campaignId → interest record
+  const interestMap = Object.fromEntries(
+    myInterests.map((i: any) => [i.campaign, i])
+  );
+
+  // Pledge mutation
+  const pledgeMutation = useMutation({
+    mutationFn: ({ interestId, amount, notes }: { interestId: string; amount: number; notes?: string }) =>
+      campaignInterestsAPI.pledge(interestId, amount, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myInvestorInterests"] });
+      setPledgingCampaignId(null);
+      setPledgeAmount("");
+      setPledgeNotes("");
+    },
+  });
+
+  // Express interest (create CampaignInterest)
+  const expressInterestMutation = useMutation({
+    mutationFn: (campaignId: string) =>
+      campaignInterestsAPI.create({ campaign: campaignId, status: "interested" } as any),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myInvestorInterests"] });
     },
   });
 
@@ -262,17 +308,125 @@ const InvestorMatches: React.FC = () => {
               </span>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-neutral-200 dark:border-neutral-700 flex gap-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/investor/matches/${campaign.id}`);
-                }}
-                className="flex-1 btn-primary flex items-center justify-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Review Application
-              </button>
+            <div className="mt-auto pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3">
+              {/* Interest / pledge / message actions */}
+              {(() => {
+                const interest = interestMap[campaign.id];
+                const statusLabel: Record<string, string> = {
+                  interested: "Interested",
+                  pledged: "Pledge Submitted",
+                  committed: "Pledge Submitted",
+                  accepted: "Accepted ✓",
+                  declined: "Declined",
+                  withdrawn: "Withdrawn",
+                };
+                if (!interest) {
+                  return (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); expressInterestMutation.mutate(campaign.id); }}
+                      disabled={expressInterestMutation.isPending}
+                      className="w-full btn-primary flex items-center justify-center gap-2"
+                    >
+                      <Star className="h-4 w-4" />
+                      Express Interest
+                    </button>
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        interest.status === "accepted" ? "bg-green-100 text-green-800" :
+                        interest.status === "declined" ? "bg-red-100 text-red-800" :
+                        (interest.status === "pledged" || interest.status === "committed") ? "bg-amber-100 text-amber-800" :
+                        "bg-blue-100 text-blue-800"
+                      }`}>
+                        {statusLabel[interest.status] || interest.status}
+                      </span>
+                      {interest.committed_amount && (
+                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                          {Number(interest.committed_amount).toLocaleString()} RWF
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                      {interest.status === "interested" && campaign.status === "active" && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setPledgingCampaignId(campaign.id); }}
+                          className="flex-1 px-3 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition flex items-center justify-center gap-1.5"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          Submit Pledge
+                        </button>
+                      )}
+                      {campaign.status === "active" && campaign.enterprise_user_id && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMessageCampaignId(openMessageCampaignId === campaign.id ? null : campaign.id);
+                          }}
+                          className="flex-1 px-3 py-2 text-sm btn-secondary flex items-center justify-center gap-1.5"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          {openMessageCampaignId === campaign.id ? "Close Chat" : "Message"}
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/investor/matches/${campaign.id}`); }}
+                        className="flex-1 px-3 py-2 text-sm btn-secondary flex items-center justify-center gap-1.5"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Details
+                      </button>
+                    </div>
+
+                    {pledgingCampaignId === campaign.id && (
+                      <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl space-y-2" onClick={(e) => e.stopPropagation()}>
+                        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Submit a Pledge</p>
+                        <input
+                          type="number"
+                          placeholder="Amount (RWF)"
+                          value={pledgeAmount}
+                          onChange={(e) => setPledgeAmount(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Notes (optional)"
+                          value={pledgeNotes}
+                          onChange={(e) => setPledgeNotes(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => pledgeMutation.mutate({ interestId: interest.id, amount: Number(pledgeAmount), notes: pledgeNotes })}
+                            disabled={!pledgeAmount || pledgeMutation.isPending}
+                            className="flex-1 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            {pledgeMutation.isPending ? "Submitting..." : "Confirm Pledge"}
+                          </button>
+                          <button onClick={() => setPledgingCampaignId(null)} className="px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-300">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {openMessageCampaignId === campaign.id && campaign.enterprise_user_id && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <CampaignMessageThread
+                          campaignId={campaign.id}
+                          interestId={interest.id}
+                          receiverId={campaign.enterprise_user_id}
+                          receiverName={campaign.enterprise_name || "Enterprise"}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         ))}

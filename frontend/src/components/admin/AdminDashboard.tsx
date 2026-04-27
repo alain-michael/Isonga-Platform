@@ -2,20 +2,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { campaignAPI } from "../../services/campaignsService";
+import { enterpriseAPI } from "../../services/api";
 import {
   Users,
   FileText,
   TrendingUp,
-  Plus,
+  Building2,
   ArrowRight,
   Briefcase,
   Clock,
-  Eye,
   DollarSign,
+  CheckCircle,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
-  // Fetch funding applications for approval queue
+  // Fetch funding applications
   const { data: campaigns = [] } = useQuery({
     queryKey: ["admin-campaigns"],
     queryFn: async () => {
@@ -24,12 +25,19 @@ const AdminDashboard: React.FC = () => {
     },
   });
 
-  // Calculate real stats from campaigns
+  // Fetch enterprises
+  const { data: enterprisesData } = useQuery({
+    queryKey: ["admin-enterprises"],
+    queryFn: async () => {
+      const response = await enterpriseAPI.getAll();
+      return response.data.results || response.data || [];
+    },
+  });
+  const enterprises: any[] = enterprisesData || [];
+
+  // Calculate stats from campaigns
   const pendingReview = campaigns.filter(
     (c: any) => c.status === "submitted",
-  ).length;
-  const revisionRequired = campaigns.filter(
-    (c: any) => c.status === "revision_required",
   ).length;
   const activeApplications = campaigns.filter(
     (c: any) => c.status === "active",
@@ -39,74 +47,51 @@ const AdminDashboard: React.FC = () => {
     0,
   );
 
-  // Mock data for dashboard - in real app, fetch from API
+  // Enterprise stats
+  const pendingEnterprises = enterprises.filter(
+    (e: any) => e.verification_status === "pending",
+  ).length;
+  const approvedEnterprises = enterprises.filter(
+    (e: any) => e.verification_status === "approved",
+  ).length;
+
   const stats = [
     {
-      label: "Pending Review",
+      label: "Applications Pending Review",
       value: pendingReview.toString(),
       change: pendingReview > 0 ? "Action needed" : "All clear",
       icon: Clock,
-      color: pendingReview > 0 ? "bg-orange-500" : "bg-green-500",
+      color: "bg-orange-500",
       urgent: pendingReview > 0,
-    },
-    {
-      label: "Revision Required",
-      value: revisionRequired.toString(),
-      change: "Awaiting SME response",
-      icon: FileText,
-      color: "bg-yellow-500",
-      urgent: false,
+      link: "/admin/campaigns",
     },
     {
       label: "Active Applications",
       value: activeApplications.toString(),
-      change: "Partner Visible",
+      change: "Visible to partners",
       icon: TrendingUp,
       color: "bg-green-500",
       urgent: false,
+      link: "/admin/campaigns",
     },
     {
-      label: "Total Raised",
-      value:
-        new Intl.NumberFormat("en-RW", { notation: "compact" }).format(
-          totalRaised,
-        ) + " RWF",
-      change: "All time",
-      icon: DollarSign,
+      label: "Enterprises Pending",
+      value: pendingEnterprises.toString(),
+      change: pendingEnterprises > 0 ? "Needs verification" : "All reviewed",
+      icon: Building2,
+      color: "bg-yellow-500",
+      urgent: pendingEnterprises > 0,
+      link: "/admin/enterprises",
+    },
+    {
+      label: "Approved Enterprises",
+      value: approvedEnterprises.toString(),
+      change: "Verified & active",
+      icon: CheckCircle,
       color: "bg-blue-500",
       urgent: false,
+      link: "/admin/enterprises",
     },
-  ];
-
-  const recentActivity = [
-    {
-      id: 1,
-      user: "TechSolutions Ltd",
-      action: "Completed assessment",
-      time: "2 hours ago",
-      type: "sme",
-    },
-    {
-      id: 2,
-      user: "Global Ventures",
-      action: "Expressed interest in AgriCo",
-      time: "4 hours ago",
-      type: "investor",
-    },
-    {
-      id: 3,
-      user: "GreenEnergy Rwanda",
-      action: "Registered new account",
-      time: "5 hours ago",
-      type: "sme",
-    },
-    {
-      id: 4,
-      user: "Kigali Capital",
-      action: "Updated investment criteria",
-      time: "1 day ago",
-      type: "investor",
-    },  
   ];
 
   return (
@@ -121,23 +106,16 @@ const AdminDashboard: React.FC = () => {
             Monitor platform performance and manage ecosystem.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Link
-            to="/admin/investors/new"
-            className="btn-primary flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Investor
-          </Link>
-        </div>
+        <div />
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div
+          <Link
             key={index}
-            className={`glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border ${
+            to={stat.link}
+            className={`glass-effect p-6 rounded-2xl dark:bg-neutral-800 border transition hover:shadow-md ${
               stat.urgent
                 ? "border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10"
                 : "border-neutral-200 dark:border-neutral-700"
@@ -165,7 +143,7 @@ const AdminDashboard: React.FC = () => {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {stat.label}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -223,83 +201,83 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart Area (Placeholder) */}
-        <div className="lg:col-span-2 glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-              Platform Growth
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Enterprises Pending Verification */}
+        <div className="glass-effect p-6 rounded-2xl dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-yellow-500" />
+              Enterprises Awaiting Verification
             </h2>
-            <select className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1 text-sm">
-              <option>Last 30 Days</option>
-              <option>Last Quarter</option>
-              <option>Last Year</option>
-            </select>
-          </div>
-          <div className="h-64 flex items-end justify-between gap-2 px-4">
-            {[40, 65, 45, 80, 55, 70, 90, 60, 75, 85, 95, 100].map((h, i) => (
-              <div
-                key={i}
-                className="w-full bg-primary-100 rounded-t-lg relative group"
-              >
-                <div
-                  className="absolute bottom-0 w-full bg-primary-500 rounded-t-lg transition-all duration-500 group-hover:bg-primary-600"
-                  style={{ height: `${h}%` }}
-                ></div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-4 text-xs text-neutral-400">
-            <span>Jan</span>
-            <span>Feb</span>
-            <span>Mar</span>
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-            <span>Jul</span>
-            <span>Aug</span>
-            <span>Sep</span>
-            <span>Oct</span>
-            <span>Nov</span>
-            <span>Dec</span>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="glass-effect p-6 rounded-2xl glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-              Recent Activity
-            </h2>
-            <Link
-              to="/admin/activity"
-              className="text-primary-600 text-sm hover:underline"
-            >
+            <Link to="/admin/enterprises" className="text-primary-600 text-sm hover:underline">
               View All
             </Link>
           </div>
-          <div className="space-y-6">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex gap-4">
-                <div
-                  className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
-                    activity.type === "sme" ? "bg-blue-500" : "bg-purple-500"
-                  }`}
-                />
-                <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {activity.user}
-                  </p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    {activity.action}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    {activity.time}
-                  </p>
-                </div>
-              </div>
-            ))}
+          {enterprises.filter((e: any) => e.verification_status === "pending").length === 0 ? (
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm py-4 text-center">All enterprises have been reviewed</p>
+          ) : (
+            <div className="space-y-3">
+              {enterprises
+                .filter((e: any) => e.verification_status === "pending")
+                .slice(0, 5)
+                .map((enterprise: any) => (
+                  <Link
+                    key={enterprise.id}
+                    to={`/admin/enterprises/${enterprise.id}`}
+                    className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 transition"
+                  >
+                    <div>
+                      <p className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">{enterprise.business_name}</p>
+                      <p className="text-xs text-neutral-500">{enterprise.sector} · {enterprise.district}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
+                      <ArrowRight className="h-4 w-4 text-neutral-400" />
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* Funding Applications Pending Review */}
+        <div className="glass-effect p-6 rounded-2xl dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-orange-500" />
+              Funding Applications Pending Review
+            </h2>
+            <Link to="/admin/campaigns" className="text-primary-600 text-sm hover:underline">
+              View All
+            </Link>
           </div>
+          {campaigns.filter((c: any) => c.status === "submitted").length === 0 ? (
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm py-4 text-center">No applications pending review</p>
+          ) : (
+            <div className="space-y-3">
+              {campaigns
+                .filter((c: any) => c.status === "submitted")
+                .slice(0, 5)
+                .map((campaign: any) => (
+                  <Link
+                    key={campaign.id}
+                    to={`/admin/campaigns/${campaign.id}`}
+                    className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 transition"
+                  >
+                    <div>
+                      <p className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">{campaign.title}</p>
+                      <p className="text-xs text-neutral-500">
+                        {campaign.enterprise_name} · {new Date(campaign.updated_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">Submitted</span>
+                      <ArrowRight className="h-4 w-4 text-neutral-400" />
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 

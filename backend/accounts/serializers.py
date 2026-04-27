@@ -6,11 +6,11 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
-    
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'phone_number', 'is_verified', 'password', 'last_login', 'date_joined', 'is_active']
-        read_only_fields = ['id', 'user_type', 'is_verified', 'last_login', 'date_joined']
+        read_only_fields = ['id', 'is_verified', 'last_login', 'date_joined']
         extra_kwargs = {
             'username': {'required': False, 'allow_blank': True, 'allow_null': True},
             'phone_number': {'required': True}
@@ -34,5 +34,5 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'phone_number', 'is_verified']
-        read_only_fields = ['id', 'username', 'user_type']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'phone_number', 'is_verified', 'is_superuser']
+        read_only_fields = ['id', 'username', 'user_type', 'is_superuser']

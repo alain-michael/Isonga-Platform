@@ -62,6 +62,11 @@ class Notification(models.Model):
         ('match_found', 'Match Found'),
         ('investor_interest', 'Investor Interest'),
         ('campaign_update', 'Campaign Update'),
+        ('campaign_status', 'Campaign Status Change'),
+        ('pledge_received', 'Pledge Received'),
+        ('pledge_accepted', 'Pledge Accepted'),
+        ('pledge_declined', 'Pledge Declined'),
+        ('new_message', 'New Message'),
         ('verification_update', 'Verification Update'),
         ('system', 'System Notification'),
     )

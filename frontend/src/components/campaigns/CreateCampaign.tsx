@@ -67,8 +67,14 @@ const campaignSchema = yup.object({
     .min(100000, "Minimum target is 100,000 RWF"),
   min_investment: yup
     .number()
-    .required("Minimum investment is required")
-    .min(10000, "Minimum investment is 10,000 RWF"),
+    .nullable()
+    .optional()
+    .min(0, "Minimum investment must be positive")
+    .transform((value, originalValue) =>
+      originalValue === "" || originalValue === null || originalValue === undefined
+        ? null
+        : value,
+    ),
   max_investment: yup
     .number()
     .nullable()
@@ -310,7 +316,7 @@ const CreateCampaign: React.FC = () => {
         fieldsToValidate = ["title", "description", "campaign_type"];
         break;
       case 2:
-        fieldsToValidate = ["target_amount", "min_investment", "use_of_funds"];
+        fieldsToValidate = ["target_amount", "use_of_funds"];
         // Check criteria after funding goals
         checkCriteria();
         break;
@@ -677,13 +683,13 @@ const CreateCampaign: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Minimum Investment (RWF) *
+                  Minimum Investment (RWF) <span className="text-neutral-400 font-normal">Optional</span>
                 </label>
                 <input
                   type="number"
                   {...register("min_investment")}
                   className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
-                  placeholder="e.g., 1000000"
+                  placeholder="Leave blank if no minimum"
                 />
                 {errors.min_investment && (
                   <p className="text-red-500 text-sm mt-1">

@@ -49,7 +49,14 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+        user_type = self.request.query_params.get('user_type')
+        if user_type:
+            queryset = queryset.filter(user_type=user_type)
+        return queryset
+
     def get_permissions(self):
         if self.action in ['create', 'register']:
             return [permissions.AllowAny()]
@@ -130,3 +137,16 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='reset_password')
+    def reset_password(self, request, pk=None):
+        """Admin action to reset a user's password."""
+        if request.user.user_type not in ['admin', 'superadmin'] and not request.user.is_superuser:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        user = self.get_object()
+        new_password = request.data.get('password')
+        if not new_password:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password reset successfully'})

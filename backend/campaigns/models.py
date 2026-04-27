@@ -119,24 +119,31 @@ class CampaignDocument(models.Model):
 
 
 class CampaignInterest(models.Model):
-    """Investor interest in campaigns"""
+    """Investor interest in campaigns — tracks the pledge → accept/decline lifecycle."""
     STATUS_CHOICES = (
         ('interested', 'Interested'),
-        ('committed', 'Committed'),
-        ('invested', 'Invested'),
+        ('pledged', 'Pledged'),       # investor submitted a pledge amount; enterprise decides
+        ('accepted', 'Accepted'),     # enterprise accepted the pledge
+        ('declined', 'Declined'),     # enterprise declined the pledge
+        ('committed', 'Committed'),   # legacy — treated as pledged
+        ('invested', 'Invested'),     # legacy — payment received
         ('withdrawn', 'Withdrawn'),
     )
-    
+
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='interests')
     investor = models.ForeignKey('investors.Investor', on_delete=models.CASCADE, related_name='campaign_interests')
-    
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='interested')
     interest_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     committed_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     invested_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    
+
     notes = models.TextField(blank=True, null=True)
-    
+
+    # Enterprise response after investor pledges
+    enterprise_decision_at = models.DateTimeField(null=True, blank=True)
+    enterprise_notes = models.TextField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

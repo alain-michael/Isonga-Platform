@@ -317,7 +317,7 @@ const Login: React.FC = () => {
           </p>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 w-full max-w-md">
+          {/* <div className="grid grid-cols-3 gap-8 w-full max-w-md">
             <div className="text-center">
               <p className="text-3xl font-bold text-white">500+</p>
               <p className="text-sm text-neutral-500 mt-1">Businesses</p>
@@ -330,10 +330,10 @@ const Login: React.FC = () => {
               <p className="text-3xl font-bold text-white">50+</p>
               <p className="text-sm text-neutral-500 mt-1">Investors</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Testimonial */}
-          <div className="mt-12 p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 max-w-md">
+          {/* <div className="mt-12 p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 max-w-md">
             <p className="text-neutral-300 text-sm italic mb-4">
               "Isonga helped us secure funding and grow our business by 300% in
               just one year."
@@ -347,7 +347,7 @@ const Login: React.FC = () => {
                 <p className="text-neutral-500 text-xs">CEO, TechRwanda</p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

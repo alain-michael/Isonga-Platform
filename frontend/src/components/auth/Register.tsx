@@ -350,12 +350,12 @@ const Register: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-10 pt-8 border-t border-neutral-800 w-full max-w-sm">
+          {/* <div className="mt-10 pt-8 border-t border-neutral-800 w-full max-w-sm">
             <div className="flex items-center justify-between text-sm">
               <span className="text-neutral-500">Trusted by</span>
               <span className="font-bold text-white">500+ businesses</span>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="absolute top-0 bottom-0 right-0 w-24 z-20 pointer-events-none text-white dark:text-neutral-900">
           <ChevronPatternSVG />

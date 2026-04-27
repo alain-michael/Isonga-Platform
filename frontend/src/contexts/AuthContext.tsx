@@ -11,6 +11,7 @@ interface User {
   user_type: "superadmin" | "admin" | "enterprise" | "investor";
   phone_number?: string;
   is_verified: boolean;
+  is_superuser?: boolean;
 }
 
 interface AuthContextType {

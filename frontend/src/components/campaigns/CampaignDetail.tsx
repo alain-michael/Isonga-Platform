@@ -35,6 +35,7 @@ import {
   useCampaign,
   useSubmitCampaignForReview,
 } from "../../hooks/useCampaigns";
+import CampaignMessageThread from "./CampaignMessageThread";
 
 const statusConfig: Record<
   string,
@@ -158,6 +159,40 @@ const CampaignDetail: React.FC = () => {
       setPledgeAmount("");
     },
   });
+
+  // Fetch all CampaignInterest records for this campaign (enterprise side)
+  const { data: campaignInterestsResponse, isLoading: interestsLoading } = useQuery({
+    queryKey: ["campaignInterests", id],
+    queryFn: () => campaignInterestsAPI.getAll(id!),
+    enabled: !isInvestor && !!id,
+    refetchInterval: 15000,
+  });
+  const campaignInterests: any[] = (() => {
+    const d = campaignInterestsResponse?.data;
+    if (!d) return [];
+    return Array.isArray(d) ? d : (d as any).results || [];
+  })();
+
+  // Accept a pledge (enterprise)
+  const acceptPledgeMutation = useMutation({
+    mutationFn: ({ interestId, notes }: { interestId: string; notes?: string }) =>
+      campaignInterestsAPI.enterpriseAccept(interestId, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaignInterests", id] });
+      queryClient.invalidateQueries({ queryKey: ["campaign", id] });
+    },
+  });
+
+  // Decline a pledge (enterprise)
+  const declinePledgeMutation = useMutation({
+    mutationFn: ({ interestId, notes }: { interestId: string; notes?: string }) =>
+      campaignInterestsAPI.enterpriseDecline(interestId, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaignInterests", id] });
+    },
+  });
+
+  const [openMessageThreadId, setOpenMessageThreadId] = useState<string | null>(null);
 
   // Fetch matches for this enterprise
   const { data: matchesResponse, isLoading: matchesLoading } = useQuery({
@@ -824,149 +859,152 @@ const CampaignDetail: React.FC = () => {
           )}
 
           {activeTab === "investors" && (
-            <div>
-              {matchesLoading ? (
+            <div className="space-y-4">
+              {interestsLoading ? (
                 <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
                 </div>
-              ) : interestedInvestors.length > 0 ? (
-                <div className="space-y-4">
-                  {interestedInvestors.map((match: any) => (
-                    <div
-                      key={match.id}
-                      className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 glass-effect border border-neutral-200 rounded-xl hover:border-primary-200 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 mb-4 md:mb-0">
-                        <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-lg">
-                          {match.investor?.organization_name?.charAt(0) || "I"}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-neutral-900">
-                            {match.investor?.organization_name || "Investor"}
-                          </h4>
-                          <p className="text-sm text-neutral-500">
-                            {match.investor?.investor_type} • Interested in your
-                            campaign
-                          </p>
-                          {match.committed_amount && (
-                            <p className="text-sm font-semibold text-green-600 mt-1">
-                              Pledged: $
-                              {parseFloat(
-                                match.committed_amount,
-                              ).toLocaleString()}
-                            </p>
-                          )}
-                          <div className="mt-1">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                match.status === "completed"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : match.status === "engaged"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {match.status === "completed"
-                                ? "Payment Confirmed"
-                                : match.status === "engaged"
-                                  ? "Connected"
-                                  : "Interest Expressed"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 w-full md:w-auto">
-                        {match.status === "approved" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                acceptMatchMutation.mutate(match.id)
-                              }
-                              disabled={acceptMatchMutation.isPending}
-                              className="flex-1 md:flex-none btn-primary flex items-center justify-center gap-2"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              Accept
-                            </button>
-                            <button
-                              onClick={() =>
-                                rejectMatchMutation.mutate(match.id)
-                              }
-                              disabled={rejectMatchMutation.isPending}
-                              className="flex-1 md:flex-none px-4 py-2 border border-neutral-300 text-neutral-700 font-medium rounded-lg hover:bg-neutral-50 flex items-center justify-center gap-2"
-                            >
-                              <XCircle className="h-4 w-4" />
-                              Decline
-                            </button>
-                          </>
-                        )}
-                        {match.status === "engaged" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                navigate("/messages", {
-                                  state: {
-                                    campaignId: id,
-                                    campaignTitle: campaign.title,
-                                    otherPartyId: match.investor?.user_id,
-                                    otherPartyType: "investor",
-                                  },
-                                })
-                              }
-                              className="flex-1 md:flex-none btn-secondary flex items-center justify-center gap-2"
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                              Message
-                            </button>
-                            {match.committed_amount &&
-                              !match.payment_received && (
-                                <button
-                                  onClick={() =>
-                                    confirmPaymentMutation.mutate(match.id)
-                                  }
-                                  disabled={confirmPaymentMutation.isPending}
-                                  className="flex-1 md:flex-none btn-primary flex items-center justify-center gap-2"
-                                >
-                                  <DollarSign className="h-4 w-4" />
-                                  Confirm Payment
-                                </button>
-                              )}
-                          </>
-                        )}
-                        {match.status === "completed" && (
-                          <button
-                            onClick={() =>
-                              navigate("/messages", {
-                                state: {
-                                  campaignId: id,
-                                  campaignTitle: campaign.title,
-                                  otherPartyId: match.investor?.user_id,
-                                  otherPartyType: "investor",
-                                },
-                              })
-                            }
-                            className="flex-1 md:flex-none btn-secondary flex items-center justify-center gap-2"
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                            Message
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
+              ) : campaignInterests.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-neutral-700 mb-2">
+                  <h3 className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                     No Investor Interest Yet
                   </h3>
                   <p className="text-neutral-500">
-                    When investors express interest in your campaign, they'll
-                    appear here.
+                    Once your application is active, targeted partners can
+                    message you and submit pledges here.
                   </p>
                 </div>
+              ) : (
+                campaignInterests.map((interest: any) => {
+                  const orgName =
+                    interest.investor?.organization_name ||
+                    interest.investor_name ||
+                    "Investor";
+                  const investorUserId = interest.investor?.user?.id;
+                  const statusLabel: Record<string, string> = {
+                    interested: "Interested",
+                    pledged: "Pledge Submitted",
+                    committed: "Pledge Submitted",
+                    accepted: "Accepted ✓",
+                    declined: "Declined",
+                    withdrawn: "Withdrawn",
+                    invested: "Invested",
+                  };
+                  const statusColor: Record<string, string> = {
+                    interested: "bg-blue-100 text-blue-800",
+                    pledged: "bg-amber-100 text-amber-800",
+                    committed: "bg-amber-100 text-amber-800",
+                    accepted: "bg-green-100 text-green-800",
+                    declined: "bg-red-100 text-red-800",
+                    withdrawn: "bg-neutral-100 text-neutral-600",
+                    invested: "bg-emerald-100 text-emerald-800",
+                  };
+
+                  return (
+                    <div
+                      key={interest.id}
+                      className="border border-neutral-200 dark:border-neutral-700 rounded-xl p-5 space-y-4"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center font-bold text-primary-700 dark:text-primary-300">
+                            {orgName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                              {orgName}
+                            </p>
+                            {(interest.status === "pledged" ||
+                              interest.status === "committed" ||
+                              interest.status === "accepted") &&
+                              interest.committed_amount && (
+                                <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                                  Pledged:{" "}
+                                  {formatCurrency(
+                                    Number(interest.committed_amount),
+                                  )}
+                                </p>
+                              )}
+                            {interest.notes && (
+                              <p className="text-xs text-neutral-500 mt-0.5">
+                                "{interest.notes}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[interest.status] || "bg-neutral-100 text-neutral-600"}`}
+                          >
+                            {statusLabel[interest.status] || interest.status}
+                          </span>
+
+                          {/* Accept / Decline for pledged interests */}
+                          {(interest.status === "pledged" ||
+                            interest.status === "committed") && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  acceptPledgeMutation.mutate({
+                                    interestId: interest.id,
+                                  })
+                                }
+                                disabled={acceptPledgeMutation.isPending}
+                                className="px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 inline mr-1" />
+                                Accept
+                              </button>
+                              <button
+                                onClick={() =>
+                                  declinePledgeMutation.mutate({
+                                    interestId: interest.id,
+                                  })
+                                }
+                                disabled={declinePledgeMutation.isPending}
+                                className="px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition disabled:opacity-50"
+                              >
+                                <XCircle className="h-3.5 w-3.5 inline mr-1" />
+                                Decline
+                              </button>
+                            </>
+                          )}
+
+                          {/* Message toggle — available when campaign is active */}
+                          {campaign.status === "active" && investorUserId && (
+                            <button
+                              onClick={() =>
+                                setOpenMessageThreadId(
+                                  openMessageThreadId === interest.id
+                                    ? null
+                                    : interest.id,
+                                )
+                              }
+                              className="px-3 py-1.5 text-sm btn-secondary flex items-center gap-1.5"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              {openMessageThreadId === interest.id
+                                ? "Close Chat"
+                                : "Message"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Inline message thread */}
+                      {openMessageThreadId === interest.id &&
+                        investorUserId && (
+                          <CampaignMessageThread
+                            campaignId={id!}
+                            interestId={interest.id}
+                            receiverId={investorUserId}
+                            receiverName={orgName}
+                          />
+                        )}
+                    </div>
+                  );
+                })
               )}
             </div>
           )}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import { Menu } from "lucide-react";
+import NotificationBell from "../notifications/NotificationBell";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,19 +17,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Scrollable Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="lg:hidden glass-effect dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 h-16 flex items-center px-4 justify-between flex-shrink-0">
+        {/* Top bar — notification bell (desktop + mobile) */}
+        <div className="flex-shrink-0 h-12 flex items-center justify-end px-4 sm:px-6 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 lg:flex">
+          {/* Mobile hamburger in same row */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="lg:hidden p-2 mr-auto rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-lg text-neutral-900 dark:text-white">
-            Isonga
-          </span>
-          <div className="w-10" /> {/* Spacer for centering */}
-        </header>
+          <NotificationBell />
+        </div>
 
         {/* Main Content - Scrollable */}
         <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900">

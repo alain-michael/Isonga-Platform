@@ -542,7 +542,7 @@ const Welcome: React.FC = () => {
                 </Link>
               </div>
 
-              {/* Stats Row */}
+              {/* Stats Row
               <div className="mt-12 grid grid-cols-3 gap-8 border-t border-gray-200/50 dark:border-gray-700/50 pt-8">
                 {stats.slice(0, 3).map((stat, index) => (
                   <div key={index}>
@@ -554,7 +554,7 @@ const Welcome: React.FC = () => {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             {/* Hero Visual */}
@@ -871,8 +871,8 @@ const Welcome: React.FC = () => {
           </div>
 
           <div className="text-center mt-16">
-            <Link
-              to="/register"
+            <a
+              href="mailto:info@isonga.rw"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
             >
               {language === "en"
@@ -881,7 +881,7 @@ const Welcome: React.FC = () => {
                   ? "Injira Nk'Umufatanyabikorwa w'Imari"
                   : "Rejoindre en tant que Partenaire de Financement"}
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

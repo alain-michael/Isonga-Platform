@@ -70,8 +70,8 @@ export const enterpriseAPI = {
   create: (data: any) =>
     api.post('/enterprises/api/enterprises/', data),
   
-  update: (id: string, data: any) =>
-    api.put(`/enterprises/api/enterprises/${id}/`, data),
+  update: (id: any, data: any) =>
+    api.patch(`/enterprises/api/enterprises/${id}/`, data),
   
   approve: (id: string, notes?: string) =>
     api.post(`/enterprises/api/enterprises/${id}/approve/`, { notes }),
@@ -125,6 +125,9 @@ export const assessmentAPI = {
   deleteService: (id: string | number) =>
     api.delete(`/assessments/api/services/${id}/`),
   
+  getReadinessScore: () =>
+    api.get('/assessments/api/assessments/readiness_score/'),
+
   getQuestionnaires: () =>
     api.get('/assessments/api/questionnaires/'),
 
@@ -174,7 +177,7 @@ export const assessmentAPI = {
     api.post(`/assessments/api/assessments/${id}/review/`),
   
   regradeAssessment: (id: string) =>
-    api.post(`/assessments/api/assessments/${id}/submit/`),
+    api.post(`/assessments/api/assessments/${id}/regrade/`),
   
   assignReviewer: (id: string, reviewerId: number) =>
     api.patch(`/assessments/api/assessments/${id}/`, { reviewed_by: reviewerId }),
@@ -232,9 +235,21 @@ export const adminAPI = {
   
   updateUser: (id: number, data: any) =>
     api.patch(`/accounts/api/users/${id}/`, data),
-  
+
   deleteUser: (id: number) =>
     api.delete(`/accounts/api/users/${id}/`),
+
+  resetUserPassword: (id: number, password: string) =>
+    api.post(`/accounts/api/users/${id}/reset_password/`, { password }),
+
+  createCategory: (data: any) =>
+    api.post('/assessments/api/categories/', data),
+
+  updateCategory: (id: number, data: any) =>
+    api.patch(`/assessments/api/categories/${id}/`, data),
+
+  deleteCategory: (id: number) =>
+    api.delete(`/assessments/api/categories/${id}/`),
 };
 
 // Investor API
@@ -249,7 +264,7 @@ export const investorAPI = {
     api.post('/investors/profiles/', data),
   
   update: (id: string, data: any) =>
-    api.put(`/investors/profiles/${id}/`, data),
+    api.patch(`/investors/profiles/${id}/`, data),
   
   getCriteria: (investorId: string) =>
     api.get(`/investors/profiles/${investorId}/criteria/`),

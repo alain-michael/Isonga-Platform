@@ -92,6 +92,7 @@ interface Field {
   is_required?: boolean;
   order: number;
   options?: string[];
+  choices?: string[];
 }
 
 export default function PartnerFormBuilder() {
@@ -633,6 +634,24 @@ export default function PartnerFormBuilder() {
                                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white"
                                   />
                                 </div>
+
+                                {watch(`sections.${sectionIndex}.fields.${fieldIndex}.field_type`) === "select" && (
+                                  <div className="col-span-2">
+                                    <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                                      Dropdown Options <span className="text-neutral-400">(one per line)</span>
+                                    </label>
+                                    <textarea
+                                      rows={4}
+                                      placeholder={"Option 1\nOption 2\nOption 3"}
+                                      value={(watch(`sections.${sectionIndex}.fields.${fieldIndex}.choices`) || []).join("\n")}
+                                      onChange={(e) => {
+                                        const choices = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
+                                        setValue(`sections.${sectionIndex}.fields.${fieldIndex}.choices`, choices);
+                                      }}
+                                      className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white"
+                                    />
+                                  </div>
+                                )}
 
                                 <div className="col-span-2">
                                   <label className="flex items-center gap-2">

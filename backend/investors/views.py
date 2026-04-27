@@ -42,8 +42,20 @@ class InvestorViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
     
     def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'investor_profile'):
+            return Investor.objects.filter(user=user)
         return Investor.objects.all()
-    
+
+    @action(detail=False, methods=['get'])
+    def my_profile(self, request):
+        """Get the current investor's own profile."""
+        if not hasattr(request.user, 'investor_profile'):
+            return Response({'error': 'No investor profile found'}, status=status.HTTP_404_NOT_FOUND)
+        from .serializers import InvestorSerializer
+        serializer = InvestorSerializer(request.user.investor_profile)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get investor dashboard stats"""
@@ -113,15 +125,30 @@ class InvestorCriteriaViewSet(viewsets.ModelViewSet):
         return InvestorCriteria.objects.none()
     
     def perform_create(self, serializer):
-        """Allow investors to set their own criteria; admins can specify any investor."""
+        """Upsert: update existing criteria if one already exists for this investor."""
+        from rest_framework.exceptions import PermissionDenied
         user = self.request.user
         if user.user_type in ['admin', 'superadmin']:
-            # Admin must supply `investor` in the request body
+            investor_id = serializer.validated_data.get('investor')
+            if investor_id:
+                existing = InvestorCriteria.objects.filter(investor=investor_id).first()
+                if existing:
+                    for attr, value in serializer.validated_data.items():
+                        setattr(existing, attr, value)
+                    existing.save()
+                    return
             serializer.save()
         elif hasattr(user, 'investor_profile'):
-            serializer.save(investor=user.investor_profile)
+            investor = user.investor_profile
+            existing = InvestorCriteria.objects.filter(investor=investor).first()
+            if existing:
+                for attr, value in serializer.validated_data.items():
+                    setattr(existing, attr, value)
+                existing.investor = investor
+                existing.save()
+                return
+            serializer.save(investor=investor)
         else:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only investors or admins can manage criteria.")
 
     def perform_update(self, serializer):

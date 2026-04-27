@@ -12,9 +12,11 @@ import {
   ClipboardList,
   Rocket,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAssessments } from "../../hooks/useAssessments";
 import { useMyEnterprise } from "../../hooks/useEnterprises";
 import { useMyCampaigns } from "../../hooks/useCampaigns";
+import { assessmentAPI } from "../../services/api";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -34,6 +36,16 @@ const Dashboard: React.FC = () => {
   // Fetch assessments
   const { data: assessments = [], isLoading: assessmentsLoading } =
     useAssessments();
+
+  // Fetch General-category readiness score from dedicated endpoint
+  const { data: readinessData } = useQuery({
+    queryKey: ["readinessScore"],
+    queryFn: async () => {
+      const res = await assessmentAPI.getReadinessScore();
+      return res.data as { score: number };
+    },
+    enabled: user?.user_type === "enterprise",
+  });
 
   // Fetch funding applications (campaigns)
   const { data: fundingApplications = [], isLoading: campaignsLoading } =
@@ -67,13 +79,8 @@ const Dashboard: React.FC = () => {
       (a: any) => a.status === "draft" || a.status === "in_progress",
     ).length;
 
-    const avgScore =
-      assessments.length > 0
-        ? assessments.reduce(
-            (sum: number, a: any) => sum + (Number(a.percentage_score) || 0),
-            0,
-          ) / assessments.length
-        : 0;
+    // Use General-category score from endpoint; fall back to 0
+    const avgScore = readinessData?.score ?? 0;
 
     return {
       totalAssessments: assessments.length,
@@ -81,7 +88,7 @@ const Dashboard: React.FC = () => {
       pendingAssessments: pending,
       averageScore: avgScore,
     };
-  }, [assessments]);
+  }, [assessments, readinessData]);
 
   // Calculate funding application stats
   const fundingStats = useMemo(() => {

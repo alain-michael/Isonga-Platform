@@ -8,10 +8,22 @@ from .serializers import *
 from enterprises.models import Enterprise
 from .ai_utils import generate_assessment_insights
 
-class AssessmentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = AssessmentCategory.objects.filter(is_active=True)
+class AssessmentCategoryViewSet(viewsets.ModelViewSet):
+    queryset = AssessmentCategory.objects.all()
     serializer_class = AssessmentCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.user_type in ['admin', 'superadmin']:
+            return AssessmentCategory.objects.all()
+        return AssessmentCategory.objects.filter(is_active=True)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            if not (self.request.user.user_type in ['admin', 'superadmin']):
+                return [permissions.IsAdminUser()]
+        return super().get_permissions()
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -140,7 +152,20 @@ class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()
     serializer_class = AssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
+    @action(detail=False, methods=['get'])
+    def readiness_score(self, request):
+        """Return this enterprise's General-category readiness score."""
+        if request.user.user_type != 'enterprise':
+            return Response({'score': 0})
+        try:
+            enterprise = request.user.enterprise
+        except Enterprise.DoesNotExist:
+            return Response({'score': 0})
+        from .utils import get_enterprise_readiness_score
+        score = get_enterprise_readiness_score(enterprise)
+        return Response({'score': score})
+
     def get_serializer_class(self):
         if self.action == 'list':
             return AssessmentListSerializer
@@ -291,6 +316,16 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         
         return Response({'message': 'Assessment submitted successfully'})
     
+    @action(detail=True, methods=['post'])
+    def regrade(self, request, pk=None):
+        """Admin action to recalculate scores for a completed assessment"""
+        if request.user.user_type not in ['admin', 'superadmin']:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        assessment = get_object_or_404(Assessment, pk=pk)
+        self._calculate_assessment_scores(assessment)
+        return Response({'message': 'Assessment regraded successfully'})
+
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):
         """Admin action to review an assessment"""
@@ -472,6 +507,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
                 rec['category'].id == category_score.category.id 
                 for rec in question_recommendations
             )
+
+            if has_question_recs:
+                continue  # We have specific question recs, so skip generic category rec
             
             if category_score.percentage < 50:  # Low score threshold
                 priority = 'high'

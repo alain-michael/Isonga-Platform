@@ -143,15 +143,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Application can only be submitted from draft or revision required status'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Check readiness score before submission
+        # Capture General-category readiness score at submission
         enterprise = campaign.enterprise
-        from assessments.models import Assessment
-        avg_score = Assessment.objects.filter(
-            enterprise=enterprise,
-            status='completed'
-        ).aggregate(avg=Avg('percentage_score'))['avg'] or 0
-        
-        # Store readiness score at submission
+        from assessments.utils import get_enterprise_readiness_score
+        avg_score = get_enterprise_readiness_score(enterprise)
+
         campaign.readiness_score_at_submission = avg_score
         campaign.status = 'submitted'
         
@@ -245,7 +241,16 @@ class CampaignViewSet(viewsets.ModelViewSet):
         
         campaign.status = 'active'
         campaign.save()
-        
+
+        # Auto-create CampaignInterest records for all targeted partners
+        # so messaging is available immediately
+        for investor in campaign.target_partners.all():
+            CampaignInterest.objects.get_or_create(
+                campaign=campaign,
+                investor=investor,
+                defaults={'status': 'interested'},
+            )
+
         return Response({'message': 'Funding application is now visible to partners'})
     
     @action(detail=True, methods=['get'])
@@ -254,14 +259,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign = self.get_object()
         enterprise = campaign.enterprise
         
-        from assessments.models import Assessment
+        from assessments.utils import get_enterprise_readiness_score
         from investors.models import InvestorCriteria
-        
-        # Get enterprise's average readiness score
-        avg_score = Assessment.objects.filter(
-            enterprise=enterprise,
-            status='completed'
-        ).aggregate(avg=Avg('percentage_score'))['avg'] or 0
+
+        # Use General-category readiness score
+        avg_score = get_enterprise_readiness_score(enterprise)
         
         # Get all partner criteria
         criteria_list = InvestorCriteria.objects.filter(is_active=True)
@@ -410,33 +412,81 @@ class CampaignInterestViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def commit(self, request, pk=None):
-        """Investor commits to an amount after interest is approved"""
+        """Legacy alias for pledge — kept for backward compatibility."""
+        return self.pledge(request, pk)
+
+    @action(detail=True, methods=['post'])
+    def pledge(self, request, pk=None):
+        """Investor submits a pledge amount. Enterprise will then accept or decline."""
         interest = self.get_object()
-        
+
         if not hasattr(request.user, 'investor_profile') or interest.investor != request.user.investor_profile:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        
-        committed_amount = request.data.get('committed_amount')
-        if not committed_amount:
-            return Response({'error': 'committed_amount is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        interest.status = 'committed'
-        interest.committed_amount = committed_amount
+
+        amount = request.data.get('amount') or request.data.get('committed_amount')
+        if not amount:
+            return Response({'error': 'amount is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        interest.status = 'pledged'
+        interest.committed_amount = amount
+        interest.notes = request.data.get('notes', interest.notes or '')
         interest.save()
-        
-        return Response({'message': 'Amount committed successfully'})
-    
+
+        return Response({'message': 'Pledge submitted. The enterprise will review your pledge.'})
+
+    @action(detail=True, methods=['post'])
+    def enterprise_accept(self, request, pk=None):
+        """Enterprise accepts an investor's pledge. Updates campaign.amount_raised."""
+        interest = self.get_object()
+
+        # Only the enterprise that owns this campaign may accept
+        if not hasattr(request.user, 'enterprise') or interest.campaign.enterprise != request.user.enterprise:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+
+        if interest.status not in ('pledged', 'committed'):
+            return Response({'error': 'Can only accept a pledged interest'}, status=status.HTTP_400_BAD_REQUEST)
+
+        interest.status = 'accepted'
+        interest.enterprise_decision_at = timezone.now()
+        interest.enterprise_notes = request.data.get('notes', '')
+        interest.save()
+
+        # Increment campaign amount raised
+        campaign = interest.campaign
+        campaign.amount_raised = (campaign.amount_raised or 0) + (interest.committed_amount or 0)
+        campaign.save(update_fields=['amount_raised'])
+
+        return Response({'message': 'Pledge accepted successfully'})
+
+    @action(detail=True, methods=['post'])
+    def enterprise_decline(self, request, pk=None):
+        """Enterprise declines an investor's pledge."""
+        interest = self.get_object()
+
+        if not hasattr(request.user, 'enterprise') or interest.campaign.enterprise != request.user.enterprise:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+
+        if interest.status not in ('pledged', 'committed'):
+            return Response({'error': 'Can only decline a pledged interest'}, status=status.HTTP_400_BAD_REQUEST)
+
+        interest.status = 'declined'
+        interest.enterprise_decision_at = timezone.now()
+        interest.enterprise_notes = request.data.get('notes', '')
+        interest.save()
+
+        return Response({'message': 'Pledge declined'})
+
     @action(detail=True, methods=['post'])
     def withdraw(self, request, pk=None):
         """Investor withdraws interest"""
         interest = self.get_object()
-        
+
         if not hasattr(request.user, 'investor_profile') or interest.investor != request.user.investor_profile:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         interest.status = 'withdrawn'
         interest.save()
-        
+
         return Response({'message': 'Interest withdrawn'})
 
 

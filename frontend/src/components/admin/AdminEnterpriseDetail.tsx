@@ -19,6 +19,17 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+interface EnterpriseDocument {
+  id: number;
+  title: string;
+  document_type: string;
+  file: string;
+  fiscal_year: number;
+  description: string | null;
+  uploaded_at: string;
+  is_verified: boolean;
+}
+
 interface Enterprise {
   id: number;
   business_name: string;
@@ -34,6 +45,10 @@ interface Enterprise {
   website?: string;
   phone_number?: string;
   email?: string;
+  verification_status?: string;
+  verification_notes?: string;
+  documents_requested?: string;
+  documents: EnterpriseDocument[];
   user: {
     id: number;
     username: string;
@@ -48,7 +63,7 @@ const AdminEnterpriseDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<
-    "approved" | "rejected" | "request_documents" | null
+    "approved" | "rejected" | "request_information" | null
   >(null);
   const [statusNotes, setStatusNotes] = useState("");
   const [documentsRequested, setDocumentsRequested] = useState("");
@@ -86,9 +101,9 @@ const AdminEnterpriseDetail: React.FC = () => {
         await enterpriseAPI.approve(enterprise.id.toString(), statusNotes);
       } else if (selectedStatus === "rejected") {
         await enterpriseAPI.reject(enterprise.id.toString(), statusNotes);
-      } else if (selectedStatus === "request_documents") {
+      } else if (selectedStatus === "request_information") {
         if (!documentsRequested) {
-          alert("Please specify which documents are requested");
+          alert("Please specify what information is requested");
           return;
         }
         await enterpriseAPI.requestDocuments(
@@ -445,13 +460,37 @@ const AdminEnterpriseDetail: React.FC = () => {
       )}
 
       {activeTab === "documents" && (
-        <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+        <div className="glass-effect rounded-2xl p-8 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Documents
           </h2>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            No documents found
-          </p>
+          {enterprise.documents && enterprise.documents.length > 0 ? (
+            <div className="space-y-3">
+              {enterprise.documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-primary-500" />
+                    <div>
+                      <p className="font-medium text-neutral-900 dark:text-neutral-100">{doc.title}</p>
+                      <p className="text-sm text-neutral-500 capitalize">
+                        {doc.document_type.replace(/_/g, " ")} · FY {doc.fiscal_year} · Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${doc.is_verified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                      {doc.is_verified ? "Verified" : "Pending"}
+                    </span>
+                    <a href={doc.file} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">
+                      View
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-neutral-600 dark:text-neutral-400">No documents uploaded</p>
+          )}
         </div>
       )}
 
@@ -487,21 +526,21 @@ const AdminEnterpriseDetail: React.FC = () => {
                   <option value="">Select status...</option>
                   <option value="approved">Approve</option>
                   <option value="rejected">Reject</option>
-                  <option value="request_documents">Request Documents</option>
+                  <option value="request_information">Request Information</option>
                 </select>
               </div>
 
-              {selectedStatus === "request_documents" && (
+              {selectedStatus === "request_information" && (
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Documents Requested *
+                    Information Requested *
                   </label>
                   <textarea
                     value={documentsRequested}
                     onChange={(e) => setDocumentsRequested(e.target.value)}
                     rows={3}
                     className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-600 glass-effect dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3"
-                    placeholder="List the specific documents needed..."
+                    placeholder="Describe what information or documents are needed..."
                     required
                   />
                 </div>

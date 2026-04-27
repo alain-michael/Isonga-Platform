@@ -9,6 +9,7 @@ import {
   Edit2,
   UserX,
   X,
+  KeyRound,
 } from "lucide-react";
 import { adminAPI } from "../../services/api";
 
@@ -34,11 +35,16 @@ const AdminUsers: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUserId, setResetUserId] = useState<number | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [editForm, setEditForm] = useState({
     email: "",
     first_name: "",
     last_name: "",
     phone_number: "",
+    user_type: "",
   });
 
   useEffect(() => {
@@ -83,6 +89,7 @@ const AdminUsers: React.FC = () => {
       first_name: user.first_name || "",
       last_name: user.last_name || "",
       phone_number: user.phone_number || "",
+      user_type: user.user_type,
     });
     setShowEditModal(true);
   };
@@ -97,6 +104,28 @@ const AdminUsers: React.FC = () => {
     } catch (err) {
       console.error("Error updating user:", err);
       alert("Failed to update user");
+    }
+  };
+
+  const handleResetPasswordClick = (userId: number) => {
+    setResetUserId(userId);
+    setNewPassword("");
+    setShowResetModal(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetUserId || !newPassword) return;
+    setResetLoading(true);
+    try {
+      await adminAPI.resetUserPassword(resetUserId, newPassword);
+      setShowResetModal(false);
+      setResetUserId(null);
+      alert("Password reset successfully");
+    } catch (err) {
+      console.error("Error resetting password:", err);
+      alert("Failed to reset password");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -273,9 +302,16 @@ const AdminUsers: React.FC = () => {
                       <button
                         onClick={() => handleEditClick(user)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit user"
+                        title="Edit user / change role"
                       >
                         <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleResetPasswordClick(user.id)}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="Reset password"
+                      >
+                        <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDeactivateUser(user.id)}
@@ -366,6 +402,24 @@ const AdminUsers: React.FC = () => {
                   className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  Role
+                </label>
+                <select
+                  value={editForm.user_type}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, user_type: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+                >
+                  <option value="enterprise">Enterprise</option>
+                  <option value="investor">Investor</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Super Admin</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
@@ -380,6 +434,52 @@ const AdminUsers: React.FC = () => {
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
               >
                 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+                Reset Password
+              </h3>
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="text-neutral-400 hover:text-neutral-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 text-neutral-600 hover:text-neutral-800 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetPassword}
+                disabled={!newPassword || resetLoading}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium disabled:opacity-50"
+              >
+                {resetLoading ? "Resetting..." : "Reset Password"}
               </button>
             </div>
           </div>

@@ -40,7 +40,7 @@ const businessInfoSchema = yup.object({
     .max(1000, "Description must be less than 1000 characters"),
   sector: yup.string().required("Sector is required"),
   enterprise_type: yup.string().required("Enterprise type is required"),
-  enterprise_size: yup.string().required("Enterprise size is required"),
+  management_structure: yup.string().required("Management structure is required"),
   year_established: yup
     .number()
     .required("Year established is required")
@@ -54,11 +54,10 @@ const businessInfoSchema = yup.object({
 });
 
 const contactInfoSchema = yup.object({
-  address: yup.string().required("Address is required"),
-  city: yup.string().required("City is required"),
+  province: yup.string().required("Province is required"),
   district: yup.string().required("District is required"),
   phone: yup.string().required("Phone number is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
+  email: yup.string().email("Invalid email").nullable(),
   website: yup.string().url("Invalid URL").nullable(),
 });
 
@@ -66,6 +65,19 @@ const legalInfoSchema = yup.object({
   tin_number: yup.string().required("TIN number is required"),
   registration_number: yup.string().nullable(),
 });
+
+const MANAGEMENT_STRUCTURES = [
+  { value: "owner_managed", label: "Owner-managed" },
+  { value: "professional_management", label: "Professional Management" },
+];
+
+const PROVINCES = [
+  { value: "kigali_city", label: "Kigali City" },
+  { value: "eastern", label: "Eastern Province" },
+  { value: "western", label: "Western Province" },
+  { value: "northern", label: "Northern Province" },
+  { value: "southern", label: "Southern Province" },
+];
 
 type TabId =
   | "business"
@@ -113,11 +125,6 @@ const ENTERPRISE_TYPES = [
   { value: "ngo", label: "NGO" },
 ];
 
-const ENTERPRISE_SIZES = [
-  { value: "micro", label: "Micro (1-4 employees)" },
-  { value: "small", label: "Small (5-30 employees)" },
-  { value: "medium", label: "Medium (31-100 employees)" },
-];
 
 const RWANDAN_DISTRICTS = [
   "Bugesera",
@@ -262,7 +269,7 @@ const EnterpriseProfile: React.FC = () => {
       description: enterprise?.description || "",
       sector: enterprise?.sector || "",
       enterprise_type: enterprise?.enterprise_type || "",
-      enterprise_size: enterprise?.enterprise_size || "",
+      management_structure: enterprise?.management_structure || "",
       year_established:
         enterprise?.year_established || new Date().getFullYear(),
       number_of_employees: enterprise?.number_of_employees || 1,
@@ -273,8 +280,7 @@ const EnterpriseProfile: React.FC = () => {
   const contactForm = useForm({
     resolver: yupResolver(contactInfoSchema),
     defaultValues: {
-      address: enterprise?.address || "",
-      city: enterprise?.city || "",
+      province: enterprise?.province || "",
       district: enterprise?.district || "",
       phone: enterprise?.phone || "",
       email: enterprise?.email || "",
@@ -298,17 +304,16 @@ const EnterpriseProfile: React.FC = () => {
         description: enterprise.description || "",
         sector: enterprise.sector,
         enterprise_type: enterprise.enterprise_type,
-        enterprise_size: enterprise.enterprise_size,
+        management_structure: enterprise.management_structure || "",
         year_established: enterprise.year_established,
         number_of_employees: enterprise.number_of_employees,
         annual_revenue: enterprise.annual_revenue,
       });
       contactForm.reset({
-        address: enterprise.address,
-        city: enterprise.city,
+        province: enterprise.province || "",
         district: enterprise.district,
         phone: enterprise.phone,
-        email: enterprise.email,
+        email: enterprise.email || "",
         website: enterprise.website || "",
       });
       legalForm.reset({
@@ -540,25 +545,25 @@ const EnterpriseProfile: React.FC = () => {
 
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Enterprise Size
+            Management Structure
           </label>
           {isEditing ? (
             <select
-              {...businessForm.register("enterprise_size")}
+              {...businessForm.register("management_structure")}
               className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
             >
-              <option value="">Select size</option>
-              {ENTERPRISE_SIZES.map((size) => (
-                <option key={size.value} value={size.value}>
-                  {size.label}
+              <option value="">Select structure</option>
+              {MANAGEMENT_STRUCTURES.map((ms) => (
+                <option key={ms.value} value={ms.value}>
+                  {ms.label}
                 </option>
               ))}
             </select>
           ) : (
             <p className="text-neutral-900">
-              {ENTERPRISE_SIZES.find(
-                (s) => s.value === enterprise.enterprise_size,
-              )?.label || enterprise.enterprise_size}
+              {MANAGEMENT_STRUCTURES.find(
+                (ms) => ms.value === enterprise.management_structure,
+              )?.label || enterprise.management_structure}
             </p>
           )}
         </div>
@@ -665,33 +670,27 @@ const EnterpriseProfile: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            <MapPin className="h-4 w-4 inline mr-2" />
-            Address
-          </label>
-          {isEditing ? (
-            <textarea
-              {...contactForm.register("address")}
-              rows={2}
-              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition resize-none"
-            />
-          ) : (
-            <p className="text-neutral-900">{enterprise.address}</p>
-          )}
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            City
+            <MapPin className="h-4 w-4 inline mr-2" />
+            Province
           </label>
           {isEditing ? (
-            <input
-              {...contactForm.register("city")}
+            <select
+              {...contactForm.register("province")}
               className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
-            />
+            >
+              <option value="">Select province</option>
+              {PROVINCES.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
           ) : (
-            <p className="text-neutral-900">{enterprise.city}</p>
+            <p className="text-neutral-900">
+              {PROVINCES.find((p) => p.value === enterprise.province)?.label || enterprise.province}
+            </p>
           )}
         </div>
 
@@ -1121,11 +1120,9 @@ const EnterpriseProfile: React.FC = () => {
             <h1 className="text-2xl font-bold">{enterprise.business_name}</h1>
             <p className="text-primary-100">
               {SECTORS.find((s) => s.value === enterprise.sector)?.label} •{" "}
-              {
-                ENTERPRISE_SIZES.find(
-                  (s) => s.value === enterprise.enterprise_size,
-                )?.label
-              }
+              {MANAGEMENT_STRUCTURES.find(
+                (ms) => ms.value === enterprise.management_structure,
+              )?.label || enterprise.management_structure}
             </p>
           </div>
           <div>{getStatusBadge(enterprise.verification_status)}</div>

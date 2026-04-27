@@ -86,19 +86,32 @@ export const campaignUpdatesAPI = {
 // Campaign Interest APIs
 export const campaignInterestsAPI = {
   getAll: (campaignId?: string) => {
-    const url = campaignId 
-      ? `${BASE_URL}/interests/?campaign_id=${campaignId}` 
+    const url = campaignId
+      ? `${BASE_URL}/interests/?campaign_id=${campaignId}`
       : `${BASE_URL}/interests/`;
     return api.get<CampaignInterest[]>(url);
   },
-  
-  create: (data: Partial<CampaignInterest>) => 
+
+  create: (data: Partial<CampaignInterest>) =>
     api.post<CampaignInterest>(`${BASE_URL}/interests/`, data),
-  
-  commit: (id: string, committed_amount: number) => 
-    api.post(`${BASE_URL}/interests/${id}/commit/`, { committed_amount }),
-  
-  withdraw: (id: string) => 
+
+  // Investor pledges an amount — triggers enterprise accept/decline step
+  pledge: (id: string, amount: number, notes?: string) =>
+    api.post(`${BASE_URL}/interests/${id}/pledge/`, { amount, notes }),
+
+  // Legacy alias
+  commit: (id: string, committed_amount: number) =>
+    api.post(`${BASE_URL}/interests/${id}/pledge/`, { amount: committed_amount }),
+
+  // Enterprise accepts an investor's pledge
+  enterpriseAccept: (id: string, notes?: string) =>
+    api.post(`${BASE_URL}/interests/${id}/enterprise_accept/`, { notes }),
+
+  // Enterprise declines an investor's pledge
+  enterpriseDecline: (id: string, notes?: string) =>
+    api.post(`${BASE_URL}/interests/${id}/enterprise_decline/`, { notes }),
+
+  withdraw: (id: string) =>
     api.post(`${BASE_URL}/interests/${id}/withdraw/`),
 };
 

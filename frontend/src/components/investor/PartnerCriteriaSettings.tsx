@@ -120,13 +120,17 @@ export default function PartnerCriteriaSettings() {
 
   useEffect(() => {
     if (profile?.criteria && profile.criteria.length > 0) {
-      const criteria = profile.criteria[0];
+      // Use the most recently updated criteria entry
+      const sorted = [...profile.criteria].sort(
+        (a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
+      );
+      const criteria = sorted[0];
       setFormData({
         sectors: criteria.sectors || [],
-        min_funding_amount: criteria.min_funding_amount || 0,
-        max_funding_amount: criteria.max_funding_amount || 0,
-        min_readiness_score: criteria.min_readiness_score || 0,
-        auto_reject_below_score: criteria.auto_reject_below_score || null,
+        min_funding_amount: Number(criteria.min_funding_amount) || 0,
+        max_funding_amount: Number(criteria.max_funding_amount) || 0,
+        min_readiness_score: Number(criteria.min_readiness_score) || 0,
+        auto_reject_below_score: criteria.auto_reject_below_score ? Number(criteria.auto_reject_below_score) : null,
         preferred_revenue_range: criteria.preferred_revenue_range || {
           min: null,
           max: null,
@@ -481,9 +485,9 @@ export default function PartnerCriteriaSettings() {
             ))}
           </div>
           {formData.sectors.length === 0 && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+            <div className="mt-3 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
               <AlertCircle className="h-4 w-4" />
-              <span>Select at least one sector</span>
+              <span>No sector selected — applications from all sectors will be considered</span>
             </div>
           )}
         </div>
@@ -682,9 +686,7 @@ export default function PartnerCriteriaSettings() {
         <div className="flex justify-end gap-4 pt-6 border-t border-neutral-200 dark:border-neutral-700">
           <button
             type="submit"
-            disabled={
-              updateCriteriaMutation.isPending || formData.sectors.length === 0
-            }
+            disabled={updateCriteriaMutation.isPending}
             className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             <Save className="h-5 w-5" />

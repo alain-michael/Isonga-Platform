@@ -55,6 +55,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     );
   };
 
+  const isAdmin = user?.user_type === "admin" || user?.user_type === "superadmin";
+  const isSuperAdmin = user?.user_type === "superadmin" || user?.is_superuser === true;
+
   const navItems = [
     // Dashboard - Always first
     {
@@ -98,20 +101,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: t("admin.manageQuestionnaires"),
       path: "/admin/questionnaires",
       icon: FileText,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isAdmin,
     },
     // SME & Admin shared features
     {
       name: t("navigation.assessments"),
-      path:
-        user?.user_type === "admin" || user?.user_type === "superadmin"
-          ? "/admin/assessments"
-          : "/assessments",
+      path: isAdmin ? "/admin/assessments" : "/assessments",
       icon: ClipboardList,
-      visible:
-        user?.user_type === "admin" ||
-        user?.user_type === "superadmin" ||
-        user?.user_type === "enterprise",
+      visible: isAdmin || user?.user_type === "enterprise",
     },
     {
       name: t("navigation.campaigns"),
@@ -123,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: "Funding Applications",
       path: "/admin/campaigns",
       icon: Target,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isAdmin,
     },
     // Messages
     {
@@ -133,36 +130,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       visible:
         user?.user_type === "investor" || user?.user_type === "enterprise",
     },
-    // Admin-only navigation
-    {
-      name: "Users",
-      path: "/admin/users",
-      icon: Users,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
-    },
+    // Admin-only navigation - enterprises visible to all admins
     {
       name: t("navigation.enterprises"),
       path: "/admin/enterprises",
       icon: Building2,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isAdmin,
+    },
+    // Superadmin-only navigation
+    {
+      name: "Users",
+      path: "/admin/users",
+      icon: Users,
+      visible: isSuperAdmin,
     },
     {
       name: "Funding Partners",
       path: "/admin/investors",
       icon: TrendingUp,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isSuperAdmin,
     },
     {
       name: "Profile Forms",
       path: "/admin/profile-forms",
       icon: FileText,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isSuperAdmin,
     },
     {
       name: "Services",
       path: "/admin/services",
       icon: Briefcase,
-      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
+      visible: isSuperAdmin,
     },
     // Profile - Personal information
     {
