@@ -64,13 +64,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       name: t("navigation.dashboard"),
       path: "/admin",
       icon: LayoutDashboard,
-      visible: user?.user_type == "admin" || user?.user_type === "superadmin",
+      visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },
     {
       name: t("navigation.dashboard"),
       path: "/dashboard",
       icon: LayoutDashboard,
-      visible: user?.user_type !== "investor",
+      visible: user?.user_type === "enterprise",
     },
     {
       name: t("navigation.dashboard"),
