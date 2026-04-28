@@ -174,7 +174,7 @@ const QuestionnaireForm: React.FC = () => {
     if (existingQuestionnaire && isEditMode) {
       setValue("title", existingQuestionnaire.title);
       setValue("description", existingQuestionnaire.description);
-      setValue("category", existingQuestionnaire.category?.id);
+      setValue("category", existingQuestionnaire.category);
       setValue("language", existingQuestionnaire.language);
       setValue("target_sectors", existingQuestionnaire.target_sectors || []);
       setValue(
