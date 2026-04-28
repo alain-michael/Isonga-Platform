@@ -1,26 +1,13 @@
 """
 URL configuration for isonga project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
+# Group all your app APIs together
+api_patterns = [
     path('accounts/', include('accounts.urls')),
     path('enterprises/', include('enterprises.urls')),
     path('assessments/', include('assessments.urls')),
@@ -29,6 +16,14 @@ urlpatterns = [
     path('investors/', include('investors.urls')),
     path('campaigns/', include('campaigns.urls')),
     path('core/', include('core.urls')),
+]
+
+urlpatterns = [
+    # Keep admin at the root level so /admin/ works
+    path('admin/', admin.site.urls),
+    
+    # Mount all the app URLs under the /api/ prefix
+    path('api/', include(api_patterns)),
 ]
 
 if settings.DEBUG:
