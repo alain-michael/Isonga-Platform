@@ -20,7 +20,7 @@ api_patterns = [
 
 urlpatterns = [
     # Keep admin at the root level so /admin/ works
-    path('admin/', admin.site.urls),
+    path('/api/admin/', admin.site.urls),
     
     # Mount all the app URLs under the /api/ prefix
     path('api/', include(api_patterns)),
