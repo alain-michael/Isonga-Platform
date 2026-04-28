@@ -60,6 +60,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const navItems = [
     // Dashboard - Always first
+        {
+      name: t("navigation.dashboard"),
+      path: "/admin",
+      icon: LayoutDashboard,
+      visible: user?.user_type == "admin" || user?.user_type === "superadmin",
+    },
     {
       name: t("navigation.dashboard"),
       path: "/dashboard",
