@@ -45,12 +45,17 @@ const AdminQuestionnaires: React.FC = () => {
       q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
-      !filterCategory || q.category?.name === filterCategory;
+      !filterCategory ||
+      (q.category?.name || q.category_name) === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
   const categories = Array.from(
-    new Set(questionnaires.map((q: any) => q.category?.name).filter(Boolean))
+    new Set(
+      questionnaires
+        .map((q: any) => q.category?.name || q.category_name)
+        .filter(Boolean),
+    ),
   );
 
   // Calculate stats
@@ -60,15 +65,15 @@ const AdminQuestionnaires: React.FC = () => {
     const draft = total - active;
     const totalQuestions = questionnaires.reduce(
       (sum: number, q: any) => sum + (q.question_count || 0),
-      0
+      0,
     );
     const avgTime =
       total > 0
         ? Math.round(
             questionnaires.reduce(
               (sum: number, q: any) => sum + (q.estimated_time_minutes || 0),
-              0
-            ) / total
+              0,
+            ) / total,
           )
         : 0;
 
@@ -78,7 +83,7 @@ const AdminQuestionnaires: React.FC = () => {
   const handleDelete = async (id: number, title: string) => {
     if (
       window.confirm(
-        `Are you sure you want to delete "${title}"? This action cannot be undone.`
+        `Are you sure you want to delete "${title}"? This action cannot be undone.`,
       )
     ) {
       try {
@@ -102,7 +107,7 @@ const AdminQuestionnaires: React.FC = () => {
       setDuplicating(true);
       // Fetch full questionnaire details with questions
       const response = await assessmentAPI.getQuestionnaire(
-        selectedQuestionnaire.id.toString()
+        selectedQuestionnaire.id.toString(),
       );
       const fullQuestionnaire = response.data;
 
@@ -137,9 +142,8 @@ const AdminQuestionnaires: React.FC = () => {
           })) || [],
       };
 
-      const createResponse = await assessmentAPI.createQuestionnaire(
-        translatedData
-      );
+      const createResponse =
+        await assessmentAPI.createQuestionnaire(translatedData);
 
       // Navigate to edit the new questionnaire for translation
       navigate(`/admin/questionnaires/create?edit=${createResponse.data.id}`);
@@ -389,13 +393,13 @@ const AdminQuestionnaires: React.FC = () => {
                       </span>
                       <span className="text-xl">
                         {LANGUAGES.find(
-                          (l) => l.code === questionnaire.language
+                          (l) => l.code === questionnaire.language,
                         )?.flag || "🌐"}
                       </span>
                       <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                         {
                           LANGUAGES.find(
-                            (l) => l.code === questionnaire.language
+                            (l) => l.code === questionnaire.language,
                           )?.name
                         }
                       </span>
@@ -473,12 +477,12 @@ const AdminQuestionnaires: React.FC = () => {
                                 className="text-lg"
                                 title={
                                   LANGUAGES.find(
-                                    (l) => l.code === questionnaire.language
+                                    (l) => l.code === questionnaire.language,
                                   )?.name
                                 }
                               >
                                 {LANGUAGES.find(
-                                  (l) => l.code === questionnaire.language
+                                  (l) => l.code === questionnaire.language,
                                 )?.flag || "🌐"}
                               </span>
                             </div>
@@ -490,7 +494,9 @@ const AdminQuestionnaires: React.FC = () => {
                         <td className="px-6 py-5">
                           <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
                             <BarChart3 className="w-3 h-3 mr-1" />
-                            {questionnaire.category?.name || "Uncategorized"}
+                            {questionnaire.category?.name ||
+                              questionnaire.category_name ||
+                              "Uncategorized"}
                           </span>
                         </td>
                         <td className="px-6 py-5 text-center">
@@ -532,7 +538,7 @@ const AdminQuestionnaires: React.FC = () => {
                                 setExpandedId(
                                   expandedId === questionnaire.id
                                     ? null
-                                    : questionnaire.id
+                                    : questionnaire.id,
                                 )
                               }
                               className="p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
@@ -564,7 +570,7 @@ const AdminQuestionnaires: React.FC = () => {
                               onClick={() =>
                                 handleDelete(
                                   questionnaire.id,
-                                  questionnaire.title
+                                  questionnaire.title,
                                 )
                               }
                               className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -600,7 +606,7 @@ const AdminQuestionnaires: React.FC = () => {
                                         >
                                           {sector}
                                         </span>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 </div>
@@ -649,12 +655,12 @@ const AdminQuestionnaires: React.FC = () => {
                     Current Language:{" "}
                     {
                       LANGUAGES.find(
-                        (l) => l.code === selectedQuestionnaire.language
+                        (l) => l.code === selectedQuestionnaire.language,
                       )?.flag
                     }{" "}
                     {
                       LANGUAGES.find(
-                        (l) => l.code === selectedQuestionnaire.language
+                        (l) => l.code === selectedQuestionnaire.language,
                       )?.name
                     }
                   </p>
@@ -667,7 +673,7 @@ const AdminQuestionnaires: React.FC = () => {
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {LANGUAGES.filter(
-                    (lang) => lang.code !== selectedQuestionnaire.language
+                    (lang) => lang.code !== selectedQuestionnaire.language,
                   ).map((lang) => (
                     <button
                       key={lang.code}

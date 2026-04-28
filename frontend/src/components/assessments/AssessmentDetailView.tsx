@@ -42,6 +42,7 @@ interface AssessmentDetail {
       id?: number;
       name: string;
     };
+    category_name?: string;
     estimated_time?: number;
     question_count?: number;
   };
@@ -503,7 +504,7 @@ const AssessmentDetailView: React.FC = () => {
               Category
             </p>
             <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-              {assessment.questionnaire.category?.name || "Uncategorized"}
+              {assessment.questionnaire.category?.name || assessment.questionnaire?.category_name || "Uncategorized"}
             </p>
           </div>
         </div>

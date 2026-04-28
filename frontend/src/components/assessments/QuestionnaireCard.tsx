@@ -11,6 +11,7 @@ interface QuestionnaireCardProps {
       id?: number;
       name: string;
     };
+    category_name?: string;
     estimated_time?: number;
     question_count?: number;
     is_active: boolean;
@@ -46,7 +47,7 @@ const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold rounded-full flex items-center gap-1.5">
               <Tag className="w-3 h-3" />
-              {questionnaire.category?.name || "Uncategorized"}
+              {questionnaire.category?.name || questionnaire?.category_name || "Uncategorized"}
             </span>
             {!questionnaire.is_active && (
               <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-bold rounded-full">
