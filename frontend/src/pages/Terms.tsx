@@ -1,10 +1,23 @@
 import { FC } from "react";
-import TopNav from "../components/TopNav";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const Terms: FC = () => {
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800">
-      <TopNav />
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <Link
+              to="/"
+              className="flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </nav>
       <main className="max-w-4xl mx-auto px-4 py-32 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold mb-6 text-neutral-900 dark:text-white">
           Terms of Service
