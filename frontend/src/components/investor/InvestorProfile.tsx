@@ -442,7 +442,7 @@ const InvestorProfile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                        Minimum Ticket Size (USD)
+                        Minimum Ticket Size (RWF)
                       </label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
@@ -461,7 +461,7 @@ const InvestorProfile: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                        Maximum Ticket Size (USD)
+                        Maximum Ticket Size (RWF)
                       </label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />

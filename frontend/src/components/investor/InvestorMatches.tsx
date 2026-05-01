@@ -285,7 +285,7 @@ const InvestorMatches: React.FC = () => {
                   Target Amount
                 </p>
                 <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                  ${campaign.target_amount?.toLocaleString() || "0"}
+                  {campaign.target_amount?.toLocaleString() || "0"} RWF
                 </p>
               </div>
               <div className="p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl">
@@ -293,7 +293,7 @@ const InvestorMatches: React.FC = () => {
                   Min Investment
                 </p>
                 <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                  ${campaign.min_investment?.toLocaleString() || "0"}
+                  {campaign.min_investment?.toLocaleString() || "0"} RWF
                 </p>
               </div>
             </div>

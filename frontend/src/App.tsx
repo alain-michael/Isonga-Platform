@@ -36,6 +36,9 @@ import AdminCampaigns from "./components/admin/AdminCampaigns";
 import AdminCampaignDetail from "./components/admin/AdminCampaignDetail";
 import NotFound from "./components/common/NotFound";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
 import {
   CampaignList,
   CreateCampaign,
@@ -110,6 +113,10 @@ const ProtectedLayout = () => {
 const AppContent: React.FC = () => {
   return (
     <Routes>
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/contact" element={<Contact />} />
+
       {/* Public Routes */}
       <Route
         path="/login"

@@ -323,7 +323,7 @@ const Login: React.FC = () => {
               <p className="text-sm text-neutral-500 mt-1">Businesses</p>
             </div>
             <div className="text-center border-x border-neutral-800">
-              <p className="text-3xl font-bold text-white">$2M+</p>
+              <p className="text-3xl font-bold text-white">2M+ RWF</p>
               <p className="text-sm text-neutral-500 mt-1">Funded</p>
             </div>
             <div className="text-center">

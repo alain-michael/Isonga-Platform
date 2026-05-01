@@ -230,7 +230,7 @@ const InvestorMatchDetail: React.FC = () => {
                   Target Amount
                 </p>
                 <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                  ${match.target_amount.toLocaleString()}
+                  {match.target_amount.toLocaleString()} RWF
                 </p>
               </div>
               <div>
@@ -238,7 +238,7 @@ const InvestorMatchDetail: React.FC = () => {
                   Min Investment
                 </p>
                 <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                  ${match.min_investment.toLocaleString()}
+                  {match.min_investment.toLocaleString()} RWF
                 </p>
               </div>
               <div>
@@ -246,7 +246,7 @@ const InvestorMatchDetail: React.FC = () => {
                   Raised So Far
                 </p>
                 <p className="text-xl font-bold text-success-600 dark:text-success-400">
-                  ${match.amount_raised.toLocaleString()}
+                  {match.amount_raised.toLocaleString()} RWF
                 </p>
               </div>
             </div>
@@ -568,7 +568,7 @@ const InvestorMatchDetail: React.FC = () => {
                       Pledge Committed
                     </p>
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      ${userMatch.committed_amount?.toLocaleString() || 0}
+                      {userMatch.committed_amount?.toLocaleString() || 0} RWF
                     </p>
                   </div>
                 </div>
@@ -672,12 +672,12 @@ const InvestorMatchDetail: React.FC = () => {
                     step="1000"
                     value={pledgeAmount}
                     onChange={(e) => setPledgeAmount(e.target.value)}
-                    placeholder={`Min: $${match.min_investment.toLocaleString()}`}
+                    placeholder={`Min: ${match.min_investment.toLocaleString()} RWF`}
                     className="w-full px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:outline-none focus:border-primary-500 dark:bg-neutral-700 dark:text-neutral-100"
                     required
                   />
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                    Minimum investment: ${match.min_investment.toLocaleString()}
+                    Minimum investment: {match.min_investment.toLocaleString()} RWF
                   </p>
                 </div>
 

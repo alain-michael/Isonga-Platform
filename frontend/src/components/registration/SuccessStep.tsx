@@ -267,7 +267,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
         </p>
         <div className="flex justify-center space-x-4 text-sm">
           <a
-            href="mailto:support@isonga.rw"
+            href="mailto:info@makhax.com"
             className="text-primary-600 hover:text-primary-700"
           >
             Email Support

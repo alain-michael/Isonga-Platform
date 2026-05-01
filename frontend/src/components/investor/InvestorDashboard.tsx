@@ -23,7 +23,7 @@ const InvestorDashboard: React.FC = () => {
     data: stats = {
       totalInvestments: 0,
       activeMatches: 0,
-      portfolioValue: "$0",
+      portfolioValue: "0 RWF",
       pendingRequests: 0,
     },
   } = useQuery({
@@ -170,7 +170,7 @@ const InvestorDashboard: React.FC = () => {
                     Seeking:
                   </span>
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                    ${match.target_amount.toLocaleString()}
+                    {match.target_amount.toLocaleString()} RWF
                   </span>
                 </div>
                 <button className="w-full mt-4 btn-secondary py-2 text-sm">
@@ -227,7 +227,7 @@ const InvestorDashboard: React.FC = () => {
                   Tech Startups Funding
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  $2.5M raised this month
+                  2.5M RWF raised this month
                 </p>
               </div>
             </div>

@@ -871,8 +871,8 @@ const Welcome: React.FC = () => {
           </div>
 
           <div className="text-center mt-16">
-            <a
-              href="mailto:info@isonga.rw"
+            <Link
+              to="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
             >
               {language === "en"
@@ -881,7 +881,7 @@ const Welcome: React.FC = () => {
                   ? "Injira Nk'Umufatanyabikorwa w'Imari"
                   : "Rejoindre en tant que Partenaire de Financement"}
               <ArrowRight className="w-5 h-5" />
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -985,7 +985,7 @@ const Welcome: React.FC = () => {
               </h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li>Kigali, Rwanda</li>
-                <li>info@isonga.rw</li>
+                <li>info@makhax.com</li>
                 <li>+250 788 000 000</li>
               </ul>
             </div>

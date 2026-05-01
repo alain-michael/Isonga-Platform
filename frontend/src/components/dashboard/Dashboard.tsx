@@ -252,7 +252,7 @@ const Dashboard: React.FC = () => {
                 Total Raised
               </p>
               <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
-                ${fundingStats.totalRaised.toLocaleString()}
+                {fundingStats.totalRaised.toLocaleString()} RWF
               </p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">

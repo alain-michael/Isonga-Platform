@@ -61,7 +61,7 @@ export interface MatchedCampaign {
 
 export const investorAPI = {
   getProfile: async () => {
-    const response = await api.get<InvestorProfile>('/investors/profiles/my-profile/');
+    const response = await api.get<InvestorProfile>('/investors/profiles/my_profile/');
     return response.data;
   },
   
