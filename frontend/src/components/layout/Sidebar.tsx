@@ -62,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     // Dashboard - Always first
         {
       name: t("navigation.dashboard"),
-      path: "/admin",
+      path: "/admin/dashboard",
       icon: LayoutDashboard,
       visible: user?.user_type === "admin" || user?.user_type === "superadmin",
     },

@@ -27,6 +27,9 @@ const Dashboard: React.FC = () => {
     if (user?.user_type === "investor") {
       navigate("/investor/dashboard");
     }
+    if (user?.user_type === "admin" || user?.user_type === "superadmin") {
+      navigate("/admin/dashboard");
+    }
   }, [user, navigate]);
 
   // Fetch enterprise profile if user is an enterprise

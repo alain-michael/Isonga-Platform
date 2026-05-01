@@ -186,7 +186,7 @@ const AppContent: React.FC = () => {
         <Route path="/messages" element={<Messages />} />
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/manage" element={<ManageAssessments />} />
         <Route path="/admin/assessments" element={<AdminAssessments />} />
         <Route

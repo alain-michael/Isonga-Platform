@@ -99,7 +99,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
             'activeMatches': active_matches,
             'pendingRequests': pending_requests,
             'totalInvestments': total_investments,
-            'portfolioValue': f"${portfolio_value:,}"
+            'portfolioValue': f"{portfolio_value:,} RWF"
         })
 
     @action(detail=True, methods=['get'])
