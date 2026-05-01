@@ -305,14 +305,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         assessment.completed_at = timezone.now()
         assessment.save()
         
-        # Generate AI-powered insights and recommendations
-        try:
-            self._generate_ai_insights(assessment)
-        except Exception as e:
-            # Log error but don't fail submission
-            print(f"Warning: Failed to generate AI insights: {str(e)}")
-            # Fall back to basic recommendations
-            self._generate_recommendations(assessment)
+        # Generate recommendations
+        self._generate_recommendations(assessment)
         
         return Response({'message': 'Assessment submitted successfully'})
     

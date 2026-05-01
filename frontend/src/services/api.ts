@@ -185,8 +185,8 @@ export const assessmentAPI = {
   generateInsights: (id: string) =>
     api.post(`/assessments/api/assessments/${id}/generate_insights/`),
   
-  updateInsights: (id: string, data: { ai_strengths?: string[], ai_weaknesses?: string[] }) =>
-    api.patch(`/assessments/api/assessments/${id}/update_insights/`, data),
+  // updateInsights: (id: string, data: { ai_strengths?: string[], ai_weaknesses?: string[] }) =>
+  //   api.patch(`/assessments/api/assessments/${id}/update_insights/`, data),
   
   saveResponse: (data: any) =>
     api.post('/assessments/api/responses/', data),

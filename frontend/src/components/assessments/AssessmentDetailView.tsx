@@ -69,9 +69,9 @@ interface AssessmentDetail {
   responses: AssessmentResponse[];
   category_scores: CategoryScore[];
   recommendations: Recommendation[];
-  ai_strengths: string[];
-  ai_weaknesses: string[];
-  ai_generated_at: string | null;
+  // ai_strengths: string[];
+  // ai_weaknesses: string[];
+  // ai_generated_at: string | null;
 }
 
 interface AssessmentResponse {
