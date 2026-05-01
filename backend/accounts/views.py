@@ -2,6 +2,11 @@ from rest_framework import viewsets, status, permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings as django_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -150,3 +155,69 @@ class UserViewSet(viewsets.ModelViewSet):
         user.set_password(new_password)
         user.save()
         return Response({'message': 'Password reset successfully'})
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny], url_path='forgot_password')
+    def forgot_password(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Always return success to avoid user enumeration
+        generic_response = Response({'message': 'If an account with that email exists, a password reset link has been sent.'})
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return generic_response
+
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173')
+        reset_url = f"{frontend_url}/reset-password?uid={uid}&token={token}"
+
+        subject = 'Reset your Isonga Platform password'
+        body = (
+            f"Hi {user.first_name or user.email},\n\n"
+            f"We received a request to reset your Isonga Platform password.\n\n"
+            f"Click the link below to set a new password:\n{reset_url}\n\n"
+            f"This link is valid for 24 hours. If you did not request a password reset, you can safely ignore this email.\n\n"
+            f"— The Isonga Team"
+        )
+
+        try:
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@isonga.rw'),
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        return generic_response
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny], url_path='reset_password_confirm')
+    def reset_password_confirm(self, request):
+        uid = request.data.get('uid', '')
+        token = request.data.get('token', '')
+        password = request.data.get('password', '')
+
+        if not uid or not token or not password:
+            return Response({'error': 'uid, token, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(password) < 8:
+            return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_pk = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_pk)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({'error': 'Invalid reset link'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({'error': 'This reset link is invalid or has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(password)
+        user.save()
+        return Response({'message': 'Password reset successfully. You can now log in with your new password.'})

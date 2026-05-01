@@ -51,9 +51,15 @@ export const authAPI = {
   
   getProfile: () =>
     api.get('/accounts/api/profile/'),
-  
+
   updateProfile: (data: any) =>
     api.put('/accounts/api/profile/', data),
+
+  forgotPassword: (email: string) =>
+    api.post('/accounts/api/users/forgot_password/', { email }),
+
+  resetPasswordConfirm: (uid: string, token: string, password: string) =>
+    api.post('/accounts/api/users/reset_password_confirm/', { uid, token, password }),
 };
 
 // Enterprise API

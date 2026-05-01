@@ -13,6 +13,8 @@ import { queryClient } from "./lib/react-query";
 import Welcome from "./components/Welcome";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import ForgotPassword from "./components/auth/ForgotPassword";
+import ResetPassword from "./components/auth/ResetPassword";
 import BusinessRegistrationFlow from "./components/registration/BusinessRegistrationFlow";
 import Dashboard from "./components/dashboard/Dashboard";
 import EnterpriseProfile from "./components/enterprise/EnterpriseProfile";
@@ -134,6 +136,15 @@ const AppContent: React.FC = () => {
           </PublicRoute>
         }
       />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Business Registration - Protected but no sidebar */}
       <Route

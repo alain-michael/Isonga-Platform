@@ -1,4 +1,5 @@
-import { FC, FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FC, FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
