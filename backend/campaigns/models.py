@@ -36,7 +36,7 @@ class Campaign(models.Model):
     
     # Funding goals
     target_amount = models.DecimalField(max_digits=15, decimal_places=2)
-    min_investment = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    min_investment = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
     max_investment = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     
     # Current progress
