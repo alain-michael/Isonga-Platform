@@ -13,6 +13,7 @@ import {
   Clock,
   DollarSign,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
