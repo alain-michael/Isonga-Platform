@@ -31,7 +31,7 @@ class Campaign(models.Model):
     
     # Campaign details
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     campaign_type = models.CharField(max_length=20, choices=CAMPAIGN_TYPES)
     
     # Funding goals

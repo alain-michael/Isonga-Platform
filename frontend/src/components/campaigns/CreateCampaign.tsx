@@ -25,7 +25,7 @@ import { applicationDocumentAPI as appDocAPI } from "../../services/api";
 // Form data interface
 interface CampaignFormData {
   title: string;
-  description: string;
+  description?: string;
   campaign_type: "equity" | "debt" | "grant" | "hybrid";
   target_amount: number;
   min_investment: number;
@@ -55,8 +55,7 @@ const campaignSchema = yup.object({
     .min(5, "Title must be at least 5 characters"),
   description: yup
     .string()
-    .required("Description is required")
-    .min(50, "Description must be at least 50 characters"),
+    .optional(),
   campaign_type: yup
     .string()
     .oneOf(["equity", "debt", "grant", "hybrid"] as const)
@@ -634,7 +633,7 @@ const CreateCampaign: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Application Description *
+                Application Description <span className="text-neutral-400 font-normal">Optional</span>
               </label>
               <textarea
                 {...register("description")}
@@ -647,9 +646,6 @@ const CreateCampaign: React.FC = () => {
                   {errors.description.message}
                 </p>
               )}
-              <p className="text-sm text-neutral-500 mt-1">
-                {watchedValues.description?.length || 0}/50 characters minimum
-              </p>
             </div>
           </div>
         );
