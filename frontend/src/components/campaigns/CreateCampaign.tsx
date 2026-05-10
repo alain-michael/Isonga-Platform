@@ -53,9 +53,7 @@ const campaignSchema = yup.object({
     .string()
     .required("Application title is required")
     .min(5, "Title must be at least 5 characters"),
-  description: yup
-    .string()
-    .optional(),
+  description: yup.string().optional(),
   campaign_type: yup
     .string()
     .oneOf(["equity", "debt", "grant", "hybrid"] as const)
@@ -70,7 +68,9 @@ const campaignSchema = yup.object({
     .optional()
     .min(0, "Minimum investment must be positive")
     .transform((value, originalValue) =>
-      originalValue === "" || originalValue === null || originalValue === undefined
+      originalValue === "" ||
+      originalValue === null ||
+      originalValue === undefined
         ? null
         : value,
     ),
@@ -633,7 +633,8 @@ const CreateCampaign: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Application Description <span className="text-neutral-400 font-normal">Optional</span>
+                Application Description{" "}
+                <span className="text-neutral-400 font-normal">Optional</span>
               </label>
               <textarea
                 {...register("description")}
@@ -679,7 +680,8 @@ const CreateCampaign: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Minimum Investment (RWF) <span className="text-neutral-400 font-normal">Optional</span>
+                  Minimum Investment (RWF){" "}
+                  <span className="text-neutral-400 font-normal">Optional</span>
                 </label>
                 <input
                   type="number"

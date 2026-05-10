@@ -19,7 +19,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle token expiration
+// Handle token expiration and backend errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -28,6 +28,45 @@ api.interceptors.response.use(
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
       window.location.href = '/login';
+    } else if (error.response?.data) {
+      // Map Django backend validation errors to the standard error.message
+      const data = error.response.data;
+      let errorMsg = '';
+      
+      if (typeof data === 'string') {
+        // Sometimes 404s/500s return plain HTML/text
+        if (data.length < 200 && !data.startsWith('<')) {
+          errorMsg = data;
+        }
+      } else if (data.detail) {
+        errorMsg = data.detail;
+      } else if (data.error) {
+        errorMsg = data.error;
+      } else if (data.non_field_errors) {
+        errorMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+      } else if (typeof data === 'object') {
+        // Collect field-specific errors
+        const messages: string[] = [];
+        Object.entries(data).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            messages.push(`${key}: ${value[0]}`);
+          } else if (typeof value === 'string') {
+            messages.push(`${key}: ${value}`);
+          }
+        });
+        if (messages.length > 0) {
+          errorMsg = messages.join('\n');
+        }
+      }
+
+      if (errorMsg) {
+        error.message = errorMsg;
+      } else {
+        error.message = `An unexpected error occurred (Status: ${error.response.status}). Please try again.`;
+      }
+    } else if (!error.response) {
+      // Network errors or cases where there is no response from the backend
+      error.message = 'Network error. Please check your connection and try again.';
     }
     return Promise.reject(error);
   }
