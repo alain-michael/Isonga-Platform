@@ -122,7 +122,9 @@ export default function PartnerCriteriaSettings() {
     if (profile?.criteria && profile.criteria.length > 0) {
       // Use the most recently updated criteria entry
       const sorted = [...profile.criteria].sort(
-        (a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
+        (a, b) =>
+          new Date(b.updated_at || b.created_at).getTime() -
+          new Date(a.updated_at || a.created_at).getTime(),
       );
       const criteria = sorted[0];
       setFormData({
@@ -130,7 +132,9 @@ export default function PartnerCriteriaSettings() {
         min_funding_amount: Number(criteria.min_funding_amount) || 0,
         max_funding_amount: Number(criteria.max_funding_amount) || 0,
         min_readiness_score: Number(criteria.min_readiness_score) || 0,
-        auto_reject_below_score: criteria.auto_reject_below_score ? Number(criteria.auto_reject_below_score) : null,
+        auto_reject_below_score: criteria.auto_reject_below_score
+          ? Number(criteria.auto_reject_below_score)
+          : null,
         preferred_revenue_range: criteria.preferred_revenue_range || {
           min: null,
           max: null,
@@ -244,10 +248,10 @@ export default function PartnerCriteriaSettings() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Success Banner */}
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      {/* Success Banner / Toast */}
       {showSuccess && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3">
+        <div className="fixed bottom-6 right-6 z-50 p-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800 shadow-lg rounded-xl flex items-center gap-3 animate-bounce shadow-green-500/20">
           <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
           <span className="text-green-800 dark:text-green-200 font-medium">
             Investment criteria updated successfully!
@@ -487,7 +491,10 @@ export default function PartnerCriteriaSettings() {
           {formData.sectors.length === 0 && (
             <div className="mt-3 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
               <AlertCircle className="h-4 w-4" />
-              <span>No sector selected — applications from all sectors will be considered</span>
+              <span>
+                No sector selected — applications from all sectors will be
+                considered
+              </span>
             </div>
           )}
         </div>
