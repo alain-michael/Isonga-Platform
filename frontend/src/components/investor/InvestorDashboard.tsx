@@ -13,6 +13,7 @@ import {
   Briefcase,
   DollarSign,
   Target,
+  Banknote,
 } from "lucide-react";
 
 const InvestorDashboard: React.FC = () => {
@@ -84,7 +85,7 @@ const InvestorDashboard: React.FC = () => {
         <div className="glass-effect rounded-2xl p-6 card-hover glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <div className="p-3 bg-gradient-to-br from-success-500 to-success-600 rounded-xl shadow-lg">
-              <DollarSign className="h-6 w-6 text-white" />
+              <Banknote className="h-6 w-6 text-white" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">

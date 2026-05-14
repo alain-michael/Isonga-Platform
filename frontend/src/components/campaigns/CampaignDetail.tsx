@@ -161,12 +161,13 @@ const CampaignDetail: React.FC = () => {
   });
 
   // Fetch all CampaignInterest records for this campaign (enterprise side)
-  const { data: campaignInterestsResponse, isLoading: interestsLoading } = useQuery({
-    queryKey: ["campaignInterests", id],
-    queryFn: () => campaignInterestsAPI.getAll(id!),
-    enabled: !isInvestor && !!id,
-    refetchInterval: 15000,
-  });
+  const { data: campaignInterestsResponse, isLoading: interestsLoading } =
+    useQuery({
+      queryKey: ["campaignInterests", id],
+      queryFn: () => campaignInterestsAPI.getAll(id!),
+      enabled: !isInvestor && !!id,
+      refetchInterval: 15000,
+    });
   const campaignInterests: any[] = (() => {
     const d = campaignInterestsResponse?.data;
     if (!d) return [];
@@ -175,8 +176,13 @@ const CampaignDetail: React.FC = () => {
 
   // Accept a pledge (enterprise)
   const acceptPledgeMutation = useMutation({
-    mutationFn: ({ interestId, notes }: { interestId: string; notes?: string }) =>
-      campaignInterestsAPI.enterpriseAccept(interestId, notes),
+    mutationFn: ({
+      interestId,
+      notes,
+    }: {
+      interestId: string;
+      notes?: string;
+    }) => campaignInterestsAPI.enterpriseAccept(interestId, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaignInterests", id] });
       queryClient.invalidateQueries({ queryKey: ["campaign", id] });
@@ -185,14 +191,21 @@ const CampaignDetail: React.FC = () => {
 
   // Decline a pledge (enterprise)
   const declinePledgeMutation = useMutation({
-    mutationFn: ({ interestId, notes }: { interestId: string; notes?: string }) =>
-      campaignInterestsAPI.enterpriseDecline(interestId, notes),
+    mutationFn: ({
+      interestId,
+      notes,
+    }: {
+      interestId: string;
+      notes?: string;
+    }) => campaignInterestsAPI.enterpriseDecline(interestId, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaignInterests", id] });
     },
   });
 
-  const [openMessageThreadId, setOpenMessageThreadId] = useState<string | null>(null);
+  const [openMessageThreadId, setOpenMessageThreadId] = useState<string | null>(
+    null,
+  );
 
   // Fetch matches for this enterprise
   const { data: matchesResponse, isLoading: matchesLoading } = useQuery({
@@ -300,9 +313,10 @@ const CampaignDetail: React.FC = () => {
   const interestedInvestors = Array.isArray(matches)
     ? matches.filter(
         (m: any) =>
-          m.status === "approved" ||
-          m.status === "engaged" ||
-          m.status === "completed",
+          (m.status === "approved" ||
+            m.status === "engaged" ||
+            m.status === "completed") &&
+          String(m.campaign) === String(id),
       )
     : [];
 

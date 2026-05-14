@@ -454,7 +454,23 @@ class CampaignInterestViewSet(viewsets.ModelViewSet):
         # Increment campaign amount raised
         campaign = interest.campaign
         campaign.amount_raised = (campaign.amount_raised or 0) + (interest.committed_amount or 0)
-        campaign.save(update_fields=['amount_raised'])
+        
+        # Check if the campaign target amount has been met
+        if campaign.amount_raised >= campaign.target_amount:
+            campaign.status = 'completed'
+            campaign.save(update_fields=['amount_raised', 'status'])
+        else:
+            campaign.save(update_fields=['amount_raised'])
+
+        # Update Match status to completed if available
+        try:
+            from investors.models import Match
+            matches = Match.objects.filter(campaign=campaign, investor=interest.investor)
+            for match in matches:
+                match.status = 'completed'
+                match.save(update_fields=['status'])
+        except Exception:
+            pass
 
         return Response({'message': 'Pledge accepted successfully'})
 

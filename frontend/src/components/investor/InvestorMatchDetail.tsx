@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { investorAPI } from "../../services/investor";
-import { campaignDocumentsAPI } from "../../services/campaignsService";
+import {
+  campaignDocumentsAPI,
+  campaignInterestsAPI,
+} from "../../services/campaignsService";
 import api from "../../services/api";
 import {
   Building2,
@@ -70,62 +73,71 @@ const InvestorMatchDetail: React.FC = () => {
       ? campaign.documents
       : documentsResponse?.data?.results || [];
 
-  // Fetch user's match for this campaign
-  const { data: matchResponse } = useQuery({
-    queryKey: ["userMatch", id],
-    queryFn: () => investorAPI.getUserMatch(id!),
+  // Fetch user's interest for this campaign
+  const { data: interestsResponse } = useQuery({
+    queryKey: ["userCampaignInterest", id],
+    queryFn: () => campaignInterestsAPI.getAll(id!),
     enabled: !!id,
   });
 
-  // Set user match if exists
+  // Set user interest (match) if exists
   React.useEffect(() => {
-    if (matchResponse) {
-      setUserMatch(matchResponse);
+    if (interestsResponse?.data) {
+      const interests = Array.isArray(interestsResponse.data)
+        ? interestsResponse.data
+        : (interestsResponse.data as any).results || [];
+      const myInterest = interests.find(
+        (i: any) => String(i.campaign) === String(id),
+      );
+      setUserMatch(myInterest || null);
     }
-  }, [matchResponse]);
+  }, [interestsResponse, id]);
 
-  // Express interest mutation (creates/approves match)
+  // Express interest mutation (creates CampaignInterest)
   const expressInterestMutation = useMutation({
     mutationFn: async () => {
-      return await investorAPI.interactWithMatch(id!, "approve");
+      return await campaignInterestsAPI.create({
+        campaign: id!,
+        status: "interested",
+      } as any);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
-      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["userCampaignInterest", id] });
+      queryClient.invalidateQueries({ queryKey: ["targetedCampaigns"] });
       queryClient.invalidateQueries({ queryKey: ["investorStats"] });
     },
   });
 
   // Withdraw interest mutation
   const withdrawInterestMutation = useMutation({
-    mutationFn: async (matchId: string) => {
-      return await investorAPI.withdrawMatch(matchId);
+    mutationFn: async (interestId: string) => {
+      return await campaignInterestsAPI.withdraw(interestId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
-      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["userCampaignInterest", id] });
+      queryClient.invalidateQueries({ queryKey: ["targetedCampaigns"] });
       queryClient.invalidateQueries({ queryKey: ["investorStats"] });
     },
   });
 
   // Pledge mutation
   const pledgeMutation = useMutation({
-    mutationFn: async (data: { matchId: string; amount: number }) => {
-      return await investorAPI.commitToMatch(data.matchId, data.amount);
+    mutationFn: async (data: { interestId: string; amount: number }) => {
+      return await campaignInterestsAPI.pledge(data.interestId, data.amount);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userMatch", id] });
-      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["userCampaignInterest", id] });
+      queryClient.invalidateQueries({ queryKey: ["targetedCampaigns"] });
       setShowPledgeModal(false);
       setPledgeAmount("");
     },
   });
 
-  // Reject/Pass mutation
+  // Reject/Pass mutation - for now we still use investorAPI.interactWithMatch if we want to explicitly reject an opportunity, or we can just redirect back
   const rejectMutation = useMutation({
     mutationFn: () => investorAPI.interactWithMatch(id!, "reject"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["investorMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["targetedCampaigns"] });
       queryClient.invalidateQueries({ queryKey: ["investorStats"] });
       navigate("/investor/matches");
     },
@@ -655,7 +667,7 @@ const InvestorMatchDetail: React.FC = () => {
                 e.preventDefault();
                 if (userMatch && pledgeAmount) {
                   pledgeMutation.mutate({
-                    matchId: userMatch.id,
+                    interestId: userMatch.id,
                     amount: parseFloat(pledgeAmount),
                   });
                 }
@@ -677,7 +689,8 @@ const InvestorMatchDetail: React.FC = () => {
                     required
                   />
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                    Minimum investment: {match.min_investment.toLocaleString()} RWF
+                    Minimum investment: {match.min_investment.toLocaleString()}{" "}
+                    RWF
                   </p>
                 </div>
 
