@@ -26,8 +26,7 @@ const InvestorProfile: React.FC = () => {
   });
 
   const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
+    partnerName: "",
     email: "",
     phone: "",
     organization: "",
@@ -48,8 +47,11 @@ const InvestorProfile: React.FC = () => {
   useEffect(() => {
     if (profile) {
       setProfileData({
-        firstName: profile.user.first_name,
-        lastName: profile.user.last_name,
+        partnerName:
+          profile.partner_name ||
+          profile.organization_name ||
+          profile.user.first_name ||
+          "",
         email: profile.contact_email || profile.user.email,
         phone: profile.contact_phone || "",
         organization: profile.organization_name || "",
@@ -76,6 +78,7 @@ const InvestorProfile: React.FC = () => {
     mutationFn: (data: any) => {
       if (!profile) return Promise.reject("No profile");
       return investorAPI.updateProfile(profile.id, {
+        partner_name: data.partnerName,
         organization_name: data.organization,
         description: data.bio,
         contact_email: data.email,
@@ -229,8 +232,9 @@ const InvestorProfile: React.FC = () => {
 
                 <div className="flex items-center gap-6 mb-8">
                   <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                    {profileData.firstName.charAt(0)}
-                    {profileData.lastName.charAt(0)}
+                    {profileData.partnerName?.charAt(0) ||
+                      profileData.organization?.charAt(0) ||
+                      "U"}
                   </div>
                   <div>
                     <button className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
@@ -245,29 +249,14 @@ const InvestorProfile: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                      First Name
+                      Partner Name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
                       <input
                         type="text"
-                        name="firstName"
-                        value={profileData.firstName}
-                        onChange={handleProfileChange}
-                        className="w-full pl-10 pr-4 py-2.5 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                      Last Name
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={profileData.lastName}
+                        name="partnerName"
+                        value={profileData.partnerName}
                         onChange={handleProfileChange}
                         className="w-full pl-10 pr-4 py-2.5 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:border-primary-500 focus:outline-none dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
                       />

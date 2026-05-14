@@ -16,6 +16,8 @@ import {
   X,
   Info,
   Users,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useCreateCampaign } from "../../hooks/useCampaigns";
 import api from "../../services/api";
@@ -135,6 +137,10 @@ const CreateCampaign: React.FC = () => {
   >([]);
   const [criteriaChecks, setCriteriaChecks] = useState<CriteriaCheck[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedFormId, setExpandedFormId] = useState<number | null>(null);
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({});
 
   const createCampaignMutation = useCreateCampaign();
 
@@ -292,6 +298,12 @@ const CreateCampaign: React.FC = () => {
 
   const partnerForms = partnerFormsQuery.data || [];
 
+  React.useEffect(() => {
+    if (partnerForms.length === 1 && expandedFormId === null) {
+      setExpandedFormId(partnerForms[0].id);
+    }
+  }, [partnerForms, expandedFormId]);
+
   // Check criteria against selected partners
   const checkCriteria = () => {
     const checks: CriteriaCheck[] = selectedPartners.map((partnerId) => {
@@ -371,6 +383,7 @@ const CreateCampaign: React.FC = () => {
 
   const onSubmit = async (data: CampaignFormData) => {
     // Check if any selected partners have failing criteria
+    if (currentStep !== STEPS.length) return; // Prevent accidental auto-submit
     const failingCriteria = criteriaChecks.filter((check) => !check.passed);
 
     if (failingCriteria.length > 0) {
@@ -997,224 +1010,286 @@ const CreateCampaign: React.FC = () => {
                         r.partnerId === form.partner && r.formId === form.id,
                     );
 
+                    const isExpanded = expandedFormId === form.id;
                     return (
                       <div
                         key={form.id}
-                        className="border-2 border-neutral-200 rounded-xl p-6"
+                        className="border-2 border-neutral-200 rounded-xl overflow-hidden"
                       >
-                        <div className="mb-6">
-                          <h3 className="font-medium text-neutral-900">
-                            {partner?.organization_name || form.partner_name}
-                          </h3>
-                          <p className="text-sm text-neutral-600 mt-1">
-                            {form.name}
-                          </p>
-                          {form.description && (
-                            <p className="text-sm text-neutral-500 mt-1">
-                              {form.description}
+                        <div
+                          className="p-6 cursor-pointer bg-white hover:bg-neutral-50 flex items-center justify-between transition-colors"
+                          onClick={() =>
+                            setExpandedFormId(isExpanded ? null : form.id)
+                          }
+                        >
+                          <div>
+                            <h3 className="font-medium text-neutral-900">
+                              {partner?.organization_name || form.partner_name}
+                            </h3>
+                            <p className="text-sm text-neutral-600 mt-1">
+                              {form.name}
                             </p>
-                          )}
+                          </div>
+                          <div className="flex items-center gap-4">
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-neutral-400" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-neutral-400" />
+                            )}
+                          </div>
                         </div>
 
                         {/* Render sections with their fields */}
-                        <div className="space-y-6">
-                          {form.sections &&
-                            form.sections.map((section: any) => (
-                              <div key={section.id} className="space-y-4">
-                                <div className="border-b border-neutral-200 pb-2">
-                                  <h4 className="font-medium text-neutral-800">
-                                    {section.title}
-                                  </h4>
-                                  {section.description && (
-                                    <p className="text-xs text-neutral-500 mt-1">
-                                      {section.description}
-                                    </p>
-                                  )}
-                                </div>
-
-                                {section.fields &&
-                                  section.fields.map((field: any) => {
-                                    const fieldKey = `field_${field.id}`;
-                                    return (
-                                      <div key={field.id}>
-                                        <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                          {field.label}
-                                          {field.is_required && (
-                                            <span className="text-red-500 ml-1">
-                                              *
-                                            </span>
-                                          )}
-                                        </label>
-
-                                        {field.field_type === "text" && (
-                                          <input
-                                            type="text"
-                                            value={
-                                              existingResponse?.responses?.[
-                                                fieldKey
-                                              ] || ""
-                                            }
-                                            onChange={(e) => {
-                                              const updatedResponses =
-                                                partnerFormResponses.filter(
-                                                  (r) =>
-                                                    !(
-                                                      r.partnerId ===
-                                                        form.partner &&
-                                                      r.formId === form.id
-                                                    ),
-                                                );
-                                              setPartnerFormResponses([
-                                                ...updatedResponses,
-                                                {
-                                                  partnerId: form.partner,
-                                                  formId: form.id,
-                                                  responses: {
-                                                    ...(existingResponse?.responses ||
-                                                      {}),
-                                                    [fieldKey]: e.target.value,
-                                                  },
-                                                },
-                                              ]);
-                                            }}
-                                            className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
-                                            placeholder={field.help_text || ""}
-                                          />
-                                        )}
-
-                                        {field.field_type === "textarea" && (
-                                          <textarea
-                                            value={
-                                              existingResponse?.responses?.[
-                                                fieldKey
-                                              ] || ""
-                                            }
-                                            onChange={(e) => {
-                                              const updatedResponses =
-                                                partnerFormResponses.filter(
-                                                  (r) =>
-                                                    !(
-                                                      r.partnerId ===
-                                                        form.partner &&
-                                                      r.formId === form.id
-                                                    ),
-                                                );
-                                              setPartnerFormResponses([
-                                                ...updatedResponses,
-                                                {
-                                                  partnerId: form.partner,
-                                                  formId: form.id,
-                                                  responses: {
-                                                    ...(existingResponse?.responses ||
-                                                      {}),
-                                                    [fieldKey]: e.target.value,
-                                                  },
-                                                },
-                                              ]);
-                                            }}
-                                            rows={4}
-                                            className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition resize-none"
-                                            placeholder={field.help_text || ""}
-                                          />
-                                        )}
-
-                                        {field.field_type === "number" && (
-                                          <input
-                                            type="number"
-                                            value={
-                                              existingResponse?.responses?.[
-                                                fieldKey
-                                              ] || ""
-                                            }
-                                            onChange={(e) => {
-                                              const updatedResponses =
-                                                partnerFormResponses.filter(
-                                                  (r) =>
-                                                    !(
-                                                      r.partnerId ===
-                                                        form.partner &&
-                                                      r.formId === form.id
-                                                    ),
-                                                );
-                                              setPartnerFormResponses([
-                                                ...updatedResponses,
-                                                {
-                                                  partnerId: form.partner,
-                                                  formId: form.id,
-                                                  responses: {
-                                                    ...(existingResponse?.responses ||
-                                                      {}),
-                                                    [fieldKey]: e.target.value,
-                                                  },
-                                                },
-                                              ]);
-                                            }}
-                                            min={field.min_value || undefined}
-                                            max={field.max_value || undefined}
-                                            className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
-                                            placeholder={field.help_text || ""}
-                                          />
-                                        )}
-
-                                        {field.field_type === "select" && (
-                                          <select
-                                            value={
-                                              existingResponse?.responses?.[
-                                                fieldKey
-                                              ] || ""
-                                            }
-                                            onChange={(e) => {
-                                              const updatedResponses =
-                                                partnerFormResponses.filter(
-                                                  (r) =>
-                                                    !(
-                                                      r.partnerId ===
-                                                        form.partner &&
-                                                      r.formId === form.id
-                                                    ),
-                                                );
-                                              setPartnerFormResponses([
-                                                ...updatedResponses,
-                                                {
-                                                  partnerId: form.partner,
-                                                  formId: form.id,
-                                                  responses: {
-                                                    ...(existingResponse?.responses ||
-                                                      {}),
-                                                    [fieldKey]: e.target.value,
-                                                  },
-                                                },
-                                              ]);
-                                            }}
-                                            className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
-                                          >
-                                            <option value="">
-                                              Select an option
-                                            </option>
-                                            {field.choices?.map(
-                                              (choice: string) => (
-                                                <option
-                                                  key={choice}
-                                                  value={choice}
-                                                >
-                                                  {choice}
-                                                </option>
-                                              ),
-                                            )}
-                                          </select>
-                                        )}
-
-                                        {field.help_text && (
+                        {isExpanded && (
+                          <div className="p-6 border-t border-neutral-200 bg-neutral-50 space-y-6">
+                            {form.description && (
+                              <p className="text-sm text-neutral-600">
+                                {form.description}
+                              </p>
+                            )}
+                            {form.sections &&
+                              form.sections.map((section: any) => {
+                                const sectionKey = `${form.id}-${section.id}`;
+                                const isSectionExpanded =
+                                  expandedSections[sectionKey];
+                                return (
+                                  <div
+                                    key={section.id}
+                                    className="space-y-4 border border-neutral-200 rounded-xl overflow-hidden bg-white"
+                                  >
+                                    <div
+                                      className="p-4 cursor-pointer hover:bg-neutral-50 flex items-center justify-between border-b border-neutral-200"
+                                      onClick={() =>
+                                        setExpandedSections((prev) => ({
+                                          ...prev,
+                                          [sectionKey]: !prev[sectionKey],
+                                        }))
+                                      }
+                                    >
+                                      <div>
+                                        <h4 className="font-medium text-neutral-800">
+                                          {section.title}
+                                        </h4>
+                                        {section.description && (
                                           <p className="text-xs text-neutral-500 mt-1">
-                                            {field.help_text}
+                                            {section.description}
                                           </p>
                                         )}
                                       </div>
-                                    );
-                                  })}
-                              </div>
-                            ))}
-                        </div>
+                                      <div>
+                                        {isSectionExpanded ? (
+                                          <ChevronUp className="h-4 w-4 text-neutral-400" />
+                                        ) : (
+                                          <ChevronDown className="h-4 w-4 text-neutral-400" />
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {isSectionExpanded && section.fields && (
+                                      <div className="p-4 space-y-6">
+                                        {section.fields.map((field: any) => {
+                                          const fieldKey = `field_${field.id}`;
+                                          return (
+                                            <div key={field.id}>
+                                              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                                {field.label}
+                                                {field.is_required && (
+                                                  <span className="text-red-500 ml-1">
+                                                    *
+                                                  </span>
+                                                )}
+                                              </label>
+
+                                              {field.field_type === "text" && (
+                                                <input
+                                                  type="text"
+                                                  value={
+                                                    existingResponse
+                                                      ?.responses?.[fieldKey] ||
+                                                    ""
+                                                  }
+                                                  onChange={(e) => {
+                                                    const updatedResponses =
+                                                      partnerFormResponses.filter(
+                                                        (r) =>
+                                                          !(
+                                                            r.partnerId ===
+                                                              form.partner &&
+                                                            r.formId === form.id
+                                                          ),
+                                                      );
+                                                    setPartnerFormResponses([
+                                                      ...updatedResponses,
+                                                      {
+                                                        partnerId: form.partner,
+                                                        formId: form.id,
+                                                        responses: {
+                                                          ...(existingResponse?.responses ||
+                                                            {}),
+                                                          [fieldKey]:
+                                                            e.target.value,
+                                                        },
+                                                      },
+                                                    ]);
+                                                  }}
+                                                  className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
+                                                  placeholder={
+                                                    field.help_text || ""
+                                                  }
+                                                />
+                                              )}
+
+                                              {field.field_type ===
+                                                "textarea" && (
+                                                <textarea
+                                                  value={
+                                                    existingResponse
+                                                      ?.responses?.[fieldKey] ||
+                                                    ""
+                                                  }
+                                                  onChange={(e) => {
+                                                    const updatedResponses =
+                                                      partnerFormResponses.filter(
+                                                        (r) =>
+                                                          !(
+                                                            r.partnerId ===
+                                                              form.partner &&
+                                                            r.formId === form.id
+                                                          ),
+                                                      );
+                                                    setPartnerFormResponses([
+                                                      ...updatedResponses,
+                                                      {
+                                                        partnerId: form.partner,
+                                                        formId: form.id,
+                                                        responses: {
+                                                          ...(existingResponse?.responses ||
+                                                            {}),
+                                                          [fieldKey]:
+                                                            e.target.value,
+                                                        },
+                                                      },
+                                                    ]);
+                                                  }}
+                                                  rows={4}
+                                                  className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition resize-none"
+                                                  placeholder={
+                                                    field.help_text || ""
+                                                  }
+                                                />
+                                              )}
+
+                                              {field.field_type ===
+                                                "number" && (
+                                                <input
+                                                  type="number"
+                                                  value={
+                                                    existingResponse
+                                                      ?.responses?.[fieldKey] ||
+                                                    ""
+                                                  }
+                                                  onChange={(e) => {
+                                                    const updatedResponses =
+                                                      partnerFormResponses.filter(
+                                                        (r) =>
+                                                          !(
+                                                            r.partnerId ===
+                                                              form.partner &&
+                                                            r.formId === form.id
+                                                          ),
+                                                      );
+                                                    setPartnerFormResponses([
+                                                      ...updatedResponses,
+                                                      {
+                                                        partnerId: form.partner,
+                                                        formId: form.id,
+                                                        responses: {
+                                                          ...(existingResponse?.responses ||
+                                                            {}),
+                                                          [fieldKey]:
+                                                            e.target.value,
+                                                        },
+                                                      },
+                                                    ]);
+                                                  }}
+                                                  min={
+                                                    field.min_value || undefined
+                                                  }
+                                                  max={
+                                                    field.max_value || undefined
+                                                  }
+                                                  className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
+                                                  placeholder={
+                                                    field.help_text || ""
+                                                  }
+                                                />
+                                              )}
+
+                                              {field.field_type ===
+                                                "select" && (
+                                                <select
+                                                  value={
+                                                    existingResponse
+                                                      ?.responses?.[fieldKey] ||
+                                                    ""
+                                                  }
+                                                  onChange={(e) => {
+                                                    const updatedResponses =
+                                                      partnerFormResponses.filter(
+                                                        (r) =>
+                                                          !(
+                                                            r.partnerId ===
+                                                              form.partner &&
+                                                            r.formId === form.id
+                                                          ),
+                                                      );
+                                                    setPartnerFormResponses([
+                                                      ...updatedResponses,
+                                                      {
+                                                        partnerId: form.partner,
+                                                        formId: form.id,
+                                                        responses: {
+                                                          ...(existingResponse?.responses ||
+                                                            {}),
+                                                          [fieldKey]:
+                                                            e.target.value,
+                                                        },
+                                                      },
+                                                    ]);
+                                                  }}
+                                                  className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
+                                                >
+                                                  <option value="">
+                                                    Select an option
+                                                  </option>
+                                                  {field.choices?.map(
+                                                    (choice: string) => (
+                                                      <option
+                                                        key={choice}
+                                                        value={choice}
+                                                      >
+                                                        {choice}
+                                                      </option>
+                                                    ),
+                                                  )}
+                                                </select>
+                                              )}
+
+                                              {field.help_text && (
+                                                <p className="text-xs text-neutral-500 mt-1">
+                                                  {field.help_text}
+                                                </p>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
