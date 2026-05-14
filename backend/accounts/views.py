@@ -86,6 +86,21 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    def check_unique(self, request):
+        email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
+        
+        errors = {}
+        if email and User.objects.filter(email=email).exists():
+            errors['email'] = 'This email is already in use.'
+        if phone_number and User.objects.filter(phone_number=phone_number).exists():
+            errors['phone_number'] = 'This phone number is already in use.'
+            
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Ok'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def login(self, request):
         identifier = request.data.get('phone_number') or request.data.get('email')
         password = request.data.get('password')

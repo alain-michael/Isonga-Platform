@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, User, Building2 } from "lucide-react";
-import { investorAPI } from "../../services/api";
+import { investorAPI, authAPI } from "../../services/api";
 
 interface InvestorOnboardingModalProps {
   isOpen: boolean;
@@ -39,6 +39,38 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
     >,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleNextStep = async () => {
+    // Basic validation for Step 1
+    if (
+      !formData.partner_name ||
+      !formData.phone_number ||
+      !formData.email ||
+      !formData.password ||
+      formData.password.length < 8
+    ) {
+      setError(
+        "Please fill out all required fields and ensure password is at least 8 characters.",
+      );
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      await authAPI.checkUnique({
+        email: formData.email,
+        phone_number: formData.phone_number,
+      });
+      setStep(2);
+    } catch (err: any) {
+      console.error("Error checking unique user info:", err);
+      // Our api interceptor formats error.message cleanly
+      setError(err.message || "Email or phone number is already registered.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -338,10 +370,11 @@ const InvestorOnboardingModal: React.FC<InvestorOnboardingModalProps> = ({
             {step === 1 ? (
               <button
                 type="button"
-                onClick={() => setStep(2)}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+                onClick={handleNextStep}
+                disabled={loading}
+                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {loading ? "Checking..." : "Next"}
               </button>
             ) : (
               <button

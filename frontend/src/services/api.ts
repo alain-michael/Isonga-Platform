@@ -80,6 +80,9 @@ export const authAPI = {
   register: (userData: any) =>
     api.post('/accounts/api/users/register/', userData),
   
+  checkUnique: (data: { email?: string; phone_number?: string }) =>
+    api.post('/accounts/api/users/check_unique/', data),
+  
   logout: () =>
     api.post('/accounts/api/logout/'),
   
