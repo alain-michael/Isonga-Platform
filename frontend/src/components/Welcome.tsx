@@ -986,7 +986,7 @@ const Welcome: React.FC = () => {
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li>Kigali, Rwanda</li>
                 <li>info@makhax.com</li>
-                <li>+250 788 000 000</li>
+                {/* <li>+250 788 000 000</li> */}
               </ul>
             </div>
           </div>
