@@ -171,7 +171,8 @@ const CampaignDetail: React.FC = () => {
   const campaignInterests: any[] = (() => {
     const d = campaignInterestsResponse?.data;
     if (!d) return [];
-    return Array.isArray(d) ? d : (d as any).results || [];
+    const all = Array.isArray(d) ? d : (d as any).results || [];
+    return all.filter((i: any) => String(i.campaign) === String(id));
   })();
 
   // Accept a pledge (enterprise)

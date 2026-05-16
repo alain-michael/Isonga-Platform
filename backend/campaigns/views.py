@@ -454,9 +454,19 @@ class CampaignInterestViewSet(viewsets.ModelViewSet):
         # Increment campaign amount raised
         campaign = interest.campaign
         campaign.amount_raised = (campaign.amount_raised or 0) + (interest.committed_amount or 0)
-        
-        # Check if the campaign target amount has been met
-        if campaign.amount_raised >= campaign.target_amount:
+
+        # Mark completed if:
+        # 1. Target amount reached, OR
+        # 2. No interests remain pending (all active partners have been accepted/declined/withdrawn)
+        pending_count = campaign.interests.exclude(
+            status__in=['accepted', 'declined', 'withdrawn']
+        ).count()
+        all_offers_resolved = (
+            pending_count == 0
+            and campaign.interests.filter(status='accepted').exists()
+        )
+
+        if all_offers_resolved:
             campaign.status = 'completed'
             campaign.save(update_fields=['amount_raised', 'status'])
         else:
