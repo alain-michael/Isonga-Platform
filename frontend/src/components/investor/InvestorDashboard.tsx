@@ -11,9 +11,8 @@ import {
   PieChart,
   ArrowRight,
   Briefcase,
-  DollarSign,
-  Target,
   Banknote,
+  Target,
 } from "lucide-react";
 
 const InvestorDashboard: React.FC = () => {

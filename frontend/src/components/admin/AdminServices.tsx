@@ -8,7 +8,7 @@ import {
   Briefcase,
   Link as LinkIcon,
   Phone,
-  DollarSign,
+  Banknote,
   AlertCircle,
   CheckCircle2,
   ToggleLeft,
@@ -252,7 +252,7 @@ const AdminServices: React.FC = () => {
               <div className="space-y-1.5 text-sm">
                 {service.price && (
                   <div className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400">
-                    <DollarSign className="w-3.5 h-3.5 flex-shrink-0" />
+                    <Banknote className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>{service.price}</span>
                   </div>
                 )}

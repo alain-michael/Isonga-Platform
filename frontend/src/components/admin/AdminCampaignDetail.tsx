@@ -9,7 +9,7 @@ import {
   Building2,
   TrendingUp,
   Calendar,
-  DollarSign,
+  Banknote,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -337,7 +337,7 @@ const AdminCampaignDetail: React.FC = () => {
               </p>
             </div>
             <div className="p-3 bg-primary-100 rounded-xl">
-              <DollarSign className="h-6 w-6 text-primary-600" />
+              <Banknote className="h-6 w-6 text-primary-600" />
             </div>
           </div>
         </div>

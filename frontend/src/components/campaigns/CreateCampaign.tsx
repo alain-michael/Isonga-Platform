@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Target,
   FileText,
-  DollarSign,
+  Banknote,
   Check,
   AlertCircle,
   Upload,
@@ -669,7 +669,7 @@ const CreateCampaign: React.FC = () => {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                <DollarSign className="h-4 w-4 inline mr-1" />
+                <Banknote className="h-4 w-4 inline mr-1" />
                 Target Amount (RWF) *
               </label>
               <input
@@ -1871,6 +1871,7 @@ const CreateCampaign: React.FC = () => {
 
           {currentStep < STEPS.length ? (
             <button
+              key="next-btn"
               type="button"
               onClick={handleNext}
               className="btn-primary flex items-center gap-2"
@@ -1880,6 +1881,7 @@ const CreateCampaign: React.FC = () => {
             </button>
           ) : (
             <button
+              key="submit-btn"
               type="submit"
               disabled={
                 createCampaignMutation.isPending ||

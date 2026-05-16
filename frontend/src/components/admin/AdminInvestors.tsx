@@ -7,7 +7,7 @@ import {
   Mail,
   Filter,
   Eye,
-  DollarSign,
+  Banknote,
   TrendingUp,
   Users,
   RefreshCw,
@@ -221,7 +221,7 @@ const AdminInvestors: React.FC = () => {
           iconBg="bg-gradient-to-br from-neutral-500 to-neutral-600"
         />
         <StatsCard
-          icon={DollarSign}
+          icon={Banknote}
           label="Total Capacity"
           value={formatCurrency(stats.totalInvestment)}
           gradient="bg-gradient-to-br from-blue-500/10 to-blue-600/5"
@@ -350,7 +350,7 @@ const AdminInvestors: React.FC = () => {
                 )}
                 <div className="pt-2 border-t border-neutral-100 dark:border-neutral-700">
                   <div className="flex items-center text-sm text-neutral-600 dark:text-neutral-400">
-                    <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <Banknote className="h-4 w-4 mr-2 flex-shrink-0" />
                     <span className="font-medium">Investment Range:</span>
                   </div>
                   <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-1 ml-6">

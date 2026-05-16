@@ -5,7 +5,7 @@ import {
   Search,
   Filter,
   TrendingUp,
-  DollarSign,
+  Banknote,
   Users,
   Eye,
   Clock,
@@ -191,7 +191,7 @@ const CampaignList: React.FC = () => {
               </p>
             </div>
             <div className="p-3 bg-blue-100 rounded-xl">
-              <DollarSign className="h-6 w-6 text-blue-600" />
+              <Banknote className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>

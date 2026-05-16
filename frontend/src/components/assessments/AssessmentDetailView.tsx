@@ -20,7 +20,7 @@ import {
   Briefcase,
   Phone,
   Link as LinkIcon,
-  DollarSign,
+  Banknote,
 } from "lucide-react";
 import { assessmentAPI, adminAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
@@ -1055,7 +1055,7 @@ const AssessmentDetailView: React.FC = () => {
                                                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                                                   {service.price && (
                                                     <span className="flex items-center gap-1">
-                                                      <DollarSign className="w-3 h-3" />
+                                                      <Banknote className="w-3 h-3" />
                                                       {service.price}
                                                     </span>
                                                   )}

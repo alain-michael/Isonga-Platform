@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Plus,
   Target,
-  DollarSign,
+  Banknote,
   User,
   ClipboardList,
   Rocket,
@@ -259,7 +259,7 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <Banknote className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import {
   Phone,
   Globe,
   Building2,
-  DollarSign,
+  Banknote,
   TrendingUp,
   Users,
   FileText,
@@ -596,7 +596,7 @@ const InvestorDetailView: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl">
                     <div className="flex items-center space-x-2 mb-2">
-                      <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
                       <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                         Minimum Investment
                       </span>
@@ -607,7 +607,7 @@ const InvestorDetailView: React.FC = () => {
                   </div>
                   <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl">
                     <div className="flex items-center space-x-2 mb-2">
-                      <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <Banknote className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                         Maximum Investment
                       </span>
@@ -732,7 +732,7 @@ const InvestorDetailView: React.FC = () => {
                       {/* Funding Range */}
                       <div className="p-6 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
                         <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
-                          <DollarSign className="h-5 w-5 text-primary-600" />
+                          <Banknote className="h-5 w-5 text-primary-600" />
                           Funding Range
                         </h4>
                         <div className="grid grid-cols-2 gap-4">
@@ -1042,7 +1042,7 @@ const InvestorDetailView: React.FC = () => {
               {/* Funding Range */}
               <div>
                 <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary-600" /> Funding
+                  <Banknote className="h-5 w-5 text-primary-600" /> Funding
                   Range (RWF)
                 </h4>
                 <div className="grid grid-cols-2 gap-4">

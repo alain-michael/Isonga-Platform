@@ -680,7 +680,7 @@ const Register: React.FC = () => {
                       Privacy Policy
                     </Link>
                     . I understand that my data will be processed in accordance
-                    with GDPR regulations.
+                    with local regulations.
                   </label>
                 </div>
                 {errors.agreeToTerms && (

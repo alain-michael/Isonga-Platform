@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Briefcase,
   Clock,
-  DollarSign,
+  Banknote,
   CheckCircle,
   Eye,
 } from "lucide-react";
@@ -290,7 +290,7 @@ const AdminDashboard: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-green-100 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-colors">
-              <DollarSign className="h-6 w-6" />
+              <Banknote className="h-6 w-6" />
             </div>
             <ArrowRight className="h-5 w-5 text-neutral-400 group-hover:text-primary-500" />
           </div>

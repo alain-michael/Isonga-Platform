@@ -11,7 +11,7 @@ import {
   Save,
   Shield,
   Bell,
-  DollarSign,
+  Banknote,
   Settings,
   Target,
 } from "lucide-react";
@@ -434,7 +434,7 @@ const InvestorProfile: React.FC = () => {
                         Minimum Ticket Size (RWF)
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <Banknote className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
                         <input
                           type="number"
                           value={preferences.minTicket}
@@ -453,7 +453,7 @@ const InvestorProfile: React.FC = () => {
                         Maximum Ticket Size (RWF)
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <Banknote className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
                         <input
                           type="number"
                           value={preferences.maxTicket}

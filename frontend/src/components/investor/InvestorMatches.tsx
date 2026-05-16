@@ -9,7 +9,7 @@ import {
   Target,
   FileText,
   MessageSquare,
-  DollarSign,
+  Banknote,
   CheckCircle,
 } from "lucide-react";
 import { investorAPI } from "../../services/investor";
@@ -314,8 +314,8 @@ const InvestorMatches: React.FC = () => {
                 const interest = interestMap[campaign.id];
                 const statusLabel: Record<string, string> = {
                   interested: "Interested",
-                  pledged: "Pledge Submitted",
-                  committed: "Pledge Submitted",
+                  pledged: "Offer Submitted",
+                  committed: "Offer Submitted",
                   accepted: "Accepted ✓",
                   declined: "Declined",
                   withdrawn: "Withdrawn",
@@ -356,8 +356,8 @@ const InvestorMatches: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); setPledgingCampaignId(campaign.id); }}
                           className="flex-1 px-3 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition flex items-center justify-center gap-1.5"
                         >
-                          <DollarSign className="h-4 w-4" />
-                          Submit Pledge
+                          <Banknote className="h-4 w-4" />
+                          Make Offer
                         </button>
                       )}
                       {campaign.status === "active" && campaign.enterprise_user_id && (
@@ -405,7 +405,7 @@ const InvestorMatches: React.FC = () => {
                             className="flex-1 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
                           >
                             <CheckCircle className="h-4 w-4" />
-                            {pledgeMutation.isPending ? "Submitting..." : "Confirm Pledge"}
+                            {pledgeMutation.isPending ? "Submitting..." : "Confirm Offer"}
                           </button>
                           <button onClick={() => setPledgingCampaignId(null)} className="px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-300">
                             Cancel

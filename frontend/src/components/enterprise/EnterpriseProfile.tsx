@@ -16,7 +16,7 @@ import {
   Briefcase,
   Scale,
   Calendar,
-  DollarSign,
+  Banknote,
   Shield,
   CheckCircle,
   Clock,
@@ -602,7 +602,7 @@ const EnterpriseProfile: React.FC = () => {
 
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            <DollarSign className="h-4 w-4 inline mr-2" />
+            <Banknote className="h-4 w-4 inline mr-2" />
             Annual Revenue (RWF)
           </label>
           {isEditing ? (

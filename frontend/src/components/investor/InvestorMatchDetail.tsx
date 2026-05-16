@@ -17,7 +17,7 @@ import {
   Download,
   ExternalLink,
   MessageSquare,
-  DollarSign,
+  Banknote,
   X,
   ClipboardList,
   AlertCircle,
@@ -552,8 +552,8 @@ const InvestorMatchDetail: React.FC = () => {
                       onClick={() => setShowPledgeModal(true)}
                       className="w-full btn-primary flex items-center justify-center gap-2 py-3"
                     >
-                      <DollarSign className="h-5 w-5" />
-                      Pledge Amount
+                      <Banknote className="h-5 w-5" />
+                      Funding Offer
                     </button>
                     <button
                       onClick={() =>
@@ -646,13 +646,13 @@ const InvestorMatchDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Pledge Amount Modal */}
+      {/* Funding Offer Modal */}
       {showPledgeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="glass-effect dark:bg-neutral-800 rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                Pledge Amount
+                Funding Offer
               </h3>
               <button
                 onClick={() => setShowPledgeModal(false)}
@@ -676,7 +676,7 @@ const InvestorMatchDetail: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Amount to Pledge (RWF)
+                    Offer Amount (RWF)
                   </label>
                   <input
                     type="number"
@@ -697,7 +697,7 @@ const InvestorMatchDetail: React.FC = () => {
                 <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-4">
                   <p className="text-sm text-primary-800 dark:text-primary-300">
                     <strong>Note:</strong> This is a commitment to invest. The
-                    enterprise will be notified of your pledge amount.
+                    enterprise will be notified of your funding offer.
                   </p>
                 </div>
               </div>
@@ -722,8 +722,8 @@ const InvestorMatchDetail: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <DollarSign className="h-4 w-4" />
-                      Commit Pledge
+                      <Banknote className="h-4 w-4" />
+                      Confirm Offer
                     </>
                   )}
                 </button>

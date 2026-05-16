@@ -5,7 +5,7 @@ import { campaignAPI } from "../../services/campaignsService";
 import {
   TrendingUp,
   Eye,
-  DollarSign,
+  Banknote,
   CheckCircle,
   Clock,
   XCircle,
@@ -247,7 +247,7 @@ const AdminCampaigns: React.FC = () => {
               </p>
             </div>
             <div className="p-3 bg-blue-100 rounded-xl">
-              <DollarSign className="h-6 w-6 text-blue-600" />
+              <Banknote className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>

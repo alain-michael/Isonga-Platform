@@ -15,7 +15,7 @@ import {
   Share2,
   MoreVertical,
   Target,
-  DollarSign,
+  Banknote,
   Users,
   Eye,
   Calendar,
@@ -577,7 +577,7 @@ const CampaignDetail: React.FC = () => {
                     onClick={() => setShowPledgeModal(true)}
                     className="btn-primary"
                   >
-                    Pledge Amount
+                    Funding Offer
                   </button>
                   <button
                     onClick={() =>
@@ -664,7 +664,7 @@ const CampaignDetail: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-neutral-500">Amount Raised</span>
             <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="h-4 w-4 text-green-600" />
+              <Banknote className="h-4 w-4 text-green-600" />
             </div>
           </div>
           <p className="text-2xl font-bold text-neutral-900">
@@ -1552,12 +1552,12 @@ const CampaignDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Pledge Amount Modal */}
+      {/* Funding Offer Modal */}
       {showPledgeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="glass-effect rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold">Pledge Amount</h3>
+              <h3 className="text-xl font-bold">Funding Offer</h3>
               <button
                 onClick={() => setShowPledgeModal(false)}
                 className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -1580,7 +1580,7 @@ const CampaignDetail: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Amount to Pledge (RWF)
+                    Offer Amount (RWF)
                   </label>
                   <input
                     type="number"
@@ -1597,7 +1597,7 @@ const CampaignDetail: React.FC = () => {
                 <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
                   <p className="text-sm text-primary-800">
                     <strong>Note:</strong> This is a commitment to invest. The
-                    enterprise will be notified of your pledge amount.
+                    enterprise will be notified of your funding offer.
                   </p>
                 </div>
               </div>
@@ -1622,8 +1622,8 @@ const CampaignDetail: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <DollarSign className="h-4 w-4" />
-                      Commit Pledge
+                      <Banknote className="h-4 w-4" />
+                      Confirm Offer
                     </>
                   )}
                 </button>
