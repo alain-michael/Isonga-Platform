@@ -64,14 +64,14 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
             targeted_campaigns = Campaign.objects.filter(
                 target_partners=investor,
-                status__in=['approved', 'active'],
+                status__in=['active'],
                 is_vetted=True,
             ).filter(score_filter)
 
             # Campaigns with no specific targets (visible to all partners)
             open_campaigns = Campaign.objects.filter(
                 target_partners__isnull=True,
-                status__in=['approved', 'active'],
+                status__in=['active'],
                 is_vetted=True,
             ).filter(score_filter)
             

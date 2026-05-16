@@ -120,8 +120,8 @@ const InvestorMatches: React.FC = () => {
   });
 
   const sectors = [
-    ...new Set(campaigns.map((c: any) => c.enterprise_sector)),
-  ].filter(Boolean);
+    ...new Set(campaigns.map((c: any) => c.enterprise_sector as string)),
+  ].filter(Boolean) as string[];
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
@@ -230,204 +230,186 @@ const InvestorMatches: React.FC = () => {
         </div>
       </div>
 
-      {/* Applications Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Applications List */}
+      <div className="space-y-3">
         {filteredCampaigns.map((campaign: any) => (
           <div
             key={campaign.id}
             onClick={() => navigate(`/investor/matches/${campaign.id}`)}
-            className="glass-effect rounded-2xl p-6 card-hover glass-effect cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex flex-col"
+            className="glass-effect rounded-xl p-5 card-hover glass-effect cursor-pointer dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center space-x-4">
-                <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                  {campaign.enterprise_name?.charAt(0) || "E"}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {campaign.enterprise_name || "Unknown Enterprise"}
-                  </h3>
-                  <div className="flex items-center text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                    <Building2 className="h-3.5 w-3.5 mr-1" />
-                    {campaign.enterprise_sector || "N/A"}
-                    {campaign.enterprise_location && (
-                      <>
-                        <span className="mx-2">•</span>
-                        <MapPin className="h-3.5 w-3.5 mr-1" />
-                        {campaign.enterprise_location}
-                      </>
-                    )}
-                  </div>
-                </div>
+            {/* Row layout */}
+            <div className="flex items-start gap-4">
+              {/* Avatar */}
+              <div className="h-11 w-11 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg shadow flex-shrink-0">
+                {campaign.enterprise_name?.charAt(0) || "E"}
               </div>
-              <div className="flex flex-col items-end gap-2">
-                {getStatusBadge(campaign.status)}
-                {campaign.readiness_score_at_submission && (
-                  <div className="flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-sm font-bold">
-                    <Star className="h-3.5 w-3.5 mr-1 fill-current" />
-                    {campaign.readiness_score_at_submission}% Ready
-                  </div>
+
+              {/* Main info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                  <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                    {campaign.enterprise_name || "Unknown Enterprise"}
+                  </span>
+                  <span className="text-neutral-400 dark:text-neutral-500">·</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                    <Building2 className="h-3 w-3" />{campaign.enterprise_sector || "N/A"}
+                  </span>
+                  {campaign.enterprise_location && (
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />{campaign.enterprise_location}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                  {campaign.title}
+                </p>
+                {campaign.description && (
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-0.5">
+                    {campaign.description}
+                  </p>
                 )}
               </div>
-            </div>
 
-            <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-              {campaign.title}
-            </h4>
-
-            <p className="text-neutral-600 dark:text-neutral-300 mb-6 flex-grow line-clamp-2">
-              {campaign.description}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase font-semibold mb-1">
-                  Target Amount
-                </p>
-                <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
+              {/* Stats */}
+              <div className="hidden sm:flex flex-col items-end gap-1 flex-shrink-0 text-right">
+                <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
                   {campaign.target_amount?.toLocaleString() || "0"} RWF
-                </p>
+                </span>
+                <span className="text-xs text-neutral-400">Min: {campaign.min_investment?.toLocaleString() || "0"} RWF</span>
+                <div className="flex gap-1 mt-1">
+                  <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-xs rounded font-medium capitalize">
+                    {campaign.campaign_type}
+                  </span>
+                  {getStatusBadge(campaign.status)}
+                </div>
               </div>
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase font-semibold mb-1">
-                  Min Investment
-                </p>
-                <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                  {campaign.min_investment?.toLocaleString() || "0"} RWF
-                </p>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="px-2.5 py-1 bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 text-xs rounded-md font-medium">
-                {campaign.campaign_type}
-              </span>
-              <span className="px-2.5 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs rounded-md font-medium flex items-center gap-1">
-                <Target className="h-3 w-3" />
-                Targeted to You
-              </span>
-            </div>
-
-            <div className="mt-auto pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3">
-              {/* Interest / pledge / message actions */}
-              {(() => {
-                const interest = interestMap[campaign.id];
-                const statusLabel: Record<string, string> = {
-                  interested: "Interested",
-                  pledged: "Offer Submitted",
-                  committed: "Offer Submitted",
-                  accepted: "Accepted ✓",
-                  declined: "Declined",
-                  withdrawn: "Withdrawn",
-                };
-                if (!interest) {
-                  return (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); expressInterestMutation.mutate(campaign.id); }}
-                      disabled={expressInterestMutation.isPending}
-                      className="w-full btn-primary flex items-center justify-center gap-2"
-                    >
-                      <Star className="h-4 w-4" />
-                      Express Interest
-                    </button>
-                  );
-                }
-                return (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        interest.status === "accepted" ? "bg-green-100 text-green-800" :
-                        interest.status === "declined" ? "bg-red-100 text-red-800" :
-                        (interest.status === "pledged" || interest.status === "committed") ? "bg-amber-100 text-amber-800" :
-                        "bg-blue-100 text-blue-800"
-                      }`}>
-                        {statusLabel[interest.status] || interest.status}
-                      </span>
-                      {interest.committed_amount && (
-                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                          {Number(interest.committed_amount).toLocaleString()} RWF
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 flex-wrap">
-                      {interest.status === "interested" && campaign.status === "active" && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setPledgingCampaignId(campaign.id); }}
-                          className="flex-1 px-3 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition flex items-center justify-center gap-1.5"
-                        >
-                          <Banknote className="h-4 w-4" />
-                          Make Offer
-                        </button>
-                      )}
-                      {campaign.status === "active" && campaign.enterprise_user_id && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMessageCampaignId(openMessageCampaignId === campaign.id ? null : campaign.id);
-                          }}
-                          className="flex-1 px-3 py-2 text-sm btn-secondary flex items-center justify-center gap-1.5"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                          {openMessageCampaignId === campaign.id ? "Close Chat" : "Message"}
-                        </button>
-                      )}
+              {/* Actions */}
+              <div className="flex-shrink-0 flex flex-col items-end gap-2" onClick={(e) => e.stopPropagation()}>
+                {(() => {
+                  const interest = interestMap[campaign.id];
+                  const statusLabel: Record<string, string> = {
+                    interested: "Interested",
+                    pledged: "Offer Submitted",
+                    committed: "Offer Submitted",
+                    accepted: "Accepted ✓",
+                    declined: "Declined",
+                    withdrawn: "Withdrawn",
+                  };
+                  if (!interest) {
+                    return (
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigate(`/investor/matches/${campaign.id}`); }}
-                        className="flex-1 px-3 py-2 text-sm btn-secondary flex items-center justify-center gap-1.5"
+                        onClick={() => expressInterestMutation.mutate(campaign.id)}
+                        disabled={expressInterestMutation.isPending}
+                        className="btn-primary text-sm px-3 py-1.5 flex items-center gap-1.5 whitespace-nowrap"
                       >
-                        <FileText className="h-4 w-4" />
-                        Details
+                        <Star className="h-3.5 w-3.5" />
+                        Express Interest
                       </button>
-                    </div>
-
-                    {pledgingCampaignId === campaign.id && (
-                      <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl space-y-2" onClick={(e) => e.stopPropagation()}>
-                        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Submit a Pledge</p>
-                        <input
-                          type="number"
-                          placeholder="Amount (RWF)"
-                          value={pledgeAmount}
-                          onChange={(e) => setPledgeAmount(e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Notes (optional)"
-                          value={pledgeNotes}
-                          onChange={(e) => setPledgeNotes(e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                        />
-                        <div className="flex gap-2">
+                    );
+                  }
+                  return (
+                    <div className="flex flex-col items-end gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          interest.status === "accepted" ? "bg-green-100 text-green-800" :
+                          interest.status === "declined" ? "bg-red-100 text-red-800" :
+                          (interest.status === "pledged" || interest.status === "committed") ? "bg-amber-100 text-amber-800" :
+                          "bg-blue-100 text-blue-800"
+                        }`}>
+                          {statusLabel[interest.status] || interest.status}
+                        </span>
+                        {interest.committed_amount && (
+                          <span className="text-xs font-semibold text-green-600 dark:text-green-400 whitespace-nowrap">
+                            {Number(interest.committed_amount).toLocaleString()} RWF
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-1.5">
+                        {interest.status === "interested" && campaign.status === "active" && (
                           <button
-                            onClick={() => pledgeMutation.mutate({ interestId: interest.id, amount: Number(pledgeAmount), notes: pledgeNotes })}
-                            disabled={!pledgeAmount || pledgeMutation.isPending}
-                            className="flex-1 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
+                            onClick={() => setPledgingCampaignId(pledgingCampaignId === campaign.id ? null : campaign.id)}
+                            className="px-3 py-1.5 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition flex items-center gap-1"
                           >
-                            <CheckCircle className="h-4 w-4" />
-                            {pledgeMutation.isPending ? "Submitting..." : "Confirm Offer"}
+                            <Banknote className="h-3.5 w-3.5" />
+                            Make Offer
                           </button>
-                          <button onClick={() => setPledgingCampaignId(null)} className="px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-300">
-                            Cancel
+                        )}
+                        {campaign.status === "active" && campaign.enterprise_user_id && (
+                          <button
+                            onClick={() => setOpenMessageCampaignId(openMessageCampaignId === campaign.id ? null : campaign.id)}
+                            className="px-3 py-1.5 text-xs btn-secondary flex items-center gap-1"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {openMessageCampaignId === campaign.id ? "Close" : "Message"}
                           </button>
-                        </div>
+                        )}
+                        <button
+                          onClick={() => navigate(`/investor/matches/${campaign.id}`)}
+                          className="px-3 py-1.5 text-xs btn-secondary flex items-center gap-1"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Details
+                        </button>
                       </div>
-                    )}
-
-                    {openMessageCampaignId === campaign.id && campaign.enterprise_user_id && (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <CampaignMessageThread
-                          campaignId={campaign.id}
-                          interestId={interest.id}
-                          receiverId={campaign.enterprise_user_id}
-                          receiverName={campaign.enterprise_name || "Enterprise"}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
+
+            {/* Expandable offer form */}
+            {(() => {
+              const interest = interestMap[campaign.id];
+              if (!interest) return null;
+              return (
+                <>
+                  {pledgingCampaignId === campaign.id && (
+                    <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700 p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl space-y-2" onClick={(e) => e.stopPropagation()}>
+                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Submit a Funding Offer</p>
+                      <input
+                        type="number"
+                        placeholder="Amount (RWF)"
+                        value={pledgeAmount}
+                        onChange={(e) => setPledgeAmount(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Notes (optional)"
+                        value={pledgeNotes}
+                        onChange={(e) => setPledgeNotes(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => pledgeMutation.mutate({ interestId: interest.id, amount: Number(pledgeAmount), notes: pledgeNotes })}
+                          disabled={!pledgeAmount || pledgeMutation.isPending}
+                          className="flex-1 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          {pledgeMutation.isPending ? "Submitting..." : "Confirm Offer"}
+                        </button>
+                        <button onClick={() => setPledgingCampaignId(null)} className="px-3 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-300">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {openMessageCampaignId === campaign.id && campaign.enterprise_user_id && (
+                    <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700" onClick={(e) => e.stopPropagation()}>
+                      <CampaignMessageThread
+                        campaignId={campaign.id}
+                        interestId={interest.id}
+                        receiverId={campaign.enterprise_user_id}
+                        receiverName={campaign.enterprise_name || "Enterprise"}
+                      />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         ))}
       </div>

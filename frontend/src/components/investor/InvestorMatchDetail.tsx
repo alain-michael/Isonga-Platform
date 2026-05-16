@@ -54,9 +54,11 @@ const InvestorMatchDetail: React.FC = () => {
           ? parseFloat(campaign.max_investment)
           : null,
         campaign_type: campaign.campaign_type,
+        use_of_funds: campaign.use_of_funds,
         enterprise_name: campaign.enterprise_name || "Enterprise",
         enterprise_sector: campaign.enterprise_sector || "",
         enterprise_location: campaign.enterprise_location || "",
+        enterprise_user_id: campaign.enterprise_user_id,
         status: campaign.status,
       }
     : null;
@@ -273,6 +275,21 @@ const InvestorMatchDetail: React.FC = () => {
               {match.description}
             </p>
           </div>
+
+          {/* Use of Funds */}
+          {match.use_of_funds && (
+            <div className="glass-effect rounded-2xl p-8 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+              <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+                Use of Funds
+              </h2>
+              <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed whitespace-pre-line">
+                {typeof match.use_of_funds === "object"
+                  ? (match.use_of_funds as any).description ||
+                    JSON.stringify(match.use_of_funds)
+                  : match.use_of_funds}
+              </p>
+            </div>
+          )}
 
           {/* Documents */}
           <div className="glass-effect rounded-2xl p-8 glass-effect dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
@@ -540,7 +557,7 @@ const InvestorMatchDetail: React.FC = () => {
             )}
 
             {userMatch &&
-              userMatch.status === "approved" &&
+              userMatch.status === "interested" &&
               !userMatch.committed_amount && (
                 <>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
@@ -577,7 +594,7 @@ const InvestorMatchDetail: React.FC = () => {
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="font-medium text-green-800 dark:text-green-300">
-                      Pledge Committed
+                      Offer Accepted
                     </p>
                     <p className="text-sm text-green-600 dark:text-green-400">
                       {userMatch.committed_amount?.toLocaleString() || 0} RWF
@@ -590,19 +607,11 @@ const InvestorMatchDetail: React.FC = () => {
             {userMatch && (
               <button
                 onClick={() => {
-                  const enterpriseUserId = userMatch.enterprise?.user_id;
-                  console.log("Message button clicked", {
-                    userMatch,
-                    enterpriseUserId,
-                    id,
-                    match,
-                  });
-
                   navigate("/messages", {
                     state: {
                       campaignId: id,
                       campaignTitle: match.title,
-                      otherPartyId: enterpriseUserId || 0,
+                      otherPartyId: match.enterprise_user_id,
                       otherPartyType: "enterprise",
                     },
                   });

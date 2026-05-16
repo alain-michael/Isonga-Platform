@@ -29,6 +29,7 @@ const InvestorDashboard: React.FC = () => {
   } = useQuery({
     queryKey: ["investorStats"],
     queryFn: investorAPI.getDashboardStats,
+    retry: false,
   });
 
   const { data: recentMatches = [] } = useQuery({
@@ -72,7 +73,7 @@ const InvestorDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-                Active Matches
+                Active Interests
               </p>
               <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
                 {stats.activeMatches}
@@ -104,7 +105,7 @@ const InvestorDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-                Total Investments
+                Offers Accepted
               </p>
               <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
                 {stats.totalInvestments}
@@ -120,7 +121,7 @@ const InvestorDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-                Pending Requests
+                Offers Pending
               </p>
               <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
                 {stats.pendingRequests}

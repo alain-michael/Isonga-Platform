@@ -58,48 +58,32 @@ class InvestorViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        """Get investor dashboard stats"""
-        user = request.user
-        if not hasattr(user, 'investor_profile'):
-            return Response({'error': 'User is not an investor'}, status=400)
-            
-        investor = user.investor_profile
-        
-        # Calculate stats
-        # Active Matches: Matches that are approved/engaged but not yet completed
-        active_matches = Match.objects.filter(
-            investor=investor, 
-            status__in=['approved', 'engaged']
-        ).count()
-        
-        # Pending Requests: Matches pending review
-        pending_requests = Match.objects.filter(
-            investor=investor, 
-            status='pending'
-        ).count()
-        
-        # Total Investments: Completed matches (assuming completed means investment made)
-        # In a real system, this would query an Investment/Transaction model
-        completed_matches = Match.objects.filter(
-            investor=investor, 
-            status='completed'
-        )
-        total_investments = completed_matches.count()
-        
-        # Portfolio Value: Sum of target amounts of completed matches (Proxy)
-        # Ideally this should be the actual amount invested
-        # We'll use a sum of 'amount_raised' from campaigns associated with completed matches if possible
-        # But Match links to Enterprise, not Campaign directly in the model shown.
-        # Let's assume for now we sum the 'min_investment' or just 0 if no data.
-        # Better proxy: Sum of 'match_score' * 1000 just to show a number? No, that's bad.
-        # Let's use 0 for now as we don't have an Investment model yet.
-        portfolio_value = 0 
-        
+        if not hasattr(request.user, 'investor_profile'):
+            return Response({'error': 'Not an investor'}, status=403)
+
+        investor = request.user.investor_profile
+
+        from campaigns.models import CampaignInterest
+        from django.db.models import Sum
+
+        interests = CampaignInterest.objects.filter(investor=investor)
+
+        # Active: interests that are still in progress
+        active_count = interests.filter(status__in=['interested', 'pledged']).count()
+        # Pending: offers waiting for enterprise response
+        pending_count = interests.filter(status='pledged').count()
+        # Completed: accepted offers
+        accepted_count = interests.filter(status='accepted').count()
+        # Portfolio value: sum of accepted committed amounts
+        portfolio_total = interests.filter(status='accepted').aggregate(
+            total=Sum('committed_amount')
+        )['total'] or 0
+
         return Response({
-            'activeMatches': active_matches,
-            'pendingRequests': pending_requests,
-            'totalInvestments': total_investments,
-            'portfolioValue': f"{portfolio_value:,} RWF"
+            'activeMatches': active_count,
+            'pendingRequests': pending_count,
+            'totalInvestments': accepted_count,
+            'portfolioValue': f"{int(portfolio_total):,} RWF"
         })
 
     @action(detail=True, methods=['get'])

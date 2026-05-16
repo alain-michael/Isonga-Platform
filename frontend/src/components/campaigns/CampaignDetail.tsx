@@ -405,12 +405,12 @@ const CampaignDetail: React.FC = () => {
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string | null | undefined) => {
     return new Intl.NumberFormat("en-RW", {
       style: "currency",
       currency: "RWF",
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(Number(amount) || 0);
   };
 
   const getProgressPercentage = (raised: number, target: number) => {
@@ -598,7 +598,7 @@ const CampaignDetail: React.FC = () => {
                 <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="font-medium text-green-800">
-                    Pledged {formatCurrency(userInterest.committed_amount || 0)}
+                    Offered {formatCurrency(userInterest.committed_amount)}
                   </span>
                 </div>
               )}
@@ -898,8 +898,8 @@ const CampaignDetail: React.FC = () => {
                   const investorUserId = interest.investor?.user?.id;
                   const statusLabel: Record<string, string> = {
                     interested: "Interested",
-                    pledged: "Pledge Submitted",
-                    committed: "Pledge Submitted",
+                    pledged: "Offer Submitted",
+                    committed: "Offer Submitted",
                     accepted: "Accepted ✓",
                     declined: "Declined",
                     withdrawn: "Withdrawn",
@@ -934,10 +934,8 @@ const CampaignDetail: React.FC = () => {
                               interest.status === "accepted") &&
                               interest.committed_amount && (
                                 <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                                  Pledged:{" "}
-                                  {formatCurrency(
-                                    Number(interest.committed_amount),
-                                  )}
+                                  Offered:{" "}
+                                  {formatCurrency(interest.committed_amount)}
                                 </p>
                               )}
                             {interest.notes && (

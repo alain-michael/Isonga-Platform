@@ -34,7 +34,7 @@ class CampaignInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CampaignInterest
         fields = '__all__'
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'investor']
 
 
 class CampaignSerializer(serializers.ModelSerializer):
